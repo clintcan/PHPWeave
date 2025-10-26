@@ -1,0 +1,72 @@
+# Docker Compose for PHPWeave
+# Production-ready setup with APCu caching
+
+version: '3.8'
+
+services:
+  # PHP Application with Apache
+  phpweave:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: phpweave-app
+    ports:
+      - "8080:80"
+    volumes:
+      # Mount .env file (create from .env.sample)
+      - ./.env:/var/www/html/.env:ro
+      # Optional: Mount cache directory for persistence (not needed with APCu)
+      # - cache-data:/var/www/html/cache
+    environment:
+      - DOCKER_ENV=production
+      - PHPWEAVE_ENV=production
+    restart: unless-stopped
+    networks:
+      - phpweave-network
+    depends_on:
+      - db
+
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: phpweave-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: phpweave
+      MYSQL_USER: phpweave_user
+      MYSQL_PASSWORD: phpweave_pass
+    volumes:
+      - db-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    networks:
+      - phpweave-network
+
+# Optional: phpMyAdmin for database management
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpweave-phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: phpweave_user
+      PMA_PASSWORD: phpweave_pass
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - phpweave-network
+
+volumes:
+  db-data:
+    driver: local
+  # Optional: Uncomment if using file cache instead of APCu
+  # cache-data:
+  #   driver: local
+
+networks:
+  phpweave-network:
+    driver: bridge

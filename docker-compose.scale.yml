@@ -1,0 +1,92 @@
+# Docker Compose for Scaled/Load-Balanced Setup
+# Multiple PHP containers with APCu caching
+
+version: '3.8'
+
+services:
+  # Nginx Load Balancer
+  nginx:
+    image: nginx:alpine
+    container_name: phpweave-lb
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - phpweave-1
+      - phpweave-2
+      - phpweave-3
+    restart: unless-stopped
+    networks:
+      - phpweave-network
+
+  # PHP Application Instance 1
+  phpweave-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: phpweave-app-1
+    environment:
+      - DOCKER_ENV=production
+      - PHPWEAVE_ENV=production
+      - INSTANCE_ID=1
+    restart: unless-stopped
+    networks:
+      - phpweave-network
+    depends_on:
+      - db
+
+  # PHP Application Instance 2
+  phpweave-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: phpweave-app-2
+    environment:
+      - DOCKER_ENV=production
+      - PHPWEAVE_ENV=production
+      - INSTANCE_ID=2
+    restart: unless-stopped
+    networks:
+      - phpweave-network
+    depends_on:
+      - db
+
+  # PHP Application Instance 3
+  phpweave-3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: phpweave-app-3
+    environment:
+      - DOCKER_ENV=production
+      - PHPWEAVE_ENV=production
+      - INSTANCE_ID=3
+    restart: unless-stopped
+    networks:
+      - phpweave-network
+    depends_on:
+      - db
+
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: phpweave-db-scaled
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: phpweave
+      MYSQL_USER: phpweave_user
+      MYSQL_PASSWORD: phpweave_pass
+    volumes:
+      - db-data:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - phpweave-network
+
+volumes:
+  db-data:
+    driver: local
+
+networks:
+  phpweave-network:
+    driver: bridge

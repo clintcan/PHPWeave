@@ -1,0 +1,72 @@
+# Docker Compose for Development
+# Includes hot-reload and debugging tools
+
+version: '3.8'
+
+services:
+  phpweave:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - INSTALL_XDEBUG=true
+    container_name: phpweave-dev
+    ports:
+      - "8080:80"
+    volumes:
+      # Mount entire project for hot-reload
+      - ./:/var/www/html
+      # Exclude vendor and node_modules
+      - /var/www/html/vendor
+      - /var/www/html/node_modules
+    environment:
+      - DOCKER_ENV=development
+      - PHPWEAVE_ENV=development
+      - PHP_IDE_CONFIG=serverName=phpweave
+      - XDEBUG_MODE=debug
+      - XDEBUG_CONFIG=client_host=host.docker.internal
+    restart: unless-stopped
+    networks:
+      - phpweave-network
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: phpweave-db-dev
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: phpweave_dev
+      MYSQL_USER: dev
+      MYSQL_PASSWORD: dev
+    volumes:
+      - db-dev-data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    restart: unless-stopped
+    networks:
+      - phpweave-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpweave-phpmyadmin-dev
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: dev
+      PMA_PASSWORD: dev
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - phpweave-network
+
+volumes:
+  db-dev-data:
+    driver: local
+
+networks:
+  phpweave-network:
+    driver: bridge

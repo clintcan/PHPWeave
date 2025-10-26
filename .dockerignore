@@ -1,0 +1,31 @@
+# .dockerignore - Exclude files from Docker build context
+
+# Git
+.git
+.gitignore
+
+# Cache and temporary files
+cache/*.cache
+*.log
+*.tmp
+
+# Documentation (optional - include if needed)
+*.md
+!README.md
+
+# Development files
+.env.sample
+# Note: tests/ is included for in-container testing
+
+# Node modules (if using)
+node_modules
+npm-debug.log
+
+# IDE files
+.vscode
+.idea
+*.sublime-*
+
+# OS files
+.DS_Store
+Thumbs.db
