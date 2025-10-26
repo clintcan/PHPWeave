@@ -78,7 +78,7 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'
+        php-version: '8.4'
         extensions: pdo, pdo_mysql
         coverage: none
 
@@ -96,7 +96,7 @@ jobs:
           cat > composer.json <<EOF
         {
           "require-dev": {
-            "phpstan/phpstan": "^1.10"
+            "phpstan/phpstan": "^2.1"
           }
         }
         EOF

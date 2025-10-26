@@ -3,7 +3,7 @@
 [![CI Tests](https://github.com/clintcan/PHPWeave/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/clintcan/PHPWeave/actions/workflows/ci.yml)
 [![Docker Build](https://github.com/clintcan/PHPWeave/actions/workflows/docker.yml/badge.svg?branch=main)](https://github.com/clintcan/PHPWeave/actions/workflows/docker.yml)
 [![Code Quality](https://github.com/clintcan/PHPWeave/actions/workflows/code-quality.yml/badge.svg?branch=main)](https://github.com/clintcan/PHPWeave/actions/workflows/code-quality.yml)
-[![PHP Version](https://img.shields.io/badge/PHP-7.4%20%7C%208.0%20%7C%208.1%20%7C%208.2%20%7C%208.3-blue)](https://www.php.net/)
+[![PHP Version](https://img.shields.io/badge/PHP-7.4%20%7C%208.0%20%7C%208.1%20%7C%208.2%20%7C%208.3%20%7C%208.4-blue)](https://www.php.net/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 A lightweight, homegrown PHP MVC framework born from simplicity and evolved with modern routing.
