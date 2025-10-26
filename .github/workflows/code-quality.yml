@@ -1,0 +1,191 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  php-syntax:
+    name: PHP Syntax Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        coverage: none
+
+    - name: Check PHP syntax - Core
+      run: find coreapp -name "*.php" -print0 | xargs -0 -n1 php -l
+
+    - name: Check PHP syntax - Public
+      run: find public -name "*.php" -print0 | xargs -0 -n1 php -l
+
+    - name: Check PHP syntax - Tests
+      run: find tests -name "*.php" -print0 | xargs -0 -n1 php -l
+
+    - name: Check PHP syntax - Root files
+      run: |
+        php -l routes.php
+        php -l worker.php
+
+    - name: Check PHP syntax - Controllers
+      run: |
+        if [ -d "controller" ] && [ "$(ls -A controller/*.php 2>/dev/null)" ]; then
+          find controller -name "*.php" -print0 | xargs -0 -n1 php -l
+        else
+          echo "No controllers found (this is OK for fresh install)"
+        fi
+
+    - name: Check PHP syntax - Models
+      run: |
+        if [ -d "models" ] && [ "$(ls -A models/*.php 2>/dev/null)" ]; then
+          find models -name "*.php" -print0 | xargs -0 -n1 php -l
+        else
+          echo "No models found (this is OK for fresh install)"
+        fi
+
+    - name: Check PHP syntax - Hooks
+      run: |
+        if [ -d "hooks" ] && [ "$(ls -A hooks/*.php 2>/dev/null)" ]; then
+          find hooks -name "*.php" -print0 | xargs -0 -n1 php -l
+        else
+          echo "No hooks found (this is OK for fresh install)"
+        fi
+
+    - name: Check PHP syntax - Jobs
+      run: |
+        if [ -d "jobs" ] && [ "$(ls -A jobs/*.php 2>/dev/null)" ]; then
+          find jobs -name "*.php" -print0 | xargs -0 -n1 php -l
+        else
+          echo "No jobs found (this is OK for fresh install)"
+        fi
+
+  phpstan:
+    name: PHPStan Static Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: pdo, pdo_mysql
+        coverage: none
+
+    - name: Cache Composer dependencies
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: ${{ runner.os }}-composer-
+
+    - name: Install Composer dependencies
+      run: |
+        if [ ! -f "composer.json" ]; then
+          echo "Creating minimal composer.json for PHPStan"
+          cat > composer.json <<EOF
+        {
+          "require-dev": {
+            "phpstan/phpstan": "^1.10"
+          }
+        }
+        EOF
+        fi
+        composer install --no-interaction --prefer-dist --no-progress
+
+    - name: Create PHPStan config
+      run: |
+        cat > phpstan.neon <<EOF
+        parameters:
+          level: 5
+          paths:
+            - coreapp
+            - public
+          ignoreErrors:
+            - '#Call to an undefined method#'
+            - '#Access to an undefined property#'
+        EOF
+
+    - name: Run PHPStan
+      run: vendor/bin/phpstan analyse --no-progress --error-format=github || true
+
+  security-check:
+    name: Security Checks
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check for hardcoded credentials
+      run: |
+        echo "Checking for potential hardcoded credentials..."
+        ! grep -rn --include="*.php" -E "(password|passwd|pwd)\s*=\s*['\"][^'\"]{3,}['\"]" coreapp/ public/ || {
+          echo "⚠️  Warning: Possible hardcoded credentials found"
+          exit 0
+        }
+
+    - name: Check for SQL injection vulnerabilities
+      run: |
+        echo "Checking for potential SQL injection patterns..."
+        ! grep -rn --include="*.php" -E "\\\$_(GET|POST|REQUEST|COOKIE)\[.+\].*query|SELECT.*\\\$_(GET|POST|REQUEST)" coreapp/ controller/ models/ || {
+          echo "⚠️  Warning: Potential SQL injection patterns found"
+          echo "Please ensure all queries use prepared statements"
+          exit 0
+        }
+
+    - name: Check for eval() usage
+      run: |
+        echo "Checking for dangerous eval() usage..."
+        ! grep -rn --include="*.php" "eval\s*(" coreapp/ public/ controller/ || {
+          echo "⚠️  Warning: eval() usage found"
+          exit 0
+        }
+
+    - name: Check .env is not committed
+      run: |
+        if [ -f ".env" ]; then
+          echo "❌ Error: .env file should not be committed"
+          exit 1
+        else
+          echo "✓ .env file not found in repository (correct)"
+        fi
+
+    - name: Verify .env.sample exists
+      run: |
+        if [ ! -f ".env.sample" ]; then
+          echo "⚠️  Warning: .env.sample not found"
+          exit 1
+        else
+          echo "✓ .env.sample exists"
+        fi
+
+  markdown-lint:
+    name: Markdown Lint
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Lint Markdown files
+      uses: articulate/actions-markdownlint@v1
+      continue-on-error: true
+      with:
+        config: |
+          {
+            "MD013": false,
+            "MD033": false,
+            "MD041": false
+          }
+        files: '**/*.md'

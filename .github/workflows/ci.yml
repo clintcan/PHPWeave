@@ -1,0 +1,175 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Test PHP ${{ matrix.php-version }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php-version: ['7.4', '8.0', '8.1', '8.2', '8.3']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: pdo, pdo_mysql, apcu
+        ini-values: apc.enabled=1, apc.enable_cli=1
+        coverage: none
+
+    - name: Check PHP version
+      run: php -v
+
+    - name: Verify APCu installation
+      run: php -m | grep apcu
+
+    - name: Create required directories
+      run: |
+        mkdir -p cache
+        mkdir -p storage/queue
+        chmod 755 cache
+        chmod 755 storage/queue
+
+    - name: Copy environment file
+      run: cp .env.sample .env
+
+    - name: Run Hooks Tests
+      run: php tests/test_hooks.php
+
+    - name: Run Models Tests
+      run: php tests/test_models.php
+
+    - name: Run Controllers Tests
+      run: php tests/test_controllers.php
+
+    - name: Run Docker Caching Tests
+      run: php tests/test_docker_caching.php
+
+    - name: Run Performance Benchmarks
+      run: php tests/benchmark_optimizations.php
+
+    - name: Test Syntax - Core Files
+      run: |
+        find coreapp -name "*.php" -exec php -l {} \;
+
+    - name: Test Syntax - Controllers
+      run: |
+        if [ -d "controller" ] && [ "$(ls -A controller/*.php 2>/dev/null)" ]; then
+          find controller -name "*.php" -exec php -l {} \;
+        else
+          echo "No controllers to test"
+        fi
+
+    - name: Test Syntax - Models
+      run: |
+        if [ -d "models" ] && [ "$(ls -A models/*.php 2>/dev/null)" ]; then
+          find models -name "*.php" -exec php -l {} \;
+        else
+          echo "No models to test"
+        fi
+
+    - name: Test Syntax - Hooks
+      run: |
+        if [ -d "hooks" ] && [ "$(ls -A hooks/*.php 2>/dev/null)" ]; then
+          find hooks -name "*.php" -exec php -l {} \;
+        else
+          echo "No hooks to test"
+        fi
+
+  test-mysql:
+    name: Test with MySQL
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: phpweave_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: pdo, pdo_mysql, apcu
+        ini-values: apc.enabled=1, apc.enable_cli=1
+
+    - name: Create directories
+      run: |
+        mkdir -p cache storage/queue
+        chmod 755 cache storage/queue
+
+    - name: Configure database
+      run: |
+        cp .env.sample .env
+        sed -i 's/DBHOST=localhost/DBHOST=127.0.0.1/' .env
+        sed -i 's/DBNAME=your_database/DBNAME=phpweave_test/' .env
+        sed -i 's/DBUSER=your_username/DBUSER=root/' .env
+        sed -i 's/DBPASSWORD=your_password/DBPASSWORD=password/' .env
+
+    - name: Wait for MySQL
+      run: |
+        while ! mysqladmin ping -h"127.0.0.1" -P3306 -uroot -ppassword --silent; do
+          sleep 1
+        done
+
+    - name: Create test table
+      run: |
+        mysql -h 127.0.0.1 -P 3306 -uroot -ppassword phpweave_test <<EOF
+        CREATE TABLE IF NOT EXISTS test_table (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        INSERT INTO test_table (name) VALUES ('Test Entry');
+        EOF
+
+    - name: Test database connection
+      run: |
+        php -r "
+        require_once 'coreapp/dbconnection.php';
+        \$GLOBALS['configs']['DBHOST'] = '127.0.0.1';
+        \$GLOBALS['configs']['DBNAME'] = 'phpweave_test';
+        \$GLOBALS['configs']['DBUSER'] = 'root';
+        \$GLOBALS['configs']['DBPASSWORD'] = 'password';
+        \$GLOBALS['configs']['DBCHARSET'] = 'utf8';
+        try {
+          \$db = new DBConnection();
+          \$stmt = \$db->executePreparedSQL('SELECT COUNT(*) as count FROM test_table');
+          \$result = \$db->fetch(\$stmt);
+          echo 'Database connection: SUCCESS\n';
+          echo 'Records found: ' . \$result['count'] . '\n';
+        } catch (Exception \$e) {
+          echo 'Database connection: FAILED - ' . \$e->getMessage() . '\n';
+          exit(1);
+        }
+        "
+
+    - name: Run all tests
+      run: |
+        php tests/test_hooks.php
+        php tests/test_models.php
+        php tests/test_controllers.php
+        php tests/test_docker_caching.php
+        php tests/benchmark_optimizations.php
