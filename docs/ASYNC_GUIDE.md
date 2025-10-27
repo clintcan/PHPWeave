@@ -16,15 +16,29 @@ HTTP response:
 
 ### Fire and Forget
 
-For quick one-off tasks:
+For quick one-off tasks, `Async::run()` supports multiple callable types:
 
 ```php
-// In your controller
+// Option 1: Static method (recommended - no external library needed)
+class EmailHelper {
+    public static function sendWelcome($email) {
+        mail($email, 'Welcome', 'Thanks for signing up!');
+    }
+}
+Async::run(['EmailHelper', 'sendWelcome']);
+
+// Option 2: Global function (no external library needed)
+function send_welcome_email() {
+    mail('user@example.com', 'Welcome', 'Thanks for signing up!');
+}
+Async::run('send_welcome_email');
+
+// Option 3: Closure (requires: composer require opis/closure)
 Async::run(function() {
     mail('user@example.com', 'Welcome', 'Thanks for signing up!');
 });
 
-// Response returns immediately, email sends in background
+// Response returns immediately, task runs in background
 ```
 
 ### Queue Jobs
@@ -57,7 +71,37 @@ Async::defer(function() {
 
 ### 1. Fire and Forget with `Async::run()`
 
-**Best for:** One-off tasks, closures, quick operations
+**Best for:** One-off tasks, quick operations
+
+**Supported Callable Types:**
+
+1. **Static Methods** (recommended - works without external libraries):
+   ```php
+   class EmailTasks {
+       public static function sendWelcome($email) {
+           mail($email, 'Welcome', 'Thanks for signing up!');
+       }
+   }
+   Async::run(['EmailTasks', 'sendWelcome']);
+   ```
+
+2. **Global Functions** (works without external libraries):
+   ```php
+   function send_notification() {
+       mail('admin@example.com', 'Alert', 'New signup');
+   }
+   Async::run('send_notification');
+   ```
+
+3. **Closures** (requires `composer require opis/closure`):
+   ```php
+   Async::run(function() use ($userId) {
+       $user = $GLOBALS['models']['user_model']->getUser($userId);
+       mail($user['email'], 'Welcome!', 'Thanks for joining!');
+   });
+   ```
+
+**Example:**
 
 ```php
 class User extends Controller
@@ -68,11 +112,8 @@ class User extends Controller
         global $models;
         $userId = $models['user_model']->create($_POST);
 
-        // Send welcome email in background
-        Async::run(function() use ($userId) {
-            $user = $GLOBALS['models']['user_model']->getUser($userId);
-            mail($user['email'], 'Welcome!', 'Thanks for joining!');
-        });
+        // Send welcome email in background using static method
+        Async::run(['EmailTasks', 'sendWelcome']);
 
         // Return immediately
         $this->show("register_success");
@@ -83,14 +124,16 @@ class User extends Controller
 **Pros:**
 
 - No setup required
+- Works without external libraries (for static methods/functions)
 - Perfect for simple tasks
-- Inline closures
+- Uses secure JSON serialization (for static methods/functions)
 
 **Cons:**
 
-- Not reusable
+- Not reusable across projects
 - Limited error handling
 - Can't be retried
+- Instance methods not supported (use static methods instead)
 
 ### 2. Job Queue with `Async::queue()`
 

@@ -380,15 +380,29 @@ DBCHARSET=utf8
 
 ## Async Background Tasks
 
-PHPWeave includes a simple, elegant async system for background processing:
+PHPWeave includes a simple, elegant async system for background processing with multiple callable types:
 
 ```php
-// Fire and forget
+// Fire and forget - Static method (no external library needed)
+class EmailTasks {
+    public static function sendWelcome() {
+        mail('user@example.com', 'Welcome', 'Thanks for signing up!');
+    }
+}
+Async::run(['EmailTasks', 'sendWelcome']);
+
+// Fire and forget - Global function (no external library needed)
+function send_welcome_email() {
+    mail('user@example.com', 'Welcome', 'Thanks!');
+}
+Async::run('send_welcome_email');
+
+// Fire and forget - Closure (requires: composer require opis/closure)
 Async::run(function() {
     mail('user@example.com', 'Welcome', 'Thanks for signing up!');
 });
 
-// Queue a job
+// Queue a job (recommended for production)
 Async::queue('SendEmailJob', [
     'to' => 'user@example.com',
     'subject' => 'Welcome!',
@@ -400,6 +414,8 @@ Async::defer(function() {
     logAnalytics($_SESSION['user_id']);
 });
 ```
+
+**Security:** Static methods and functions use secure JSON serialization (no deserialization vulnerabilities).
 
 **Run the worker:**
 ```bash
