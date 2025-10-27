@@ -2,7 +2,9 @@
 
 ## Overview
 
-PHPWeave's async system provides simple, elegant background task processing without external dependencies. Perfect for tasks that shouldn't block your HTTP response:
+PHPWeave's async system provides simple, elegant background task processing
+without external dependencies. Perfect for tasks that shouldn't block your
+HTTP response:
 
 - 📧 Sending emails
 - 🖼️ Processing images
@@ -79,11 +81,13 @@ class User extends Controller
 ```
 
 **Pros:**
+
 - No setup required
 - Perfect for simple tasks
 - Inline closures
 
 **Cons:**
+
 - Not reusable
 - Limited error handling
 - Can't be retried
@@ -122,12 +126,14 @@ class User extends Controller
 ```
 
 **Pros:**
+
 - Reusable job classes
 - Error handling and retries
 - Priority support
 - Queue monitoring
 
 **Cons:**
+
 - Requires worker process
 - More setup
 
@@ -154,11 +160,13 @@ class Blog extends Controller
 ```
 
 **Pros:**
+
 - Runs after response sent
 - No external worker needed
 - Zero setup
 
 **Cons:**
+
 - Limited execution time
 - Blocks PHP shutdown
 - Not for heavy tasks
@@ -273,7 +281,8 @@ Add to crontab to run every minute:
 Or every 5 minutes with limit:
 
 ```cron
-*/5 * * * * cd /path/to/phpweave && php worker.php --limit=10 >> storage/logs/worker.log 2>&1
+*/5 * * * * cd /path/to/phpweave && php worker.php --limit=10 \
+>> storage/logs/worker.log 2>&1
 ```
 
 ### Supervisor (Production - Linux)
@@ -291,6 +300,7 @@ stdout_logfile=/var/www/phpweave/storage/logs/worker.log
 ```
 
 Then:
+
 ```bash
 sudo supervisorctl reread
 sudo supervisorctl update
@@ -300,6 +310,7 @@ sudo supervisorctl start phpweave-worker
 ### Windows Task Scheduler
 
 Create a scheduled task:
+
 - Program: `C:\php\php.exe`
 - Arguments: `C:\path\to\phpweave\worker.php`
 - Trigger: Every 1 minute
@@ -436,7 +447,8 @@ class Reports extends Controller
         // Show status page
         $this->show("report_generating", [
             'job_id' => $jobId,
-            'message' => 'Your report is being generated. You will receive an email when it\'s ready.'
+            'message' => 'Your report is being generated. ' .
+                'You will receive an email when it\'s ready.'
         ]);
     }
 }
@@ -505,7 +517,8 @@ class SendEmailJob extends Job {
             }
         } catch (Exception $e) {
             // Log detailed error
-            error_log("Email failed: " . $e->getMessage() . " | Recipient: " . $data['to']);
+            error_log("Email failed: " . $e->getMessage() .
+                " | Recipient: " . $data['to']);
 
             // Re-throw for queue to mark as failed
             throw $e;
@@ -529,16 +542,19 @@ Async::queue('ProcessOrderJob', ['order' => $orderObject]);
 ### Jobs Not Processing
 
 1. Check worker is running:
+
    ```bash
    ps aux | grep worker.php
    ```
 
 2. Check queue directory permissions:
+
    ```bash
    chmod 755 storage/queue
    ```
 
 3. Check PHP CLI is available:
+
    ```bash
    php -v
    ```
@@ -546,12 +562,14 @@ Async::queue('ProcessOrderJob', ['order' => $orderObject]);
 ### Failed Jobs
 
 View failed jobs:
+
 ```bash
 ls -la storage/queue/failed/
 cat storage/queue/failed/10_job_*.json
 ```
 
 Retry failed jobs:
+
 ```php
 Async::retryFailed(5); // Retry 5 jobs
 ```
@@ -559,6 +577,7 @@ Async::retryFailed(5); // Retry 5 jobs
 ### Memory Issues
 
 Limit jobs processed per run:
+
 ```bash
 php worker.php --limit=10
 ```
@@ -566,10 +585,12 @@ php worker.php --limit=10
 ### Monitoring
 
 Add to worker script:
+
 ```php
 $status = Async::queueStatus();
 if ($status['pending'] > 100) {
-    mail('admin@example.com', 'Queue Alert', 'Queue has ' . $status['pending'] . ' pending jobs');
+    mail('admin@example.com', 'Queue Alert',
+        'Queue has ' . $status['pending'] . ' pending jobs');
 }
 ```
 

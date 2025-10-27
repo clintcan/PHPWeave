@@ -96,11 +96,13 @@ All files passed PHP lint checks with **zero syntax errors**:
 - ✅ Graceful fallbacks when hooks not registered
 
 ### Performance
+
 - ✅ Minimal overhead when no hooks registered
 - ✅ Debug logging only when DEBUG enabled
 - ✅ Efficient priority sorting with `usort()`
 
 ### Safety
+
 - ✅ Example files commented out by default
 - ✅ No automatic execution of user code
 - ✅ Hook exceptions isolated (don't break framework)
@@ -109,16 +111,20 @@ All files passed PHP lint checks with **zero syntax errors**:
 ## Known Behavior
 
 ### Expected Warnings
+
 The following warning is **expected behavior** during exception testing:
-```
+
+```text
 PHP Warning: Error in hook 'exception_test': Test exception in hooks.php on line 149
 ```
 
-This demonstrates proper exception handling - exceptions are caught, logged, and don't break the application.
+This demonstrates proper exception handling - exceptions are caught, logged,
+and don't break the application.
 
 ## Conclusion
 
 The PHPWeave hooks system is **production-ready** with:
+
 - ✅ Zero syntax errors
 - ✅ All functional tests passing
 - ✅ Proper error handling
