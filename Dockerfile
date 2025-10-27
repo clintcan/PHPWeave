@@ -29,10 +29,10 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . /var/www/html/
 
-# Create cache directory with proper permissions
-RUN mkdir -p cache && \
-    chown -R www-data:www-data cache && \
-    chmod 755 cache
+# Create cache and storage directories with proper permissions
+RUN mkdir -p cache storage storage/queue && \
+    chown -R www-data:www-data cache storage && \
+    chmod 755 cache storage storage/queue
 
 # Set proper permissions for the application
 RUN chown -R www-data:www-data /var/www/html && \
@@ -52,7 +52,7 @@ EXPOSE 80
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost/ || exit 1
+    CMD curl -f http://localhost/health.php || exit 1
 
 # Start Apache
 CMD ["apache2-foreground"]

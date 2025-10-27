@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: phpweave
+  labels:
+    app: phpweave
+spec:
+  type: ClusterIP
+  selector:
+    app: phpweave
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
