@@ -54,8 +54,8 @@ Router::clearCache()           // Clears both APCu and file cache
 
 ```php
 $isDocker = file_exists('/.dockerenv') ||
-            getenv('DOCKER_ENV') ||
-            getenv('KUBERNETES_SERVICE_HOST');
+            getenv('DOCKER_ENV') !== false ||
+            getenv('KUBERNETES_SERVICE_HOST') !== false;
 ```
 
 **Caching Strategy:**

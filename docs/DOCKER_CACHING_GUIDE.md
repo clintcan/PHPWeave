@@ -394,7 +394,7 @@ if (!Router::loadFromCache()) {
 
 ```php
 // Detect Docker environment
-$isDocker = file_exists('/.dockerenv') || getenv('DOCKER_ENV');
+$isDocker = file_exists('/.dockerenv') || getenv('DOCKER_ENV') !== false;
 
 // Enable route caching in production (disable in DEBUG mode or Docker without volume)
 if (!isset($GLOBALS['configs']['DEBUG']) || !$GLOBALS['configs']['DEBUG']) {

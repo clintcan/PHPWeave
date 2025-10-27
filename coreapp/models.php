@@ -44,10 +44,11 @@ foreach ($files as $file) {
 }
 
 /**
- * Lazy Model Loader Function
+ * Lazy Model Loader Function (Environment-Aware Thread Safety)
  *
  * Returns a model instance, creating it only on first access.
  * Subsequent calls return the cached instance.
+ * Uses file-based locking only in Docker/cloud/threaded environments.
  *
  * @param string $modelName Name of the model (e.g., 'user_model')
  * @return object Model instance
@@ -57,10 +58,29 @@ foreach ($files as $file) {
  */
 function model($modelName) {
     static $instances = [];
+    static $needsLocking = null;
+    static $lockFile = null;
 
-    // Return cached instance if exists
+    // Return cached instance if exists (fast path, no locking needed)
     if (isset($instances[$modelName])) {
         return $instances[$modelName];
+    }
+
+    // Detect environment and locking requirements once
+    if ($needsLocking === null) {
+        $needsLocking = (
+            file_exists('/.dockerenv') ||                    // Docker container
+            getenv('KUBERNETES_SERVICE_HOST') !== false ||   // Kubernetes pod
+            getenv('DOCKER_ENV') !== false ||                // Docker environment variable
+            extension_loaded('swoole') ||                    // Swoole server
+            extension_loaded('pthreads') ||                  // pthreads extension
+            defined('ROADRUNNER_VERSION') ||                 // RoadRunner server
+            defined('FRANKENPHP_VERSION')                    // FrankenPHP server
+        );
+        
+        if ($needsLocking && $lockFile === null) {
+            $lockFile = sys_get_temp_dir() . '/phpweave_models.lock';
+        }
     }
 
     // Check if model class exists
@@ -68,21 +88,47 @@ function model($modelName) {
         throw new Exception("Model '{$modelName}' not found");
     }
 
-    // Instantiate and cache
     $className = $GLOBALS['_model_files'][$modelName];
-    $instances[$modelName] = new $className();
+
+    // Use locking only in containerized/threaded environments
+    if ($needsLocking) {
+        // Thread-safe instantiation using file locking
+        $fp = fopen($lockFile, 'c+');
+        if (!$fp) {
+            throw new Exception("Unable to create lock file for thread safety");
+        }
+
+        if (flock($fp, LOCK_EX)) {
+            try {
+                // Double-check pattern: verify instance wasn't created while waiting for lock
+                if (!isset($instances[$modelName])) {
+                    $instances[$modelName] = new $className();
+                }
+            } finally {
+                flock($fp, LOCK_UN);
+                fclose($fp);
+            }
+        } else {
+            fclose($fp);
+            throw new Exception("Unable to acquire lock for thread safety");
+        }
+    } else {
+        // Fast path for traditional PHP deployments (no locking overhead)
+        $instances[$modelName] = new $className();
+    }
 
     return $instances[$modelName];
 }
 
 /**
- * Lazy Model Loader Class
+ * Lazy Model Loader Class (Thread-Safe)
  *
  * Provides array-like access to models with lazy loading.
  * Used for backward compatibility with $models['model_name'] syntax.
+ * Thread-safe implementation using the model() function.
  */
 class LazyModelLoader implements ArrayAccess {
-    private static $instances = [];
+    // Removed static $instances - now uses thread-safe model() function
 
     /**
      * Check if model exists (ArrayAccess)
