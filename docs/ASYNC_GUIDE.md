@@ -612,7 +612,8 @@ if ($status['pending'] > 100) {
 | Scalability | Medium | High | High | Very High |
 | Learning Curve | Minimal | Medium | Medium | Steep |
 
-PHPWeave Async is perfect for small to medium applications where simplicity matters more than extreme scale.
+PHPWeave Async is perfect for small to medium applications where simplicity 
+matters more than extreme scale.
 
 ## Summary
 
@@ -622,4 +623,5 @@ PHPWeave's async system gives you three powerful tools:
 2. **`Async::queue()`** - Robust job queue for complex workflows
 3. **`Async::defer()`** - Post-response execution for cleanup tasks
 
-Choose the right tool for each situation, and your application will feel faster and more responsive to users!
+Choose the right tool for each situation, and your application will feel
+faster and more responsive to users!
