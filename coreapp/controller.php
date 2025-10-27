@@ -189,19 +189,13 @@ function getControllerClass(){
 	$baseurl = $GLOBALS['baseurl'];
 	$path = preg_replace("/^\/$filename/", "", $path);
 	$patharr = explode("/", $path);
-	if(!isset($patharr[1])){
-		return "home";
+	if(!isset($patharr[1]) || empty($patharr[1])){
+		return "Home";
 	}
+	// Get the first token which is the controller name
 	$token = strtok($patharr[1], "/");
-	$counter = 0;
-	$params = array();
-	while($token !== false){
-		if($counter === 0) {
-			$class = ucwords($token);
-			return $class;
-		}
-		$counter++;
-		$token = strtok("/");
+	if($token !== false && !empty($token)){
+		return ucwords($token);
 	}
 	return "Home";
 }

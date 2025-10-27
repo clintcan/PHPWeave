@@ -137,7 +137,6 @@ jobs:
             # Ignore conditions that PHPStan doesn't understand correctly
             - '#If condition is always false#'
             - '#Right side of && is always true#'
-            - '#Variable \$class in empty\(\) always exists and is always falsy#'
           treatPhpDocTypesAsCertain: false
         EOF
 
