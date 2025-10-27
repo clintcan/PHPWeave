@@ -704,12 +704,12 @@ class Router
 
         // Clear APCu cache
         if (self::$useAPCu) {
-            $success = @apcu_delete(self::$apcuKey) && $success;
+            $success = $success && @apcu_delete(self::$apcuKey);
         }
 
         // Clear file cache
         if (self::$cacheFile && file_exists(self::$cacheFile)) {
-            $success = @unlink(self::$cacheFile) && $success;
+            $success = $success && @unlink(self::$cacheFile);
         }
 
         return $success;
