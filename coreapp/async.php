@@ -46,36 +46,143 @@ class Async
     /**
      * Run a task asynchronously
      *
-     * Executes a closure in the background without blocking.
-     * Perfect for fire-and-forget tasks like sending emails.
+     * Supports multiple callable types:
+     * - Static methods: ['ClassName', 'methodName']
+     * - Instance methods: [$object, 'methodName']
+     * - Global functions: 'functionName'
+     * - Closures: function() {} (requires opis/closure library)
+     *
+     * For production use, prefer Async::queue() with Job classes.
      *
      * @param callable $task The task to run asynchronously
      * @return bool True if task was dispatched successfully
+     * @throws Exception If task type is not serializable
      *
      * @example
-     * Async::run(function() {
-     *     // This runs in background
-     *     mail('user@example.com', 'Welcome', 'Thanks for signing up!');
-     * });
+     * // Recommended: Use Job classes
+     * Async::queue('SendEmailJob', ['to' => 'user@example.com']);
+     *
+     * @example
+     * // Static method (works without any library)
+     * Async::run(['EmailHelper', 'sendWelcome']);
+     *
+     * @example
+     * // Global function (works without any library)
+     * Async::run('send_notification');
+     *
+     * @example
+     * // Closure (requires opis/closure)
+     * Async::run(function() { mail('user@example.com', 'Hi', 'Hello'); });
      */
     public static function run(callable $task)
     {
-        // Serialize the closure
-        $serialized = base64_encode(serialize($task));
+        // Determine task type and serialize appropriately
+        if (is_array($task)) {
+            // Callable array: ['Class', 'method'] or [$object, 'method']
+            if (is_object($task[0])) {
+                throw new Exception(
+                    'Async::run() cannot serialize instance methods. ' .
+                    'Use static methods, global functions, or Async::queue() with Job classes.'
+                );
+            }
+            // Static method - can be serialized safely
+            $serialized = base64_encode(json_encode([
+                'type' => 'static',
+                'class' => $task[0],
+                'method' => $task[1]
+            ]));
+            $code = self::generateStaticMethodCode($serialized);
+
+        } elseif (is_string($task)) {
+            // Global function - can be serialized safely
+            $serialized = base64_encode(json_encode([
+                'type' => 'function',
+                'name' => $task
+            ]));
+            $code = self::generateFunctionCode($serialized);
+
+        } elseif ($task instanceof \Closure) {
+            // Closure - requires opis/closure library
+            if (!class_exists('Opis\Closure\SerializableClosure')) {
+                throw new Exception(
+                    'Async::run() with closures requires opis/closure library. ' .
+                    'Install with: composer require opis/closure ' .
+                    'OR use static methods/functions instead: Async::run([\'ClassName\', \'methodName\'])'
+                );
+            }
+            $wrapper = new \Opis\Closure\SerializableClosure($task);
+            $serialized = base64_encode(serialize($wrapper));
+            $code = self::generateClosureCode($serialized);
+
+        } else {
+            throw new Exception('Async::run() received unsupported callable type');
+        }
 
         // Create temporary task file
         $taskFile = sys_get_temp_dir() . '/phpweave_task_' . uniqid() . '.php';
-        $code = '<?php
-$task = unserialize(base64_decode(\'' . $serialized . '\'));
-$task();
-unlink(__FILE__);
-';
         file_put_contents($taskFile, $code);
 
         // Execute in background
         self::executeBackground($taskFile);
 
         return true;
+    }
+
+    /**
+     * Generate code for static method execution
+     *
+     * @param string $serialized Base64-encoded JSON task data
+     * @return string PHP code
+     */
+    private static function generateStaticMethodCode($serialized)
+    {
+        return '<?php
+$data = json_decode(base64_decode(\'' . $serialized . '\'), true);
+if ($data && $data[\'type\'] === \'static\') {
+    call_user_func([$data[\'class\'], $data[\'method\']]);
+}
+unlink(__FILE__);
+';
+    }
+
+    /**
+     * Generate code for global function execution
+     *
+     * @param string $serialized Base64-encoded JSON task data
+     * @return string PHP code
+     */
+    private static function generateFunctionCode($serialized)
+    {
+        return '<?php
+$data = json_decode(base64_decode(\'' . $serialized . '\'), true);
+if ($data && $data[\'type\'] === \'function\' && function_exists($data[\'name\'])) {
+    call_user_func($data[\'name\']);
+}
+unlink(__FILE__);
+';
+    }
+
+    /**
+     * Generate code for closure execution (requires opis/closure)
+     *
+     * @param string $serialized Base64-encoded serialized closure
+     * @return string PHP code
+     */
+    private static function generateClosureCode($serialized)
+    {
+        $vendorPath = str_replace("'", "\\'", dirname(__DIR__) . '/vendor/autoload.php');
+        return '<?php
+// Security: Only allow SerializableClosure objects
+if (file_exists(\'' . $vendorPath . '\')) {
+    require_once \'' . $vendorPath . '\';
+}
+$wrapper = unserialize(base64_decode(\'' . $serialized . '\'), [\'allowed_classes\' => [\'Opis\\\\Closure\\\\SerializableClosure\', \'Closure\']]);
+if ($wrapper instanceof \\Opis\\Closure\\SerializableClosure) {
+    $task = $wrapper->getClosure();
+    $task();
+}
+unlink(__FILE__);
+';
     }
 
     /**

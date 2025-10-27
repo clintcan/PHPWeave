@@ -110,15 +110,29 @@ class Controller
 	 * $this->show("home", "Welcome!");
 	 */
 	function show($template, $data=""){
-		// We will remove http(s):// and // from the $template variable to avoid getting remote url
+		// Security: Sanitize template path to prevent path traversal and remote includes
 		$dir = PHPWEAVE_ROOT;
-		// More efficient single-pass replacement
+
+		// Remove remote URL patterns
 		$template = strtr($template, [
 			'https://' => '',
 			'http://' => '',
 			'//' => '/',
 			'.php' => ''
 		]);
+
+		// Block path traversal attempts
+		$template = str_replace('..', '', $template);
+
+		// Remove null bytes (rare but possible attack)
+		$template = str_replace("\0", '', $template);
+
+		// Normalize path separators to forward slash
+		$template = str_replace('\\', '/', $template);
+
+		// Remove leading/trailing slashes
+		$template = trim($template, '/');
+
 		if(file_exists("$dir/views/$template.php")){
 			// Trigger before view render hook
 			$hookData = Hook::trigger('before_view_render', [

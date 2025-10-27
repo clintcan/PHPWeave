@@ -34,6 +34,11 @@ Complete documentation for the PHPWeave framework.
 
 - [**LIBRARIES.md**](LIBRARIES.md) - Complete libraries documentation with lazy loading
 
+#### Security
+
+- [**SECURITY_BEST_PRACTICES.md**](SECURITY_BEST_PRACTICES.md) - Comprehensive security guidelines for developers
+- [**SECURITY_AUDIT.md**](../SECURITY_AUDIT.md) - OWASP Top 10 security audit report (Rating: A)
+
 ---
 
 ## 🚀 Performance & Optimization
@@ -92,6 +97,8 @@ Complete documentation for the PHPWeave framework.
 | Deploy to Docker            | [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md)               |
 | Optimize performance        | [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md)       |
 | Migrate from legacy routing | [MIGRATION_TO_NEW_ROUTING.md](MIGRATION_TO_NEW_ROUTING.md) |
+| Secure my application       | [SECURITY_BEST_PRACTICES.md](SECURITY_BEST_PRACTICES.md)   |
+| View security audit         | [SECURITY_AUDIT.md](../SECURITY_AUDIT.md)                  |
 
 ---
 
@@ -129,6 +136,7 @@ Complete documentation for the PHPWeave framework.
 - [HOOKS.md](HOOKS.md) - All available hooks with examples
 - [LIBRARIES.md](LIBRARIES.md) - Creating reusable utility libraries
 - [ASYNC_GUIDE.md](ASYNC_GUIDE.md) - Job queues and workers
+- [SECURITY_BEST_PRACTICES.md](SECURITY_BEST_PRACTICES.md) - Security guidelines
 
 ---
 
@@ -179,6 +187,9 @@ PHPWeave/
 │   ├── ASYNC_GUIDE.md                 # Async jobs (detailed)
 │   ├── ASYNC_QUICK_START.md           # Async jobs (quick)
 │   │
+│   ├── # Security
+│   ├── SECURITY_BEST_PRACTICES.md     # Security guidelines (NEW!)
+│   │
 │   ├── # Performance
 │   ├── PERFORMANCE_ANALYSIS.md        # Analysis
 │   ├── OPTIMIZATION_PATCHES.md        # Patches
@@ -190,11 +201,14 @@ PHPWeave/
 │       ├── DOCKER_CACHING_GUIDE.md    # Caching strategies
 │       └── DOCKER_CACHING_APPLIED.md  # Implementation
 │
-└── tests/                             # Test scripts
-    ├── README.md                      # Testing guide
-    ├── test_hooks.php                 # Hooks tests
-    ├── test_docker_caching.php        # Caching tests
-    └── benchmark_optimizations.php    # Benchmarks
+├── tests/                             # Test scripts
+│   ├── README.md                      # Testing guide
+│   ├── test_hooks.php                 # Hooks tests
+│   ├── test_path_traversal.php        # Security tests (NEW!)
+│   ├── test_docker_caching.php        # Caching tests
+│   └── benchmark_optimizations.php    # Benchmarks
+│
+└── SECURITY_AUDIT.md                  # Security audit report (NEW!)
 ```
 
 ---
@@ -208,18 +222,20 @@ PHPWeave/
 3. Read [ROUTING_GUIDE.md](ROUTING_GUIDE.md) - Define routes
 4. Read [HOOKS.md](HOOKS.md) - Add custom logic
 5. Read [LIBRARIES.md](LIBRARIES.md) - Create utility libraries
+6. Read [SECURITY_BEST_PRACTICES.md](SECURITY_BEST_PRACTICES.md) - Security basics
 
 ### Intermediate
 
-6. Read [ASYNC_QUICK_START.md](ASYNC_QUICK_START.md) - Background jobs
-7. Read [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) - Docker deployment
-8. Read [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md) - Performance
+7. Read [ASYNC_QUICK_START.md](ASYNC_QUICK_START.md) - Background jobs
+8. Read [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) - Docker deployment
+9. Read [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md) - Performance
 
 ### Advanced
 
-9. Read [PERFORMANCE_ANALYSIS.md](PERFORMANCE_ANALYSIS.md) - Optimization
-10. Read [DOCKER_CACHING_GUIDE.md](DOCKER_CACHING_GUIDE.md) - Caching strategies
-11. Read [ASYNC_GUIDE.md](ASYNC_GUIDE.md) - Advanced async patterns
+10. Read [PERFORMANCE_ANALYSIS.md](PERFORMANCE_ANALYSIS.md) - Optimization
+11. Read [DOCKER_CACHING_GUIDE.md](DOCKER_CACHING_GUIDE.md) - Caching strategies
+12. Read [ASYNC_GUIDE.md](ASYNC_GUIDE.md) - Advanced async patterns
+13. Read [SECURITY_AUDIT.md](../SECURITY_AUDIT.md) - Security audit report
 
 ---
 
@@ -337,11 +353,34 @@ All test scripts are in the `tests/` directory:
 ```bash
 # Run all tests
 php tests/test_hooks.php                # 8 hook tests
+php tests/test_path_traversal.php       # 14 security tests (NEW!)
 php tests/test_docker_caching.php       # Caching tests
 php tests/benchmark_optimizations.php   # Performance benchmarks
 ```
 
 See [tests/README.md](../tests/README.md) for detailed testing guide.
+
+---
+
+## 🔒 Security
+
+PHPWeave maintains an **A (Excellent)** security rating:
+
+- ✅ OWASP Top 10 (2021) compliant
+- ✅ All vulnerabilities fixed (3 medium issues resolved)
+- ✅ Automated security test suite
+- ✅ Comprehensive security documentation
+
+**Documentation:**
+- [SECURITY_BEST_PRACTICES.md](SECURITY_BEST_PRACTICES.md) - Developer security guide
+- [SECURITY_AUDIT.md](../SECURITY_AUDIT.md) - Full security audit report
+
+**Key Security Features:**
+- PDO prepared statements (SQL injection protection)
+- Path traversal protection in view rendering
+- Secure JSON serialization for caching
+- Output escaping helpers
+- Comprehensive error logging
 
 ---
 

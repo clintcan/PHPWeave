@@ -638,9 +638,9 @@ class Router
             return false;
         }
 
-        $cached = @unserialize(file_get_contents(self::$cacheFile));
+        $cached = @json_decode(file_get_contents(self::$cacheFile), true);
 
-        if ($cached === false) {
+        if ($cached === null || !is_array($cached)) {
             return false;
         }
 
@@ -688,7 +688,7 @@ class Router
             return false;
         }
 
-        return @file_put_contents(self::$cacheFile, serialize(self::$routes)) !== false;
+        return @file_put_contents(self::$cacheFile, json_encode(self::$routes)) !== false;
     }
 
     /**
