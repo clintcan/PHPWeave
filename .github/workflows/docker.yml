@@ -152,6 +152,7 @@ jobs:
         compose-file:
           - docker-compose.yml
           - docker-compose.dev.yml
+          - docker-compose.env.yml
 
     steps:
     - name: Checkout code
@@ -162,8 +163,17 @@ jobs:
         mkdir -p cache storage/queue
         chmod 755 cache storage/queue
 
-    - name: Copy environment file
-      run: cp .env.sample .env
+    - name: Create .env file for docker-compose.yml
+      if: matrix.compose-file == 'docker-compose.yml'
+      run: |
+        cat > .env <<EOF
+        DBHOST=db
+        DBNAME=phpweave
+        DBUSER=phpweave_user
+        DBPASSWORD=phpweave_pass
+        DBCHARSET=utf8mb4
+        DEBUG=0
+        EOF
 
     - name: Start services
       run: docker compose -f ${{ matrix.compose-file }} up -d
