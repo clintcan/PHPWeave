@@ -178,7 +178,7 @@ jobs:
 
     - name: Run tests in container
       run: |
-        CONTAINER=$(docker compose -f ${{ matrix.compose-file }} ps -q app | head -n1)
+        CONTAINER=$(docker compose -f ${{ matrix.compose-file }} ps -q phpweave | head -n1)
         if [ ! -z "$CONTAINER" ]; then
           docker exec $CONTAINER php tests/test_hooks.php
           docker exec $CONTAINER php tests/test_models.php
