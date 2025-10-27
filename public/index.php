@@ -45,7 +45,7 @@ require_once "../coreapp/controller.php";
 // Smart caching configuration (Docker-aware)
 if (!isset($GLOBALS['configs']['DEBUG']) || !$GLOBALS['configs']['DEBUG']) {
     // Detect Docker/container environment
-    $isDocker = file_exists('/.dockerenv') || getenv('DOCKER_ENV') !== false || getenv('KUBERNETES_SERVICE_HOST') !== false;
+    $isDocker = file_exists('/.dockerenv') || (bool) getenv('DOCKER_ENV') || (bool) getenv('KUBERNETES_SERVICE_HOST');
 
     if ($isDocker) {
         // In Docker: prefer APCu (in-memory), fallback to file cache if writable

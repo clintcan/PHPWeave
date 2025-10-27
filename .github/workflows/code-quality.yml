@@ -140,7 +140,7 @@ jobs:
         fi
 
     - name: Run PHPStan
-      run: vendor/bin/phpstan analyse --no-progress --error-format=github
+      run: vendor/bin/phpstan analyse --no-progress --error-format=table
 
   security-check:
     name: Security Checks
