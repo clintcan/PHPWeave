@@ -30,6 +30,7 @@ Route::get('/home', 'Home@index');
 Route::get('/blog', 'Blog@index');
 Route::get('/blog/:id:', 'Blog@showPost');
 Route::post('/blog', 'Blog@store');
+Route::get('/blog/slugify/:text:', 'Blog@slugify');
 
 // Example: User routes (uncomment when User controller exists)
 // Route::get('/user/:id:', 'User@show');

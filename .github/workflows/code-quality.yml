@@ -67,6 +67,14 @@ jobs:
           echo "No jobs found (this is OK for fresh install)"
         fi
 
+    - name: Check PHP syntax - Libraries
+      run: |
+        if [ -d "libraries" ] && [ "$(ls -A libraries/*.php 2>/dev/null)" ]; then
+          find libraries -name "*.php" -print0 | xargs -0 -n1 php -l
+        else
+          echo "No libraries found (this is OK for fresh install)"
+        fi
+
   phpstan:
     name: PHPStan Static Analysis
     runs-on: ubuntu-latest

@@ -55,6 +55,9 @@ jobs:
     - name: Run tests in container
       run: |
         docker exec phpweave-test php tests/test_hooks.php
+        docker exec phpweave-test php tests/test_models.php
+        docker exec phpweave-test php tests/test_controllers.php
+        docker exec phpweave-test php tests/test_libraries.php
         docker exec phpweave-test php tests/test_docker_caching.php
         docker exec phpweave-test php tests/benchmark_optimizations.php
 
@@ -178,6 +181,9 @@ jobs:
         CONTAINER=$(docker compose -f ${{ matrix.compose-file }} ps -q app | head -n1)
         if [ ! -z "$CONTAINER" ]; then
           docker exec $CONTAINER php tests/test_hooks.php
+          docker exec $CONTAINER php tests/test_models.php
+          docker exec $CONTAINER php tests/test_controllers.php
+          docker exec $CONTAINER php tests/test_libraries.php
           docker exec $CONTAINER php tests/test_docker_caching.php
         fi
 

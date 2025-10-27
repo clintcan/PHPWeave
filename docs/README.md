@@ -25,6 +25,9 @@ Complete documentation for the PHPWeave framework.
 - [**ASYNC_GUIDE.md**](ASYNC_GUIDE.md) - Complete async job processing guide
 - [**ASYNC_QUICK_START.md**](ASYNC_QUICK_START.md) - Quick start for async jobs
 
+#### Libraries System (NEW!)
+- [**LIBRARIES.md**](LIBRARIES.md) - Complete libraries documentation with lazy loading
+
 ---
 
 ## 🚀 Performance & Optimization
@@ -74,6 +77,7 @@ Complete documentation for the PHPWeave framework.
 | Learn v2.1 features | [V2.1_FEATURES.md](V2.1_FEATURES.md) |
 | Define routes | [ROUTING_GUIDE.md](ROUTING_GUIDE.md) |
 | Add hooks | [HOOKS.md](HOOKS.md) |
+| Create utility libraries | [LIBRARIES.md](LIBRARIES.md) |
 | Process background jobs | [ASYNC_QUICK_START.md](ASYNC_QUICK_START.md) |
 | Deploy to Docker | [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) |
 | Optimize performance | [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md) |
@@ -97,6 +101,7 @@ Complete documentation for the PHPWeave framework.
    - `Controller` - Base controller with view rendering
    - `DBConnection` - PDO-based database connection
    - `Hook` - Event-driven hooks system
+   - `Libraries` - Lazy-loaded utility classes (v2.1.1+)
    - `Async` - Background job processing
    - `ErrorClass` - Error handling and logging
 
@@ -110,6 +115,7 @@ Complete documentation for the PHPWeave framework.
 
 - [ROUTING_GUIDE.md](ROUTING_GUIDE.md) - Route patterns and methods
 - [HOOKS.md](HOOKS.md) - All available hooks with examples
+- [LIBRARIES.md](LIBRARIES.md) - Creating reusable utility libraries
 - [ASYNC_GUIDE.md](ASYNC_GUIDE.md) - Job queues and workers
 
 ---
@@ -156,6 +162,7 @@ PHPWeave/
 │   ├── ROUTING_GUIDE.md              # Routing system
 │   ├── MIGRATION_TO_NEW_ROUTING.md   # Migration guide
 │   ├── HOOKS.md                       # Hooks system (18 points)
+│   ├── LIBRARIES.md                   # Libraries system (NEW!)
 │   ├── ASYNC_GUIDE.md                 # Async jobs (detailed)
 │   ├── ASYNC_QUICK_START.md           # Async jobs (quick)
 │   │
@@ -186,16 +193,17 @@ PHPWeave/
 2. Read [V2.1_FEATURES.md](V2.1_FEATURES.md) - New v2.1 features
 3. Read [ROUTING_GUIDE.md](ROUTING_GUIDE.md) - Define routes
 4. Read [HOOKS.md](HOOKS.md) - Add custom logic
+5. Read [LIBRARIES.md](LIBRARIES.md) - Create utility libraries
 
 ### Intermediate
-5. Read [ASYNC_QUICK_START.md](ASYNC_QUICK_START.md) - Background jobs
-6. Read [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) - Docker deployment
-7. Read [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md) - Performance
+6. Read [ASYNC_QUICK_START.md](ASYNC_QUICK_START.md) - Background jobs
+7. Read [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) - Docker deployment
+8. Read [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md) - Performance
 
 ### Advanced
-8. Read [PERFORMANCE_ANALYSIS.md](PERFORMANCE_ANALYSIS.md) - Optimization
-9. Read [DOCKER_CACHING_GUIDE.md](DOCKER_CACHING_GUIDE.md) - Caching strategies
-10. Read [ASYNC_GUIDE.md](ASYNC_GUIDE.md) - Advanced async patterns
+9. Read [PERFORMANCE_ANALYSIS.md](PERFORMANCE_ANALYSIS.md) - Optimization
+10. Read [DOCKER_CACHING_GUIDE.md](DOCKER_CACHING_GUIDE.md) - Caching strategies
+11. Read [ASYNC_GUIDE.md](ASYNC_GUIDE.md) - Advanced async patterns
 
 ---
 
@@ -235,6 +243,16 @@ $user = $PW->models->user_model->getUser($id);
 
 // Or use helper function
 $user = model('user_model')->getUser($id);
+```
+
+**Libraries (v2.1.1):**
+```php
+global $PW;
+$slug = $PW->libraries->string_helper->slugify("Hello World");
+$preview = $PW->libraries->string_helper->truncate($text, 200);
+
+// Or use helper function
+$slug = library('string_helper')->slugify("Hello World");
 ```
 
 **Views (v2.1):**
