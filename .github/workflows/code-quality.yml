@@ -103,21 +103,47 @@ jobs:
         fi
         composer install --no-interaction --prefer-dist --no-progress
 
+    - name: Create PHPStan bootstrap file
+      run: |
+        cat > phpstan-bootstrap.php <<'EOF'
+        <?php
+        // Define PHPWEAVE_ROOT constant for static analysis
+        if (!defined('PHPWEAVE_ROOT')) {
+            define('PHPWEAVE_ROOT', __DIR__);
+        }
+        
+        // Define other globals that might be needed during analysis
+        $GLOBALS['baseurl'] = '/';
+        $GLOBALS['configs'] = [];
+        $GLOBALS['models'] = [];
+        $GLOBALS['PW'] = new stdClass();
+        EOF
+
     - name: Create PHPStan config
       run: |
-        cat > phpstan.neon <<EOF
+        cat > phpstan.neon <<'EOF'
         parameters:
           level: 5
           paths:
             - coreapp
             - public
+          bootstrapFiles:
+            - phpstan-bootstrap.php
           ignoreErrors:
+            # Ignore dynamic property access patterns in PHPWeave framework
             - '#Call to an undefined method#'
             - '#Access to an undefined property#'
+            # Ignore unused properties that are part of the framework's internal state
+            - '#Static property .+::\$jobsDir is never read, only written#'
+            - '#Static property .+::\$instances is never read, only written#'
+            - '#Static property .+::\$loadedFromCache is never read, only written#'
+            # Ignore legacy parameter type issue in DBConnection (backward compatibility)
+            - '#Default value of the parameter .+ of method DBConnection::executePreparedSQL\(\) is incompatible with type#'
+          treatPhpDocTypesAsCertain: false
         EOF
 
     - name: Run PHPStan
-      run: vendor/bin/phpstan analyse --no-progress --error-format=github || true
+      run: vendor/bin/phpstan analyse --no-progress --error-format=github
 
   security-check:
     name: Security Checks
