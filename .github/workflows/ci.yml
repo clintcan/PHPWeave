@@ -52,6 +52,9 @@ jobs:
     - name: Run Controllers Tests
       run: php tests/test_controllers.php
 
+    - name: Run Libraries Tests
+      run: php tests/test_libraries.php
+
     - name: Run Docker Caching Tests
       run: php tests/test_docker_caching.php
 
@@ -84,6 +87,14 @@ jobs:
           find hooks -name "*.php" -exec php -l {} \;
         else
           echo "No hooks to test"
+        fi
+
+    - name: Test Syntax - Libraries
+      run: |
+        if [ -d "libraries" ] && [ "$(ls -A libraries/*.php 2>/dev/null)" ]; then
+          find libraries -name "*.php" -exec php -l {} \;
+        else
+          echo "No libraries to test"
         fi
 
   test-mysql:
@@ -171,5 +182,6 @@ jobs:
         php tests/test_hooks.php
         php tests/test_models.php
         php tests/test_controllers.php
+        php tests/test_libraries.php
         php tests/test_docker_caching.php
         php tests/benchmark_optimizations.php

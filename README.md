@@ -26,6 +26,7 @@ This migration represents PHPWeave's commitment to staying relevant while honori
 - **Full HTTP Verb Support**: GET, POST, PUT, DELETE, PATCH methods
 - **Global Framework Object**: Clean `$PW->models->model_name` syntax (v2.1+)
 - **Auto-Extracted View Variables**: Pass arrays to views, access as individual variables
+- **Lazy-Loaded Libraries**: Reusable utility classes with automatic discovery (v2.1.1+)
 - **Event-Driven Hooks System**: 18 lifecycle hook points for extending functionality
 - **Async Task System**: Simple background job processing without external dependencies
 - **Performance Optimized**: Lazy loading, route caching, 30-60% faster than v1
@@ -258,6 +259,62 @@ global $models;
 $user = $models['user_model']->getUser($id);
 ```
 
+### Libraries
+
+**New in v2.1.1!** Libraries provide reusable utility functions across your application. They're lazy-loaded (instantiated only when needed) and automatically discovered from the `libraries/` directory.
+
+**Creating a Library** (`libraries/string_helper.php`):
+```php
+<?php
+class string_helper {
+    public function slugify($text) {
+        $text = preg_replace('~[^\pL\d]+~u', '-', $text);
+        return strtolower(trim($text, '-'));
+    }
+
+    public function truncate($text, $length = 100) {
+        if (strlen($text) <= $length) return $text;
+        return substr($text, 0, $length) . '...';
+    }
+
+    public function random($length = 16) {
+        $chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        return substr(str_shuffle(str_repeat($chars, $length)), 0, $length);
+    }
+}
+```
+
+**Using Libraries:**
+```php
+// Recommended (v2.1.1+): PHPWeave global object
+global $PW;
+$slug = $PW->libraries->string_helper->slugify("Hello World");
+$preview = $PW->libraries->string_helper->truncate($content, 200);
+$token = $PW->libraries->string_helper->random(16);
+
+// Alternative: Helper function
+$slug = library('string_helper')->slugify("Hello World");
+
+// Legacy: Array access (still works)
+global $libraries;
+$slug = $libraries['string_helper']->slugify("Hello World");
+```
+
+**Library Features:**
+- Lazy instantiation (only loaded when accessed)
+- Automatic discovery (just drop files in `libraries/`)
+- Instance caching (singleton pattern)
+- Three access methods for flexibility
+- No manual registration required
+
+**Built-in Libraries:**
+- `string_helper` - String manipulation (slugify, truncate, random, titleCase, etc.)
+
+**Try it:**
+Visit `/blog/slugify/Hello-World-Testing-Libraries` to see the string helper library in action!
+
+See **docs/LIBRARIES.md** for complete documentation.
+
 ### Views
 
 Views are plain PHP templates in `views/`. **As of v2.1+, array data is automatically extracted into individual variables:**
@@ -452,6 +509,8 @@ PHPWeave/
 ├── models/             # Database models (lazy-loaded)
 │   ├── user_model.php
 │   └── blog_model.php
+├── libraries/          # Utility libraries (lazy-loaded, v2.1.1+)
+│   └── string_helper.php
 ├── jobs/               # Background job classes
 │   ├── SendEmailJob.php
 │   └── ProcessImageJob.php
@@ -468,6 +527,7 @@ PHPWeave/
 │   ├── router.php      # Modern routing system with caching
 │   ├── controller.php  # Base controller class
 │   ├── models.php      # Lazy model loader
+│   ├── libraries.php   # Lazy library loader (v2.1.1+)
 │   ├── dbconnection.php # PDO database class
 │   ├── hooks.php       # Event-driven hooks system
 │   ├── async.php       # Async task system
@@ -479,6 +539,7 @@ PHPWeave/
 │   ├── README.md       # Documentation index
 │   ├── ROUTING_GUIDE.md
 │   ├── HOOKS.md        # Complete hooks guide
+│   ├── LIBRARIES.md    # Libraries guide (NEW!)
 │   ├── ASYNC_GUIDE.md
 │   ├── ASYNC_QUICK_START.md
 │   ├── DOCKER_DEPLOYMENT.md
@@ -731,6 +792,7 @@ Customize error pages by modifying `coreapp/router.php`:
 ### Core Features
 - **docs/ROUTING_GUIDE.md** - Comprehensive routing documentation with examples
 - **docs/HOOKS.md** - Complete hooks system guide with all 18 hook points
+- **docs/LIBRARIES.md** - Complete libraries guide with lazy loading (NEW in v2.1.1!)
 - **docs/ASYNC_GUIDE.md** - Complete guide to background tasks and job queues
 - **docs/ASYNC_QUICK_START.md** - Quick start guide for async tasks
 - **docs/MIGRATION_TO_NEW_ROUTING.md** - Guide for migrating from legacy routing

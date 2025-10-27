@@ -93,4 +93,50 @@ class Blog extends Controller
 			'message' => 'Testing PHPWeave model connectivity'
 		]);
     }
+
+	/**
+	 * Slugify action
+	 *
+	 * Demonstrates library usage by converting text to URL-friendly slugs.
+	 * Shows three different ways to access libraries.
+	 * Matches route: Route::get('/blog/slugify/:text:', 'Blog@slugify')
+	 *
+	 * @param string $text Text to convert to slug (from URL parameter)
+	 * @return void
+	 */
+	function slugify($text = "Sample Blog Post Title") {
+		global $PW;
+
+		// Method 1: PHPWeave global object (recommended)
+		$slug1 = $PW->libraries->string_helper->slugify($text);
+
+		// Method 2: library() function
+		$slug2 = library('string_helper')->slugify($text);
+
+		// Method 3: Legacy array syntax
+		global $libraries;
+		$slug3 = $libraries['string_helper']->slugify($text);
+
+		// Also demonstrate other string helper methods
+		$truncated = $PW->libraries->string_helper->truncate($text, 20);
+		$titleCased = $PW->libraries->string_helper->titleCase($text);
+		$wordCount = $PW->libraries->string_helper->wordCount($text);
+		$readingTime = $PW->libraries->string_helper->readingTime(str_repeat($text . ' ', 50));
+		$randomToken = $PW->libraries->string_helper->random(8);
+
+		// Pass data as array - accessible as individual variables in view
+		$this->show("blog", [
+			'original_text' => $text,
+			'slug1' => $slug1,
+			'slug2' => $slug2,
+			'slug3' => $slug3,
+			'truncated' => $truncated,
+			'title_cased' => $titleCased,
+			'word_count' => $wordCount,
+			'reading_time' => $readingTime,
+			'random_token' => $randomToken,
+			'title' => 'String Helper Library Demo',
+			'message' => 'Demonstrating lazy-loaded library functionality'
+		]);
+	}
 }

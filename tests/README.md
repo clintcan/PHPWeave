@@ -81,7 +81,43 @@ php tests/test_controllers.php
 
 ---
 
-### 4. `test_docker_caching.php`
+### 4. `test_libraries.php`
+**Purpose:** Tests the lazy library loading system (20 tests) - NEW in v2.1.1!
+
+**Run:**
+```bash
+php tests/test_libraries.php
+```
+
+**Tests:**
+- ✓ Library file discovery
+- ✓ Library loading via library() function
+- ✓ Library loading via $libraries[] array (legacy)
+- ✓ PHPWeave global object ($PW->libraries->)
+- ✓ Library instance caching
+- ✓ Error handling for non-existent libraries
+- ✓ ArrayAccess isset() checks
+- ✓ Magic __isset() for object property access
+- ✓ ArrayAccess set() protection
+- ✓ ArrayAccess unset() protection
+- ✓ All access methods return same instance
+- ✓ string_helper->slugify() method
+- ✓ string_helper->truncate() method
+- ✓ string_helper->random() method
+- ✓ string_helper->ordinal() method
+- ✓ string_helper->titleCase() method
+- ✓ string_helper->wordCount() method
+- ✓ string_helper->readingTime() method
+- ✓ Chaining multiple library calls
+- ✓ Performance - instance caching verification
+
+**Expected:** All tests should PASS if string_helper library exists
+
+**Note:** Tests all 7 methods of the string_helper library plus system functionality.
+
+---
+
+### 5. `test_docker_caching.php`
 **Purpose:** Tests Docker-aware caching (APCu and file cache)
 
 **Run:**
@@ -107,7 +143,7 @@ docker exec phpweave-app php tests/test_docker_caching.php
 
 ---
 
-### 3. `benchmark_optimizations.php`
+### 6. `benchmark_optimizations.php`
 **Purpose:** Benchmarks performance improvements from optimizations
 
 **Run:**
@@ -134,6 +170,9 @@ php tests/benchmark_optimizations.php
 ```bash
 # Run all tests
 php tests/test_hooks.php
+php tests/test_models.php
+php tests/test_controllers.php
+php tests/test_libraries.php
 php tests/test_docker_caching.php
 php tests/benchmark_optimizations.php
 ```
@@ -142,6 +181,9 @@ php tests/benchmark_optimizations.php
 ```bash
 # Run all tests in container
 docker exec phpweave-app php tests/test_hooks.php
+docker exec phpweave-app php tests/test_models.php
+docker exec phpweave-app php tests/test_controllers.php
+docker exec phpweave-app php tests/test_libraries.php
 docker exec phpweave-app php tests/test_docker_caching.php
 docker exec phpweave-app php tests/benchmark_optimizations.php
 
@@ -149,6 +191,7 @@ docker exec phpweave-app php tests/benchmark_optimizations.php
 docker exec -it phpweave-app bash
 cd /var/www/html
 php tests/test_hooks.php
+php tests/test_libraries.php
 ```
 
 ---
@@ -162,6 +205,9 @@ Tests are automatically run in CI/CD pipelines:
 - name: Run Tests
   run: |
     docker exec test php tests/test_hooks.php
+    docker exec test php tests/test_models.php
+    docker exec test php tests/test_controllers.php
+    docker exec test php tests/test_libraries.php
     docker exec test php tests/test_docker_caching.php
 ```
 
@@ -172,6 +218,9 @@ Tests are automatically run in CI/CD pipelines:
 ### All Tests Passing
 ```
 ✓ test_hooks.php: 8/8 tests PASS
+✓ test_models.php: 12/12 tests PASS
+✓ test_controllers.php: 15/15 tests PASS
+✓ test_libraries.php: 20/20 tests PASS (NEW!)
 ✓ test_docker_caching.php: APCu or file cache working
 ✓ benchmark_optimizations.php: Performance improvements verified
 ```
@@ -263,12 +312,13 @@ echo "✓ All tests completed!\n";
 ## Test Coverage
 
 Current test coverage:
-- ✅ Hooks system (comprehensive)
+- ✅ Hooks system (comprehensive - 8 tests)
+- ✅ Models system (comprehensive - 12 tests)
+- ✅ Controllers system (comprehensive - 15 tests)
+- ✅ Libraries system (comprehensive - 20 tests) - NEW in v2.1.1!
 - ✅ Docker caching (APCu + file)
 - ✅ Performance benchmarks
 - ⚠️ Router (partial - tested via hooks)
-- ⚠️ Models (tested via app usage)
-- ⚠️ Controllers (tested via app usage)
 - ❌ Database connections (manual testing)
 - ❌ Async jobs (manual testing)
 
@@ -293,5 +343,6 @@ Expected improvements:
 
 For more information, see:
 - `HOOKS.md` - Hooks documentation
+- `LIBRARIES.md` - Libraries documentation (NEW!)
 - `DOCKER_DEPLOYMENT.md` - Docker testing
 - `OPTIMIZATIONS_APPLIED.md` - Performance details
