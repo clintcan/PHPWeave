@@ -46,7 +46,7 @@ php tests/test_models.php
 - ✓ Model instance caching
 - ✓ Error handling for non-existent models
 - ✓ ArrayAccess isset() checks
-- ✓ Magic __isset() for object property access
+- ✓ Magic \_\_isset() for object property access
 - ✓ ArrayAccess set() protection
 - ✓ ArrayAccess unset() protection
 - ✓ Model method availability
@@ -110,7 +110,7 @@ php tests/test_libraries.php
 - ✓ Library instance caching
 - ✓ Error handling for non-existent libraries
 - ✓ ArrayAccess isset() checks
-- ✓ Magic __isset() for object property access
+- ✓ Magic \_\_isset() for object property access
 - ✓ ArrayAccess set() protection
 - ✓ ArrayAccess unset() protection
 - ✓ All access methods return same instance

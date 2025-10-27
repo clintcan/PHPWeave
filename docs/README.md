@@ -7,25 +7,31 @@ Complete documentation for the PHPWeave framework.
 ## 📚 Table of Contents
 
 ### Getting Started
+
 - [**README.md**](../README.md) - Main project overview and quick start (in root)
 
 ### Core Features
 
 #### Version 2.1 Features (NEW!)
+
 - [**V2.1_FEATURES.md**](V2.1_FEATURES.md) - New PHPWeave global object and auto-extracted view variables
 
 #### Routing System
+
 - [**ROUTING_GUIDE.md**](ROUTING_GUIDE.md) - Complete routing documentation
 - [**MIGRATION_TO_NEW_ROUTING.md**](MIGRATION_TO_NEW_ROUTING.md) - Migrating from legacy routing
 
 #### Hooks System
+
 - [**HOOKS.md**](HOOKS.md) - Complete hooks documentation with all 18 hook points
 
 #### Async/Jobs System
+
 - [**ASYNC_GUIDE.md**](ASYNC_GUIDE.md) - Complete async job processing guide
 - [**ASYNC_QUICK_START.md**](ASYNC_QUICK_START.md) - Quick start for async jobs
 
 #### Libraries System (NEW!)
+
 - [**LIBRARIES.md**](LIBRARIES.md) - Complete libraries documentation with lazy loading
 
 ---
@@ -33,12 +39,14 @@ Complete documentation for the PHPWeave framework.
 ## 🚀 Performance & Optimization
 
 ### Performance Documentation
+
 - [**PERFORMANCE_ANALYSIS.md**](PERFORMANCE_ANALYSIS.md) - Detailed performance analysis and bottlenecks
 - [**OPTIMIZATION_PATCHES.md**](OPTIMIZATION_PATCHES.md) - Ready-to-apply optimization patches
 - [**OPTIMIZATIONS_APPLIED.md**](OPTIMIZATIONS_APPLIED.md) - Summary of applied optimizations
 - [**TEST_RESULTS.md**](TEST_RESULTS.md) - Performance test results
 
 ### Performance Improvements Applied
+
 - ✅ Lazy hook priority sorting (5-10ms saved)
 - ✅ Lazy model loading (3-10ms saved)
 - ✅ Route caching (1-3ms saved)
@@ -52,11 +60,13 @@ Complete documentation for the PHPWeave framework.
 ## 🐳 Docker & Deployment
 
 ### Docker Documentation
+
 - [**DOCKER_DEPLOYMENT.md**](DOCKER_DEPLOYMENT.md) - Complete Docker deployment guide
 - [**DOCKER_CACHING_GUIDE.md**](DOCKER_CACHING_GUIDE.md) - Caching strategies for Docker
 - [**DOCKER_CACHING_APPLIED.md**](DOCKER_CACHING_APPLIED.md) - Docker caching implementation summary
 
 ### Docker Features
+
 - ✅ APCu in-memory caching (optimal for containers)
 - ✅ Automatic Docker detection
 - ✅ Multi-container support with load balancing
@@ -71,16 +81,16 @@ Complete documentation for the PHPWeave framework.
 
 **I want to...**
 
-| Task | Documentation |
-|------|--------------|
-| Get started quickly | [README.md](../README.md) |
-| Learn v2.1 features | [V2.1_FEATURES.md](V2.1_FEATURES.md) |
-| Define routes | [ROUTING_GUIDE.md](ROUTING_GUIDE.md) |
-| Add hooks | [HOOKS.md](HOOKS.md) |
-| Create utility libraries | [LIBRARIES.md](LIBRARIES.md) |
-| Process background jobs | [ASYNC_QUICK_START.md](ASYNC_QUICK_START.md) |
-| Deploy to Docker | [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) |
-| Optimize performance | [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md) |
+| Task                        | Documentation                                              |
+| --------------------------- | ---------------------------------------------------------- |
+| Get started quickly         | [README.md](../README.md)                                  |
+| Learn v2.1 features         | [V2.1_FEATURES.md](V2.1_FEATURES.md)                       |
+| Define routes               | [ROUTING_GUIDE.md](ROUTING_GUIDE.md)                       |
+| Add hooks                   | [HOOKS.md](HOOKS.md)                                       |
+| Create utility libraries    | [LIBRARIES.md](LIBRARIES.md)                               |
+| Process background jobs     | [ASYNC_QUICK_START.md](ASYNC_QUICK_START.md)               |
+| Deploy to Docker            | [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md)               |
+| Optimize performance        | [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md)       |
 | Migrate from legacy routing | [MIGRATION_TO_NEW_ROUTING.md](MIGRATION_TO_NEW_ROUTING.md) |
 
 ---
@@ -90,6 +100,7 @@ Complete documentation for the PHPWeave framework.
 **Understanding the Framework:**
 
 1. **Request Lifecycle:**
+
    ```
    Request → Router → Controller → Model → View → Response
               ↓
@@ -97,6 +108,7 @@ Complete documentation for the PHPWeave framework.
    ```
 
 2. **Core Components:**
+
    - `Router` - Modern routing with dynamic parameters
    - `Controller` - Base controller with view rendering
    - `DBConnection` - PDO-based database connection
@@ -125,6 +137,7 @@ Complete documentation for the PHPWeave framework.
 **For DevOps:**
 
 - [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) - Docker setup
+
   - Standard (single container)
   - Development (hot-reload)
   - Scaled (load balanced)
@@ -189,6 +202,7 @@ PHPWeave/
 ## 🎓 Learning Path
 
 ### Beginner
+
 1. Read [README.md](../README.md) - Overview
 2. Read [V2.1_FEATURES.md](V2.1_FEATURES.md) - New v2.1 features
 3. Read [ROUTING_GUIDE.md](ROUTING_GUIDE.md) - Define routes
@@ -196,11 +210,13 @@ PHPWeave/
 5. Read [LIBRARIES.md](LIBRARIES.md) - Create utility libraries
 
 ### Intermediate
+
 6. Read [ASYNC_QUICK_START.md](ASYNC_QUICK_START.md) - Background jobs
 7. Read [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) - Docker deployment
 8. Read [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md) - Performance
 
 ### Advanced
+
 9. Read [PERFORMANCE_ANALYSIS.md](PERFORMANCE_ANALYSIS.md) - Optimization
 10. Read [DOCKER_CACHING_GUIDE.md](DOCKER_CACHING_GUIDE.md) - Caching strategies
 11. Read [ASYNC_GUIDE.md](ASYNC_GUIDE.md) - Advanced async patterns
@@ -212,6 +228,7 @@ PHPWeave/
 ### Common Tasks
 
 **Routing:**
+
 ```php
 Route::get('/blog/:id:', 'Blog@show');        // Dynamic parameter
 Route::post('/blog', 'Blog@store');           // POST request
@@ -219,6 +236,7 @@ Route::any('/webhook', 'Webhook@handle');     // Any method
 ```
 
 **Hooks:**
+
 ```php
 Hook::register('before_action_execute', function($data) {
     // Authentication check
@@ -232,11 +250,13 @@ Hook::register('before_action_execute', function($data) {
 ```
 
 **Async Jobs:**
+
 ```php
 Async::queue(new SendEmailJob(), ['to' => 'user@example.com']);
 ```
 
 **Models (v2.1):**
+
 ```php
 global $PW;
 $user = $PW->models->user_model->getUser($id);
@@ -246,6 +266,7 @@ $user = model('user_model')->getUser($id);
 ```
 
 **Libraries (v2.1.1):**
+
 ```php
 global $PW;
 $slug = $PW->libraries->string_helper->slugify("Hello World");
@@ -256,6 +277,7 @@ $slug = library('string_helper')->slugify("Hello World");
 ```
 
 **Views (v2.1):**
+
 ```php
 // Controller
 $this->show('profile', [
@@ -273,12 +295,14 @@ $this->show('profile', [
 ## 📊 Performance Metrics
 
 ### Before Optimizations
+
 - Framework bootstrap: ~15-25ms
 - With 10 hooks: ~20-30ms
 - With 20 models (eager): ~25-35ms
 - **Total:** ~30-50ms per request
 
 ### After Optimizations
+
 - Framework bootstrap: ~5-10ms
 - With 10 hooks: ~8-12ms
 - With 20 models (lazy): ~8-12ms
@@ -346,6 +370,7 @@ When adding documentation:
 ## 📧 Support
 
 For issues or questions:
+
 - Check relevant documentation above
 - Review code examples in docs
 - Run test scripts in `tests/`

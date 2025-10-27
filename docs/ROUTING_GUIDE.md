@@ -48,23 +48,27 @@ class Blog extends Controller
 ## HTTP Methods
 
 ### GET Requests
+
 ```php
 Route::get('/products', 'Product@index');
 Route::get('/product/:id:', 'Product@show');
 ```
 
 ### POST Requests
+
 ```php
 Route::post('/product', 'Product@store');
 Route::post('/login', 'Auth@login');
 ```
 
 ### PUT Requests
+
 ```php
 Route::put('/product/:id:', 'Product@update');
 ```
 
 For PUT requests from HTML forms, use method override:
+
 ```html
 <form method="POST" action="/product/123">
     <input type="hidden" name="_method" value="PUT">
@@ -73,11 +77,13 @@ For PUT requests from HTML forms, use method override:
 ```
 
 ### DELETE Requests
+
 ```php
 Route::delete('/product/:id:', 'Product@destroy');
 ```
 
 Method override for DELETE:
+
 ```html
 <form method="POST" action="/product/123">
     <input type="hidden" name="_method" value="DELETE">
@@ -86,11 +92,13 @@ Method override for DELETE:
 ```
 
 ### PATCH Requests
+
 ```php
 Route::patch('/product/:id:', 'Product@partialUpdate');
 ```
 
 ### ANY Method
+
 ```php
 // Accepts any HTTP method
 Route::any('/webhook', 'Webhook@handle');
@@ -99,17 +107,20 @@ Route::any('/webhook', 'Webhook@handle');
 ## Route Parameters
 
 ### Parameter Syntax
+
 - Parameters are wrapped in `:param_name:`
 - Parameter names must start with a letter or underscore
 - Can contain letters, numbers, and underscores
 - Examples: `:id:`, `:user_id:`, `:post_slug:`
 
 ### Parameter Matching
+
 - Parameters match any non-slash characters
 - Pattern: `/user/:id:` matches `/user/123` and `/user/abc`
 - Pattern: `/user/:id:/posts` matches `/user/123/posts`
 
 ### Accessing Parameters
+
 Parameters are passed to controller methods as function arguments:
 
 ```php
@@ -207,6 +218,7 @@ class Post extends Controller
 ## Advanced Usage
 
 ### Route Order Matters
+
 Routes are matched in the order they're defined. Put more specific routes before general ones:
 
 ```php
@@ -220,6 +232,7 @@ Route::get('/posts/recent', 'Post@recent');      // Never reached
 ```
 
 ### API Routes
+
 ```php
 // API versioning
 Route::get('/api/v1/users', 'ApiV1@users');
@@ -239,6 +252,7 @@ class ApiV1 extends Controller
 ```
 
 ### Debugging Routes
+
 To see all registered routes:
 
 ```php
@@ -249,12 +263,14 @@ print_r(Router::getRoutes());
 ## Migration from Legacy Routing
 
 ### Old Way (Automatic)
+
 ```
 URL: /blog/show/123
 Automatically calls: Blog::show(123)
 ```
 
 ### New Way (Explicit)
+
 ```php
 // Define in routes.php
 Route::get('/blog/%id%', 'Blog@show');
@@ -263,6 +279,7 @@ Route::get('/blog/%id%', 'Blog@show');
 ```
 
 ### Enabling Legacy Support
+
 Add catch-all routes at the end of `routes.php`:
 
 ```php
@@ -273,13 +290,17 @@ Route::any('/:controller:/:action:', 'LegacyRouter@dispatch');
 ## Error Handling
 
 ### 404 Not Found
+
 If no route matches, the Router automatically returns a 404 response.
 
 ### 500 Internal Server Error
+
 If a controller or method doesn't exist, Router returns a 500 error.
 
 ### Custom Error Pages
+
 Modify error handlers in `coreapp/router.php`:
+
 - `handle404()` - Customize 404 page (line 291-296)
 - `handle500()` - Customize 500 page (line 298-310)
 
@@ -294,6 +315,7 @@ Modify error handlers in `coreapp/router.php`:
 ## Examples
 
 ### Blog System
+
 ```php
 Route::get('/blog', 'Blog@index');
 Route::get('/blog/create', 'Blog@create');
@@ -305,6 +327,7 @@ Route::delete('/blog/:id:', 'Blog@destroy');
 ```
 
 ### User Profile
+
 ```php
 Route::get('/user/:username:', 'User@profile');
 Route::get('/user/:username:/posts', 'User@posts');
@@ -312,6 +335,7 @@ Route::get('/user/:username:/followers', 'User@followers');
 ```
 
 ### E-commerce
+
 ```php
 Route::get('/shop', 'Shop@index');
 Route::get('/category/:category:', 'Shop@category');
