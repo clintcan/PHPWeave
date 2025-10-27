@@ -700,19 +700,20 @@ class Router
      */
     public static function clearCache()
     {
-        $success = true;
+        $apcuSuccess = true;
+        $fileSuccess = true;
 
         // Clear APCu cache
         if (self::$useAPCu) {
-            $success = $success && @apcu_delete(self::$apcuKey);
+            $apcuSuccess = @apcu_delete(self::$apcuKey);
         }
 
         // Clear file cache
         if (self::$cacheFile && file_exists(self::$cacheFile)) {
-            $success = $success && @unlink(self::$cacheFile);
+            $fileSuccess = @unlink(self::$cacheFile);
         }
 
-        return $success;
+        return $apcuSuccess && $fileSuccess;
     }
 
     /**
