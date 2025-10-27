@@ -31,6 +31,7 @@ caching that automatically adapts to containerized environments.
 - `$apcuTTL` - Time-to-live configuration
 
 **New Methods:**
+
 ```php
 Router::enableAPCuCache($ttl) // Enable APCu caching
 Router::loadFromCache()        // Now tries APCu first, then file
@@ -39,6 +40,7 @@ Router::clearCache()           // Clears both APCu and file cache
 ```
 
 **Features:**
+
 - Automatic APCu detection and validation
 - Dual-mode caching (APCu + file fallback)
 - Write permission checking (Docker-safe)
@@ -49,6 +51,7 @@ Router::clearCache()           // Clears both APCu and file cache
 ### 2. Smart Caching Logic (`public/index.php`)
 
 **Docker Detection:**
+
 ```php
 $isDocker = file_exists('/.dockerenv') ||
             getenv('DOCKER_ENV') ||
@@ -58,15 +61,18 @@ $isDocker = file_exists('/.dockerenv') ||
 **Caching Strategy:**
 
 **In Docker:**
+
 1. Try APCu (preferred)
 2. Fallback to file cache if writable
 3. No cache if read-only filesystem
 
 **Traditional Hosting:**
+
 1. Try APCu (bonus if available)
 2. Use file cache (primary)
 
 **Benefits:**
+
 - Zero configuration required
 - Automatically optimal for environment
 - No Docker-specific code changes needed
@@ -76,6 +82,7 @@ $isDocker = file_exists('/.dockerenv') ||
 ### 3. Docker Files Created
 
 #### `Dockerfile`
+
 - PHP 8.4 with Apache
 - APCu extension installed and configured
 - Proper permissions for www-data
