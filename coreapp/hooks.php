@@ -145,6 +145,8 @@ class Hook
         }
 
         foreach (self::$hooks[$hookName] as $hook) {
+            // Check if halt() was called by a previous hook callback
+            // PHPStan cannot detect that $halted may be set to true via call_user_func() below
             if (self::$halted) {
                 break;
             }

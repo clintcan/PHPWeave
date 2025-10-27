@@ -9,4 +9,9 @@ parameters:
     # Ignore unused properties that are part of the framework's internal state
     - '#Static property .+::\$jobsDir is never read, only written#'
     - '#Static property .+::\$loadedFromCache is never read, only written#'
+    # Hook::$halted can be set to true via callback execution (PHPStan cannot track indirect modification)
+    -
+      message: '#If condition is always false#'
+      path: coreapp/hooks.php
+      count: 1
   treatPhpDocTypesAsCertain: false
