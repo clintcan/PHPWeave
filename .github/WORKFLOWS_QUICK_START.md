@@ -32,7 +32,7 @@ In `README.md`, replace `YOUR_USERNAME` with your GitHub username:
 
 Change to:
 ```markdown
-[![CI Tests](https://github.com/yourname/PHPWeave/workflows/CI%20Tests/badge.svg)]
+[![CI Tests](https://github.com/clintcan/PHPWeave/actions/workflows/ci.yml/badge.svg?branch=main)]
 ```
 
 ### Step 3: Enable Package Publishing (Optional)
@@ -206,9 +206,9 @@ jobs:
 Check current status of all workflows:
 
 **Main Branch:**
-- [![CI Tests](https://github.com/YOUR_USERNAME/PHPWeave/workflows/CI%20Tests/badge.svg)](https://github.com/YOUR_USERNAME/PHPWeave/actions/workflows/ci.yml)
-- [![Docker Build](https://github.com/YOUR_USERNAME/PHPWeave/workflows/Docker%20Build/badge.svg)](https://github.com/YOUR_USERNAME/PHPWeave/actions/workflows/docker.yml)
-- [![Code Quality](https://github.com/YOUR_USERNAME/PHPWeave/workflows/Code%20Quality/badge.svg)](https://github.com/YOUR_USERNAME/PHPWeave/actions/workflows/code-quality.yml)
+- [![CI Tests](https://github.com/clintcan/PHPWeave/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/YOUR_USERNAME/PHPWeave/actions/workflows/ci.yml)
+- [![Docker Build](https://github.com/clintcan/PHPWeave/actions/workflows/docker.yml/badge.svg?branch=main)](https://github.com/YOUR_USERNAME/PHPWeave/actions/workflows/docker.yml)
+- [![Code Quality](https://github.com/clintcan/PHPWeave/actions/workflows/code-quality.yml/badge.svg?branch=main)](https://github.com/YOUR_USERNAME/PHPWeave/actions/workflows/code-quality.yml)
 
 ## Need Help?
 
