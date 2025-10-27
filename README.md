@@ -502,6 +502,8 @@ PHPWeave/
 ├── nginx.conf          # Load balancer config
 ├── .env                # Environment config (create from .env.sample)
 ├── .env.sample         # Sample environment config
+├── CODE_OF_CONDUCT.md  # Community code of conduct
+├── SECURITY.md         # Security policy and reporting
 └── README.md           # This file
 ```
 
@@ -883,6 +885,32 @@ PHPWeave was born as a private framework but has evolved with contributions from
 7. Open a Pull Request
 
 All pull requests are automatically tested via GitHub Actions.
+
+### Code of Conduct
+
+PHPWeave is committed to providing a welcoming and inclusive environment for all contributors. By participating in this project, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md).
+
+Key points:
+- Be respectful and inclusive
+- Accept constructive feedback gracefully
+- Focus on what's best for the community
+- Report violations to mosaicked_pareja@aleeas.com
+
+See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for complete guidelines.
+
+## Security
+
+Security is a top priority for PHPWeave. If you discover a security vulnerability:
+
+**DO NOT** report it through public GitHub issues.
+
+Instead:
+- Use [GitHub Security Advisories](../../security/advisories) (preferred)
+- Email: mosaicked_pareja@aleeas.com
+
+We will respond within 48 hours and work with you on a coordinated disclosure.
+
+For security best practices, supported versions, and detailed reporting guidelines, see [SECURITY.md](SECURITY.md).
 
 ## License
 
