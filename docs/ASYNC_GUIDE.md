@@ -604,15 +604,15 @@ if ($status['pending'] > 100) {
 
 ## Comparison with Other Solutions
 
-| Feature | PHPWeave Async | Laravel Queue | Beanstalkd | RabbitMQ |
-|---------|---------------|---------------|------------|----------|
-| Setup Complexity | ⭐ Very Easy | ⭐⭐ Easy | ⭐⭐⭐ Medium | ⭐⭐⭐⭐ Complex |
-| Dependencies | None | Framework | Daemon | Daemon |
-| Persistence | File-based | DB/Redis | Memory | Disk |
-| Scalability | Medium | High | High | Very High |
-| Learning Curve | Minimal | Medium | Medium | Steep |
+| Feature          | PHPWeave Async | Laravel Queue | Beanstalkd    | RabbitMQ         |
+| ---------------- | -------------- | ------------- | ------------- | ---------------- |
+| Setup Complexity | ⭐ Very Easy   | ⭐⭐ Easy     | ⭐⭐⭐ Medium | ⭐⭐⭐⭐ Complex |
+| Dependencies     | None           | Framework     | Daemon        | Daemon           |
+| Persistence      | File-based     | DB/Redis      | Memory        | Disk             |
+| Scalability      | Medium         | High          | High          | Very High        |
+| Learning Curve   | Minimal        | Medium        | Medium        | Steep            |
 
-PHPWeave Async is perfect for small to medium applications where simplicity 
+PHPWeave Async is perfect for small to medium applications where simplicity
 matters more than extreme scale.
 
 ## Summary
