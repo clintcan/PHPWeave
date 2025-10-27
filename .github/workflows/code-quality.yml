@@ -111,42 +111,33 @@ jobs:
         fi
         composer install --no-interaction --prefer-dist --no-progress
 
-    - name: Create PHPStan bootstrap file
+    - name: Create PHPStan bootstrap file (if not exists)
       run: |
-        cat > phpstan-bootstrap.php <<'EOF'
+        if [ ! -f "phpstan-bootstrap.php" ]; then
+          cat > phpstan-bootstrap.php <<'EOF'
         <?php
         // Define PHPWEAVE_ROOT constant for static analysis
         if (!defined('PHPWEAVE_ROOT')) {
             define('PHPWEAVE_ROOT', __DIR__);
         }
-        
+
         // Define other globals that might be needed during analysis
         $GLOBALS['baseurl'] = '/';
         $GLOBALS['configs'] = [];
         $GLOBALS['models'] = [];
         $GLOBALS['PW'] = new stdClass();
         EOF
+        fi
 
-    - name: Create PHPStan config
+    - name: Verify PHPStan config exists
       run: |
-        cat > phpstan.neon <<'EOF'
-        parameters:
-          level: 5
-          paths:
-            - coreapp
-            - public
-          bootstrapFiles:
-            - phpstan-bootstrap.php
-          ignoreErrors:
-            # Ignore unused properties that are part of the framework's internal state
-            - '#Static property .+::\$jobsDir is never read, only written#'
-            - '#Static property .+::\$instances is never read, only written#'
-            - '#Static property .+::\$loadedFromCache is never read, only written#'
-            # Ignore conditions that PHPStan doesn't understand correctly
-            - '#If condition is always false#'
-            - '#Right side of && is always true#'
-          treatPhpDocTypesAsCertain: false
-        EOF
+        if [ ! -f "phpstan.neon" ]; then
+          echo "❌ Error: phpstan.neon not found in repository"
+          exit 1
+        else
+          echo "✓ Using phpstan.neon from repository"
+          cat phpstan.neon
+        fi
 
     - name: Run PHPStan
       run: vendor/bin/phpstan analyse --no-progress --error-format=github
