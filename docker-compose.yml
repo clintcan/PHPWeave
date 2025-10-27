@@ -1,8 +1,6 @@
 # Docker Compose for PHPWeave
 # Production-ready setup with APCu caching
 
-version: '3.8'
-
 services:
   # PHP Application with Apache
   phpweave:

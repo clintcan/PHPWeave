@@ -1,8 +1,6 @@
 # Docker Compose for Development
 # Includes hot-reload and debugging tools
 
-version: '3.8'
-
 services:
   phpweave:
     build:
