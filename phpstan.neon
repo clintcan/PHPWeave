@@ -9,7 +9,4 @@ parameters:
     # Ignore unused properties that are part of the framework's internal state
     - '#Static property .+::\$jobsDir is never read, only written#'
     - '#Static property .+::\$loadedFromCache is never read, only written#'
-    # Ignore conditions that PHPStan doesn't understand correctly
-    - '#If condition is always false#'
-    - '#Right side of && is always true#'
   treatPhpDocTypesAsCertain: false
