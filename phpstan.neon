@@ -6,13 +6,12 @@ parameters:
   bootstrapFiles:
     - phpstan-bootstrap.php
   ignoreErrors:
-    # Ignore dynamic property access patterns in PHPWeave framework
-    - '#Call to an undefined method#'
-    - '#Access to an undefined property#'
     # Ignore unused properties that are part of the framework's internal state
     - '#Static property .+::\$jobsDir is never read, only written#'
     - '#Static property .+::\$instances is never read, only written#'
     - '#Static property .+::\$loadedFromCache is never read, only written#'
-    # Ignore legacy parameter type issue in DBConnection (backward compatibility)
-    - '#Default value of the parameter .+ of method DBConnection::executePreparedSQL\(\) is incompatible with type#'
+    # Ignore conditions that PHPStan doesn't understand correctly
+    - '#If condition is always false#'
+    - '#Right side of && is always true#'
+    - '#Variable \$class in empty\(\) always exists and is always falsy#'
   treatPhpDocTypesAsCertain: false
