@@ -195,15 +195,15 @@ function getControllerClass(){
 	$token = strtok($patharr[1], "/");
 	$counter = 0;
 	$params = array();
-	$class = null;
 	while($token !== false){
-		if($counter == 0) {
+		if($counter === 0) {
 			$class = ucwords($token);
 			return $class;
 		}
+		$counter++;
+		$token = strtok("/");
 	}
-	if(empty($class))
-		return "Home";
+	return "Home";
 }
 
 /**
