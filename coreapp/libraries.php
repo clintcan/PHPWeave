@@ -44,10 +44,11 @@ foreach ($files as $file) {
 }
 
 /**
- * Lazy Library Loader Function
+ * Lazy Library Loader Function (Environment-Aware Thread Safety)
  *
  * Returns a library instance, creating it only on first access.
  * Subsequent calls return the cached instance.
+ * Uses file-based locking only in Docker/cloud/threaded environments.
  *
  * @param string $libraryName Name of the library (e.g., 'helper_library')
  * @return object Library instance
@@ -57,10 +58,29 @@ foreach ($files as $file) {
  */
 function library($libraryName) {
     static $instances = [];
+    static $needsLocking = null;
+    static $lockFile = null;
 
-    // Return cached instance if exists
+    // Return cached instance if exists (fast path, no locking needed)
     if (isset($instances[$libraryName])) {
         return $instances[$libraryName];
+    }
+
+    // Detect environment and locking requirements once
+    if ($needsLocking === null) {
+        $needsLocking = (
+            file_exists('/.dockerenv') ||                    // Docker container
+            getenv('KUBERNETES_SERVICE_HOST') !== false ||   // Kubernetes pod
+            getenv('DOCKER_ENV') !== false ||                // Docker environment variable
+            extension_loaded('swoole') ||                    // Swoole server
+            extension_loaded('pthreads') ||                  // pthreads extension
+            defined('ROADRUNNER_VERSION') ||                 // RoadRunner server
+            defined('FRANKENPHP_VERSION')                    // FrankenPHP server
+        );
+        
+        if ($needsLocking && $lockFile === null) {
+            $lockFile = sys_get_temp_dir() . '/phpweave_libraries.lock';
+        }
     }
 
     // Check if library class exists
@@ -68,21 +88,47 @@ function library($libraryName) {
         throw new Exception("Library '{$libraryName}' not found");
     }
 
-    // Instantiate and cache
     $className = $GLOBALS['_library_files'][$libraryName];
-    $instances[$libraryName] = new $className();
+
+    // Use locking only in containerized/threaded environments
+    if ($needsLocking) {
+        // Thread-safe instantiation using file locking
+        $fp = fopen($lockFile, 'c+');
+        if (!$fp) {
+            throw new Exception("Unable to create lock file for thread safety");
+        }
+
+        if (flock($fp, LOCK_EX)) {
+            try {
+                // Double-check pattern: verify instance wasn't created while waiting for lock
+                if (!isset($instances[$libraryName])) {
+                    $instances[$libraryName] = new $className();
+                }
+            } finally {
+                flock($fp, LOCK_UN);
+                fclose($fp);
+            }
+        } else {
+            fclose($fp);
+            throw new Exception("Unable to acquire lock for thread safety");
+        }
+    } else {
+        // Fast path for traditional PHP deployments (no locking overhead)
+        $instances[$libraryName] = new $className();
+    }
 
     return $instances[$libraryName];
 }
 
 /**
- * Lazy Library Loader Class
+ * Lazy Library Loader Class (Thread-Safe)
  *
  * Provides array-like access to libraries with lazy loading.
  * Used for backward compatibility with $libraries['library_name'] syntax.
+ * Thread-safe implementation using the library() function.
  */
 class LazyLibraryLoader implements ArrayAccess {
-    private static $instances = [];
+    // Removed static $instances - now uses thread-safe library() function
 
     /**
      * Check if library exists (ArrayAccess)

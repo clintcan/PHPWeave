@@ -6,6 +6,7 @@ Libraries in PHPWeave are reusable utility classes that provide common functiona
 
 **Key Features:**
 - Lazy instantiation (only loaded when needed)
+- Environment-aware thread safety (Docker/cloud/threaded environments)
 - Three access methods (global object, function, array)
 - Automatic discovery (no manual registration)
 - Caching of instances (singleton pattern)
@@ -425,27 +426,53 @@ $slug2 = $PW->libraries->string_helper->slugify($text2);
 $slug3 = $PW->libraries->string_helper->slugify($text3);
 ```
 
-### Instance Caching
+### Instance Caching & Thread Safety
 
-Each library is instantiated once and cached:
+Each library is instantiated once and cached with environment-aware thread safety:
 
 ```php
 // From coreapp/libraries.php
 function library($libraryName) {
     static $instances = [];
+    static $needsLocking = null;
+    static $lockFile = null;
 
     // Return cached instance if exists (very fast!)
     if (isset($instances[$libraryName])) {
         return $instances[$libraryName];
     }
 
-    // Instantiate and cache (only happens once)
-    $className = $GLOBALS['_library_files'][$libraryName];
-    $instances[$libraryName] = new $className();
+    // Detect environment and locking requirements once
+    if ($needsLocking === null) {
+        $needsLocking = (
+            file_exists('/.dockerenv') ||                    // Docker container
+            getenv('KUBERNETES_SERVICE_HOST') !== false ||   // Kubernetes pod
+            getenv('DOCKER_ENV') !== false ||                // Docker environment variable
+            extension_loaded('swoole') ||                    // Swoole server
+            extension_loaded('pthreads') ||                  // pthreads extension
+            defined('ROADRUNNER_VERSION') ||                 // RoadRunner server
+            defined('FRANKENPHP_VERSION')                    // FrankenPHP server
+        );
+    }
+
+    // Use thread-safe instantiation in containerized/threaded environments
+    if ($needsLocking) {
+        // File locking for thread safety
+        // [implementation details in coreapp/libraries.php]
+    } else {
+        // Fast path for traditional PHP deployments (no locking overhead)
+        $instances[$libraryName] = new $className();
+    }
 
     return $instances[$libraryName];
 }
 ```
+
+**Environment Detection:**
+- **Traditional PHP** (Apache, PHP-FPM): Fast path, zero locking overhead
+- **Docker/Kubernetes**: Automatic thread-safe instantiation with file locking
+- **Swoole/RoadRunner/FrankenPHP**: Thread-safe instantiation for multi-threaded servers
+- **Performance**: Only first access requires locking, subsequent accesses use cached instance
 
 ### Best Practices
 

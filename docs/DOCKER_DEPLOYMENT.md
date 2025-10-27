@@ -99,6 +99,22 @@ PHPWeave automatically selects the best caching strategy based on environment:
 ✅ Very fast (in-memory)
 ✅ Survives across requests (not container restarts)
 
+### Thread Safety in Docker
+PHPWeave automatically enables thread-safe model and library loading in Docker environments:
+
+✅ **Environment Detection** - Automatically detects Docker/Kubernetes/Swoole/FrankenPHP
+✅ **File Locking** - Uses exclusive file locks for safe instantiation
+✅ **Zero Overhead** - Traditional PHP deployments use fast path without locking
+✅ **Double-Check Pattern** - Prevents duplicate instantiation during concurrent access
+✅ **Separate Lock Files** - Models and libraries use independent locks to avoid contention
+
+**Supported Environments:**
+- Docker containers (`/.dockerenv` detection)
+- Kubernetes pods (`KUBERNETES_SERVICE_HOST` detection)
+- Swoole servers (`swoole` extension detection)
+- RoadRunner servers (`ROADRUNNER_VERSION` detection)
+- FrankenPHP servers (`FRANKENPHP_VERSION` detection)
+
 ---
 
 ## Dockerfile Explained
