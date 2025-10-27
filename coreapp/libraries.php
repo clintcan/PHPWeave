@@ -70,8 +70,8 @@ function library($libraryName) {
     if ($needsLocking === null) {
         $needsLocking = (
             file_exists('/.dockerenv') ||                    // Docker container
-            (getenv('KUBERNETES_SERVICE_HOST') !== false && getenv('KUBERNETES_SERVICE_HOST') !== '') ||   // Kubernetes pod
-            (getenv('DOCKER_ENV') !== false && getenv('DOCKER_ENV') !== '') ||                // Docker environment variable
+            (bool) getenv('KUBERNETES_SERVICE_HOST') ||      // Kubernetes pod
+            (bool) getenv('DOCKER_ENV') ||                   // Docker environment variable
             extension_loaded('swoole') ||                    // Swoole server
             extension_loaded('pthreads') ||                  // pthreads extension
             defined('ROADRUNNER_VERSION') ||                 // RoadRunner server
