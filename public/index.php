@@ -5,7 +5,19 @@ $GLOBALS['baseurl'] = "/";
 define('PHPWEAVE_ROOT', str_replace("\\", "/", dirname(__FILE__, 2)));
 
 // We will load the database connection variables here
-$GLOBALS['configs'] = parse_ini_file('.env');
+// Check if .env file exists
+if (file_exists('../.env')) {
+    $GLOBALS['configs'] = parse_ini_file('../.env');
+} else {
+    // We will load the database connection variables from environment
+    // Support both naming conventions: DB_HOST and DBHOST for compatibility
+    $GLOBALS['configs']['DBHOST'] = getenv('DB_HOST') ?: getenv('DBHOST') ?: 'localhost';
+    $GLOBALS['configs']['DBNAME'] = getenv('DB_NAME') ?: getenv('DBNAME') ?: '';
+    $GLOBALS['configs']['DBUSER'] = getenv('DB_USER') ?: getenv('DBUSER') ?: '';
+    $GLOBALS['configs']['DBPASSWORD'] = getenv('DB_PASSWORD') ?: getenv('DBPASSWORD') ?: '';
+    $GLOBALS['configs']['DBCHARSET'] = getenv('DB_CHARSET') ?: getenv('DBCHARSET') ?: 'utf8';
+    $GLOBALS['configs']['DEBUG'] = getenv('DEBUG') ?: 0;
+}
 
 // Load hooks system first
 require_once "../coreapp/hooks.php";

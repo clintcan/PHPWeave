@@ -1,5 +1,18 @@
 # Docker Compose for PHPWeave
 # Production-ready setup with APCu caching
+#
+# USAGE:
+# This file uses .env file mounting (traditional approach).
+# For environment variables only, use docker-compose.env.yml instead.
+#
+# 1. Create .env file from sample:
+#    cp .env.sample .env
+#    nano .env  # Edit with your values
+#
+# 2. Start services:
+#    docker compose up -d
+#
+# The .env file will be mounted into the container and read by PHPWeave
 
 services:
   # PHP Application with Apache
@@ -9,15 +22,15 @@ services:
       dockerfile: Dockerfile
     container_name: phpweave-app
     ports:
-      - "8080:80"
+      - "${APP_PORT:-8080}:80"
     volumes:
       # Mount .env file (create from .env.sample)
       - ./.env:/var/www/html/.env:ro
       # Optional: Mount cache directory for persistence (not needed with APCu)
       # - cache-data:/var/www/html/cache
     environment:
-      - DOCKER_ENV=production
-      - PHPWEAVE_ENV=production
+      - DOCKER_ENV=${DOCKER_ENV:-production}
+      - PHPWEAVE_ENV=${PHPWEAVE_ENV:-production}
     restart: unless-stopped
     networks:
       - phpweave-network

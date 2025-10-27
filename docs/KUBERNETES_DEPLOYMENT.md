@@ -79,11 +79,13 @@ docker push ghcr.io/yourusername/phpweave:latest
 
 ### 2. Configure Secrets
 
+**Note:** PHPWeave automatically uses environment variables for configuration when `.env` file doesn't exist. In Kubernetes, database credentials should be provided via environment variables (not `.env` file).
+
 Create a `secrets.env` file in the `k8s/` directory:
 
 ```env
-DBUSER=phpweave_user
-DBPASSWORD=your_secure_password_here
+DB_USER=phpweave_user
+DB_PASSWORD=your_secure_password_here
 ERROR_EMAIL=admin@example.com
 ```
 
@@ -91,8 +93,8 @@ Or create secrets manually:
 
 ```bash
 kubectl create secret generic phpweave-secret \
-  --from-literal=DBUSER=phpweave_user \
-  --from-literal=DBPASSWORD=secure_password \
+  --from-literal=DB_USER=phpweave_user \
+  --from-literal=DB_PASSWORD=secure_password \
   --from-literal=ERROR_EMAIL=admin@example.com \
   -n phpweave
 
@@ -160,10 +162,18 @@ kubectl get hpa -n phpweave
 
 ### Environment Variables
 
+**Database Configuration:**
+PHPWeave uses environment variables for database configuration in Kubernetes (no `.env` file needed):
+- `DB_HOST`: MySQL service name (or `DBHOST` for backward compatibility)
+- `DB_NAME`: Database name (or `DBNAME` for backward compatibility)
+- `DB_USER`: Database username (from Secret)
+- `DB_PASSWORD`: Database password (from Secret)
+- `DB_CHARSET`: Character set (default: utf8)
+
+**Application Configuration:**
 Configured via ConfigMap (`k8s/configmap.yaml`):
 - `DEBUG`: Set to "0" for production
 - `APP_ENV`: Environment name
-- `DBHOST`: MySQL service name
 - `CACHE_ENABLED`: Enable caching
 - `APCU_ENABLED`: Enable APCu cache
 

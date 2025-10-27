@@ -1,5 +1,17 @@
 # Docker Compose for Development
 # Includes hot-reload and debugging tools
+#
+# USAGE:
+# 1. Using defaults:
+#    docker compose -f docker-compose.dev.yml up -d
+#
+# 2. Using host environment variables:
+#    export DB_PASSWORD=my_dev_password
+#    docker compose -f docker-compose.dev.yml up -d
+#
+# 3. Using .env.docker file:
+#    source .env.docker
+#    docker compose -f docker-compose.dev.yml up -d
 
 services:
   phpweave:
@@ -10,7 +22,7 @@ services:
         - INSTALL_XDEBUG=true
     container_name: phpweave-dev
     ports:
-      - "8080:80"
+      - "${DEV_PORT:-8080}:80"
     volumes:
       # Mount entire project for hot-reload
       - ./:/var/www/html
@@ -18,11 +30,22 @@ services:
       - /var/www/html/vendor
       - /var/www/html/node_modules
     environment:
-      - DOCKER_ENV=development
-      - PHPWEAVE_ENV=development
+      # Development environment
+      - DOCKER_ENV=${DOCKER_ENV:-development}
+      - PHPWEAVE_ENV=${PHPWEAVE_ENV:-development}
       - PHP_IDE_CONFIG=serverName=phpweave
-      - XDEBUG_MODE=debug
+      - XDEBUG_MODE=${XDEBUG_MODE:-debug}
       - XDEBUG_CONFIG=client_host=host.docker.internal
+
+      # Database configuration (using DB_* naming convention)
+      - DB_HOST=${DB_HOST:-db}
+      - DB_NAME=${DB_NAME:-phpweave_dev}
+      - DB_USER=${DB_USER:-dev}
+      - DB_PASSWORD=${DB_PASSWORD:-dev}
+      - DB_CHARSET=${DB_CHARSET:-utf8mb4}
+
+      # Application settings
+      - DEBUG=${DEBUG:-1}
     restart: unless-stopped
     networks:
       - phpweave-network

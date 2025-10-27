@@ -57,6 +57,8 @@ DBCHARSET=utf8
 DEBUG=1
 ```
 
+**Note:** If you don't create a `.env` file (e.g., for Docker/Kubernetes deployments), PHPWeave will automatically fall back to reading environment variables: `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_CHARSET`.
+
 4. Create your database and tables
 5. Start building!
 
@@ -361,7 +363,9 @@ $users = $this->fetchAll($stmt);
 $count = $this->rowCount($stmt);
 ```
 
-Configuration is in `.env`:
+**Configuration Methods:**
+
+1. **Using `.env` file** (recommended for local development):
 ```ini
 DBHOST=localhost
 DBNAME=your_database
@@ -369,6 +373,10 @@ DBUSER=your_username
 DBPASSWORD=your_password
 DBCHARSET=utf8
 ```
+
+2. **Using environment variables** (recommended for Docker/Kubernetes):
+- Set `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_CHARSET` as environment variables
+- PHPWeave automatically uses environment variables when `.env` file doesn't exist
 
 ## Async Background Tasks
 
@@ -475,8 +483,11 @@ See **docs/OPTIMIZATIONS_APPLIED.md** for details.
 PHPWeave is Docker-ready with built-in APCu support:
 
 ```bash
-# Standard production deployment
+# Production deployment with .env file
 docker-compose up -d
+
+# Production with environment variables (Kubernetes-style, recommended)
+docker-compose -f docker-compose.env.yml up -d
 
 # Development with hot-reload
 docker-compose -f docker-compose.dev.yml up -d
@@ -557,7 +568,8 @@ PHPWeave/
 ├── routes.php          # Route definitions
 ├── worker.php          # Queue worker script
 ├── Dockerfile          # Docker image with APCu
-├── docker-compose.yml  # Standard deployment
+├── docker-compose.yml  # Standard deployment (.env file)
+├── docker-compose.env.yml # Kubernetes-style (env vars only)
 ├── docker-compose.dev.yml  # Development setup
 ├── docker-compose.scale.yml # Load-balanced setup
 ├── nginx.conf          # Load balancer config

@@ -147,17 +147,34 @@ docker run -d -p 8080:80 \
 
 ## Environment Variables
 
+PHPWeave supports two configuration methods:
+
+1. **`.env` file** (mount as volume in Docker) - Use `docker-compose.yml`
+2. **Environment variables** (pass directly to container) - Use `docker-compose.env.yml` ⭐ **RECOMMENDED**
+
+If `.env` file exists, it will be loaded. Otherwise, PHPWeave falls back to environment variables.
+
+**Naming Convention Support:**
+- **New style:** `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_CHARSET` (recommended for Kubernetes)
+- **Legacy style:** `DBHOST`, `DBNAME`, `DBUSER`, `DBPASSWORD`, `DBCHARSET` (backward compatible)
+- Both work! Framework checks both (new style first, then legacy)
+
 ### Required
 ```bash
-# Database connection (.env file)
-DBHOST=db
-DBNAME=phpweave
-DBUSER=phpweave_user
-DBPASSWORD=phpweave_pass
-DBCHARSET=utf8mb4
+# Database connection (environment variables recommended)
+DB_HOST=db               # or DBHOST (legacy)
+DB_NAME=phpweave         # or DBNAME (legacy)
+DB_USER=phpweave_user    # or DBUSER (legacy)
+DB_PASSWORD=phpweave_pass # or DBPASSWORD (legacy)
+DB_CHARSET=utf8mb4       # or DBCHARSET (legacy)
 
 # Application mode
 DEBUG=0  # Production: 0, Development: 1
+```
+
+**Example using environment variables only (no .env file):**
+```bash
+docker compose -f docker-compose.env.yml up -d
 ```
 
 ### Optional
