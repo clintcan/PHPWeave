@@ -5,14 +5,17 @@ This directory contains test scripts and benchmarks for PHPWeave framework.
 ## Test Files
 
 ### 1. `test_hooks.php`
+
 **Purpose:** Tests the hooks system functionality (8 tests)
 
 **Run:**
+
 ```bash
 php tests/test_hooks.php
 ```
 
 **Tests:**
+
 - ✓ Hook registration and triggering
 - ✓ Priority ordering (5 → 10 → 20)
 - ✓ Data modification through hooks
@@ -25,14 +28,17 @@ php tests/test_hooks.php
 ---
 
 ### 2. `test_models.php`
+
 **Purpose:** Tests the lazy model loading system (12 tests)
 
 **Run:**
+
 ```bash
 php tests/test_models.php
 ```
 
 **Tests:**
+
 - ✓ Model file discovery
 - ✓ Model loading via model() function
 - ✓ Model loading via $models[] array (legacy)
@@ -46,21 +52,25 @@ php tests/test_models.php
 - ✓ Model method availability
 - ✓ All access methods return same instance
 
-**Expected:** Most tests should PASS. Some may SKIP if database connection unavailable.
+**Expected:** Most tests should PASS. Some may SKIP if database connection
+unavailable.
 
 **Note:** Models extend DBConnection, so some tests require database access.
 
 ---
 
 ### 3. `test_controllers.php`
+
 **Purpose:** Tests the controller system and base class (15 tests)
 
 **Run:**
+
 ```bash
 php tests/test_controllers.php
 ```
 
 **Tests:**
+
 - ✓ Controller base class verification
 - ✓ Controller instantiation (skip auto-call)
 - ✓ Safe HTML output helper (XSS prevention)
@@ -82,14 +92,17 @@ php tests/test_controllers.php
 ---
 
 ### 4. `test_libraries.php`
+
 **Purpose:** Tests the lazy library loading system (20 tests) - NEW in v2.1.1!
 
 **Run:**
+
 ```bash
 php tests/test_libraries.php
 ```
 
 **Tests:**
+
 - ✓ Library file discovery
 - ✓ Library loading via library() function
 - ✓ Library loading via $libraries[] array (legacy)
@@ -113,14 +126,17 @@ php tests/test_libraries.php
 
 **Expected:** All tests should PASS if string_helper library exists
 
-**Note:** Tests all 7 methods of the string_helper library plus system functionality.
+**Note:** Tests all 7 methods of the string_helper library plus system
+functionality.
 
 ---
 
 ### 5. `test_docker_caching.php`
+
 **Purpose:** Tests Docker-aware caching (APCu and file cache)
 
 **Run:**
+
 ```bash
 # Local
 php tests/test_docker_caching.php
@@ -130,6 +146,7 @@ docker exec phpweave-app php tests/test_docker_caching.php
 ```
 
 **Tests:**
+
 - ✓ APCu extension availability
 - ✓ APCu cache enable/disable
 - ✓ Route registration and caching
@@ -138,20 +155,24 @@ docker exec phpweave-app php tests/test_docker_caching.php
 - ✓ File cache fallback
 
 **Expected:**
+
 - Local: "File cache available" (if no APCu)
 - Docker: "OPTIMAL: APCu enabled" (if Dockerfile used)
 
 ---
 
 ### 6. `benchmark_optimizations.php`
+
 **Purpose:** Benchmarks performance improvements from optimizations
 
 **Run:**
+
 ```bash
 php tests/benchmark_optimizations.php
 ```
 
 **Benchmarks:**
+
 - Hook priority sorting (lazy vs eager)
 - Model loading performance
 - Directory path calculation
@@ -159,6 +180,7 @@ php tests/benchmark_optimizations.php
 - Route caching
 
 **Results:**
+
 - Total improvement: ~10-25ms per request
 - 30-60% faster for typical applications
 
@@ -167,6 +189,7 @@ php tests/benchmark_optimizations.php
 ## Running All Tests
 
 ### Local Development
+
 ```bash
 # Run all tests
 php tests/test_hooks.php
@@ -178,6 +201,7 @@ php tests/benchmark_optimizations.php
 ```
 
 ### Docker Environment
+
 ```bash
 # Run all tests in container
 docker exec phpweave-app php tests/test_hooks.php
@@ -216,7 +240,8 @@ Tests are automatically run in CI/CD pipelines:
 ## Expected Results
 
 ### All Tests Passing
-```
+
+```text
 ✓ test_hooks.php: 8/8 tests PASS
 ✓ test_models.php: 12/12 tests PASS
 ✓ test_controllers.php: 15/15 tests PASS
@@ -228,7 +253,8 @@ Tests are automatically run in CI/CD pipelines:
 ### Typical Output
 
 **Hooks Test:**
-```
+
+```text
 Testing PHPWeave Hooks System
 ==================================================
 Test 1: Basic Hook Registration        PASS
@@ -238,14 +264,16 @@ All Tests Completed!
 ```
 
 **Docker Caching Test (with APCu):**
-```
+
+```text
 ✅ OPTIMAL: APCu enabled - using in-memory caching
    → Best for Docker/container environments
    → No filesystem dependencies
 ```
 
 **Docker Caching Test (without APCu):**
-```
+
+```text
 ✅ GOOD: File cache available
    → Works but requires writable filesystem
    → Consider installing APCu for better performance
@@ -258,11 +286,13 @@ All Tests Completed!
 ### Test Failures
 
 **"APCu not available"**
+
 - Expected if APCu not installed
 - Framework falls back to file cache
 - To enable APCu: see `DOCKER_DEPLOYMENT.md`
 
 **"Cache directory not writable"**
+
 ```bash
 # Fix permissions
 chmod 755 cache/
@@ -270,6 +300,7 @@ chown -R www-data:www-data cache/
 ```
 
 **"Hook tests failing"**
+
 - Check PHP version >= 7.4
 - Verify no syntax errors in core files
 
@@ -285,7 +316,8 @@ To add a new test:
 4. Document in this README
 5. Add to CI/CD pipeline
 
-### Template:
+### Template
+
 ```php
 <?php
 /**
@@ -312,6 +344,7 @@ echo "✓ All tests completed!\n";
 ## Test Coverage
 
 Current test coverage:
+
 - ✅ Hooks system (comprehensive - 8 tests)
 - ✅ Models system (comprehensive - 12 tests)
 - ✅ Controllers system (comprehensive - 15 tests)
@@ -333,6 +366,7 @@ php tests/benchmark_optimizations.php
 ```
 
 Expected improvements:
+
 - Hook sorting: ~10x faster registration
 - Model loading: 3-10ms saved
 - Path caching: 95% faster
@@ -342,6 +376,7 @@ Expected improvements:
 ---
 
 For more information, see:
+
 - `HOOKS.md` - Hooks documentation
 - `LIBRARIES.md` - Libraries documentation (NEW!)
 - `DOCKER_DEPLOYMENT.md` - Docker testing

@@ -60,6 +60,7 @@ php worker.php --daemon
 ## 3. Common Use Cases
 
 ### After User Registration
+
 ```php
 // Queue multiple tasks
 Async::queue('SendEmailJob', ['to' => $email, ...]);
@@ -68,6 +69,7 @@ Async::queue('SyncWithCRMJob', ['user_id' => $userId, ...]);
 ```
 
 ### After Order Placement
+
 ```php
 Async::queue('SendOrderConfirmationJob', ['order_id' => $orderId], 1); // High priority
 Async::queue('UpdateInventoryJob', ['order_id' => $orderId], 5);
@@ -75,6 +77,7 @@ Async::queue('NotifyWarehouseJob', ['order_id' => $orderId], 10);
 ```
 
 ### Generate Reports
+
 ```php
 Async::queue('GenerateReportJob', [
     'type' => 'sales',
@@ -89,6 +92,7 @@ Async::queue('GenerateReportJob', [
 ### Option 1: Cron Job (Simplest)
 
 Add to crontab:
+
 ```cron
 * * * * * cd /path/to/phpweave && php worker.php >> storage/logs/worker.log 2>&1
 ```
@@ -96,6 +100,7 @@ Add to crontab:
 ### Option 2: Supervisor (Best)
 
 Create `/etc/supervisor/conf.d/phpweave-worker.conf`:
+
 ```ini
 [program:phpweave-worker]
 command=php /var/www/phpweave/worker.php --daemon
@@ -107,6 +112,7 @@ stdout_logfile=/var/www/phpweave/storage/logs/worker.log
 ```
 
 Restart supervisor:
+
 ```bash
 sudo supervisorctl reread
 sudo supervisorctl update
@@ -127,7 +133,7 @@ Async::retryFailed();
 Async::clearFailed();
 ```
 
-## That's It!
+## That's It
 
 You now have async task processing in PHPWeave.
 

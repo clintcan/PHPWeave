@@ -7,7 +7,8 @@
 
 ## Summary
 
-PHPWeave now includes **production-ready Docker support** with intelligent APCu caching that automatically adapts to containerized environments.
+PHPWeave now includes **production-ready Docker support** with intelligent APCu
+caching that automatically adapts to containerized environments.
 
 ### What Was Implemented
 
@@ -24,6 +25,7 @@ PHPWeave now includes **production-ready Docker support** with intelligent APCu 
 ### 1. Router Class Enhanced (`coreapp/router.php`)
 
 **Added Properties:**
+
 - `$useAPCu` - Toggle for APCu caching
 - `$apcuKey` - Cache key for route storage
 - `$apcuTTL` - Time-to-live configuration
