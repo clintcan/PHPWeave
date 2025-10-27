@@ -8,6 +8,7 @@
 Overall, the codebase is **well-structured** with minimal performance concerns. However, several optimization opportunities exist that could significantly improve performance, especially under high load.
 
 **Risk Level Legend:**
+
 - 🔴 **High Impact** - Should be addressed
 - 🟡 **Medium Impact** - Consider addressing
 - 🟢 **Low Impact** - Optional optimization
@@ -17,9 +18,11 @@ Overall, the codebase is **well-structured** with minimal performance concerns. 
 ## 🔴 High Impact Performance Issues
 
 ### 1. Hook Priority Re-sorting on Every Registration
+
 **File:** `coreapp/hooks.php:95-98`
 
 **Issue:**
+
 ```php
 self::$hooks[$hookName][] = ['callback' => $callback, 'priority' => $priority];
 // Sort by priority after adding
@@ -29,6 +32,7 @@ usort(self::$hooks[$hookName], function($a, $b) {
 ```
 
 **Problem:**
+
 - `usort()` is called **every time a hook is registered**
 - O(n log n) complexity on each registration
 - If you have 20 hook files with 5 hooks each, that's 100 usort() calls during initialization
@@ -40,6 +44,7 @@ usort(self::$hooks[$hookName], function($a, $b) {
 Only sort once when hooks are first triggered, not on registration.
 
 **Recommended Fix:**
+
 ```php
 // In register() method:
 self::$hooks[$hookName][] = [
@@ -60,9 +65,11 @@ if (!isset(self::$hooksSorted[$hookName]) || !self::$hooksSorted[$hookName]) {
 ---
 
 ### 2. All Models Auto-Instantiated on Every Request
+
 **File:** `coreapp/models.php:31-37`
 
 **Issue:**
+
 ```php
 $files = glob("../models/*.php");
 foreach ($files as $file) {
@@ -73,6 +80,7 @@ foreach ($files as $file) {
 ```
 
 **Problem:**
+
 - **Every model is instantiated** on every request
 - If you have 20 models and only use 2 per request, you're wasting resources on 18 unused instances
 - Each model extends `DBConnection`, which may trigger database operations in constructor
@@ -84,6 +92,7 @@ foreach ($files as $file) {
 Implement lazy loading - only instantiate models when first accessed.
 
 **Recommended Fix:**
+
 ```php
 // models.php - Just register, don't instantiate
 $files = glob("../models/*.php");
@@ -115,9 +124,11 @@ $user = getModel('user_model')->getUser($id);
 ---
 
 ### 3. Multiple Hook Triggers in Request Path
+
 **File:** `public/index.php` and `coreapp/router.php`
 
 **Issue:**
+
 - **18 hook trigger calls** per request (even if no hooks registered)
 - Each trigger call performs multiple checks:
   - `isset()` check
@@ -126,6 +137,7 @@ $user = getModel('user_model')->getUser($id);
   - `class_exists()` check (in catch block)
 
 **Problem:**
+
 ```php
 // This runs 18+ times per request
 Hook::trigger('framework_start');           // 1
@@ -141,6 +153,7 @@ Hook::trigger('before_models_load');        // 4
 Early return optimization (already implemented, but could be improved).
 
 **Recommended Optimization:**
+
 ```php
 // Add to Hook class
 private static $enabled = true;
@@ -168,9 +181,11 @@ public static function trigger($hookName, $data = null) {
 ## 🟡 Medium Impact Performance Issues
 
 ### 4. Repeated `dirname(__FILE__, 2)` and Path Manipulation
+
 **Files:** Multiple locations
 
 **Issue:**
+
 ```php
 // This pattern appears in multiple places:
 $dir = dirname(__FILE__, 2);
@@ -178,6 +193,7 @@ $dir = str_replace("\\", "/", $dir);
 ```
 
 **Problem:**
+
 - Calculated multiple times per request
 - `router.php:417-418` - Once per request
 - `controller.php:102-103` - Once per view render
@@ -189,6 +205,7 @@ $dir = str_replace("\\", "/", $dir);
 Calculate once and cache in a constant.
 
 **Recommended Fix:**
+
 ```php
 // At top of index.php or create config.php
 define('PHPWEAVE_ROOT', str_replace("\\", "/", dirname(__FILE__, 2)));
@@ -200,9 +217,11 @@ $controllerFile = PHPWEAVE_ROOT . "/controller/" . strtolower($controllerName) .
 ---
 
 ### 5. Route Regex Compiled on Every Route Registration
+
 **File:** `coreapp/router.php:175-176`
 
 **Issue:**
+
 ```php
 self::$routes[] = [
     'method' => $method,
@@ -214,6 +233,7 @@ self::$routes[] = [
 ```
 
 **Problem:**
+
 - Routes are registered on **every request** (routes.php is loaded fresh)
 - Regex compilation and param extraction happen on every request
 - For 50 routes, that's 50 regex compilations per request
@@ -224,6 +244,7 @@ self::$routes[] = [
 Route caching - compile routes once, cache to file.
 
 **Recommended Fix:**
+
 ```php
 // Add to Router class
 private static $cacheFile = null;
@@ -257,9 +278,11 @@ if (!Router::loadFromCache()) {
 ---
 
 ### 6. Multiple `str_replace()` Calls for Template Sanitization
+
 **File:** `coreapp/controller.php:104-107`
 
 **Issue:**
+
 ```php
 $template = str_replace('https://','',$template);
 $template = str_replace('http://','',$template);
@@ -268,6 +291,7 @@ $template = str_replace('.php','',$template);
 ```
 
 **Problem:**
+
 - 4 separate string operations on every view render
 - Could be consolidated
 
@@ -277,6 +301,7 @@ $template = str_replace('.php','',$template);
 Use single `preg_replace()` or `strtr()`.
 
 **Recommended Fix:**
+
 ```php
 // More efficient:
 $template = strtr($template, [
@@ -290,9 +315,11 @@ $template = strtr($template, [
 ---
 
 ### 7. Hook Data Array Creation Overhead
+
 **Files:** Multiple hook trigger locations
 
 **Issue:**
+
 ```php
 Hook::trigger('before_controller_load', [
     'controller' => $controllerName,
@@ -303,6 +330,7 @@ Hook::trigger('before_controller_load', [
 ```
 
 **Problem:**
+
 - Creates array on every trigger, even if no hooks are registered
 - 18+ array allocations per request
 
@@ -312,6 +340,7 @@ Hook::trigger('before_controller_load', [
 Only create array if hooks exist (lazy array creation).
 
 **Recommended Fix:**
+
 ```php
 // Modify Hook::trigger()
 if (!isset(self::$hooks[$hookName])) {
@@ -332,14 +361,17 @@ if (Hook::has('before_controller_load')) {
 ## 🟢 Low Impact Optimizations
 
 ### 8. `include_once` vs `include` for Views
+
 **File:** `coreapp/controller.php:121`
 
 **Issue:**
+
 ```php
 include_once "$dir/views/$template.php";
 ```
 
 **Problem:**
+
 - `include_once` maintains an internal list of included files
 - Slightly slower than `include`
 - Views should never be included twice anyway in single request
@@ -352,20 +384,24 @@ Use `include` instead of `include_once` for views.
 ---
 
 ### 9. `empty()` After `isset()` Check
+
 **File:** `coreapp/hooks.php:121`
 
 **Issue:**
+
 ```php
 if (!isset(self::$hooks[$hookName]) || empty(self::$hooks[$hookName])) {
 ```
 
 **Problem:**
+
 - `isset()` already returns false for empty arrays
 - `empty()` check is redundant
 
 **Performance Impact:** Negligible
 
 **Solution:**
+
 ```php
 if (empty(self::$hooks[$hookName])) { // empty() handles isset check
 ```
@@ -373,9 +409,11 @@ if (empty(self::$hooks[$hookName])) { // empty() handles isset check
 ---
 
 ### 10. Debug Mode Check on Every Trigger
+
 **File:** `coreapp/hooks.php:126`
 
 **Issue:**
+
 ```php
 if (self::isDebugEnabled()) {
     self::$executionLog[] = [...];
@@ -383,6 +421,7 @@ if (self::isDebugEnabled()) {
 ```
 
 **Problem:**
+
 - Calls method and accesses `$GLOBALS` on every trigger
 - Even when debug is disabled
 
@@ -406,18 +445,16 @@ Cache debug status on first check.
 ### 🎯 Recommended Priority
 
 **Immediate (High Impact):**
+
 1. Fix hook priority sorting (5-10ms savings)
 2. Implement lazy model loading (3-10ms savings)
 
-**Short-term (Medium Impact):**
-3. Add route caching (1-3ms savings)
-4. Cache directory path constant (0.5ms savings)
-5. Optimize hook data array creation (0.5-1ms savings)
+**Short-term (Medium Impact):** 3. Add route caching (1-3ms savings) 4. Cache directory path constant (0.5ms savings) 5. Optimize hook data array creation (0.5-1ms savings)
 
-**Long-term (Low Impact):**
-6. Minor code cleanups (< 0.5ms total)
+**Long-term (Low Impact):** 6. Minor code cleanups (< 0.5ms total)
 
 ### Estimated Total Performance Gain
+
 - **Without any users/hooks:** 2-5ms per request
 - **With 10 hooks registered:** 10-20ms per request
 - **With 20+ models:** 5-15ms per request
@@ -477,6 +514,7 @@ The PHPWeave hooks system adds approximately **2-5ms overhead** to each request 
 The framework is production-ready but would benefit significantly from the recommended high-priority optimizations, especially for high-traffic applications.
 
 **Overall Assessment:** ⭐⭐⭐⭐ (4/5)
+
 - Excellent code structure
 - Good defensive programming
 - Room for optimization in hot paths

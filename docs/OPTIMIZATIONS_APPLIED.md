@@ -12,13 +12,13 @@ All high and medium impact performance optimizations have been successfully appl
 
 ### Performance Improvements
 
-| Optimization | Impact | Savings per Request | Status |
-|-------------|--------|---------------------|---------|
-| Hook Priority Lazy Sorting | 🔴 High | 5-10ms | ✅ Applied |
-| Lazy Model Loading | 🔴 High | 3-10ms | ✅ Applied |
-| Route Caching | 🟡 Medium | 1-3ms | ✅ Applied |
-| Directory Path Constant | 🟡 Medium | ~0.5ms | ✅ Applied |
-| Template Sanitization | 🟡 Medium | ~0.1ms | ✅ Applied |
+| Optimization               | Impact    | Savings per Request | Status     |
+| -------------------------- | --------- | ------------------- | ---------- |
+| Hook Priority Lazy Sorting | 🔴 High   | 5-10ms              | ✅ Applied |
+| Lazy Model Loading         | 🔴 High   | 3-10ms              | ✅ Applied |
+| Route Caching              | 🟡 Medium | 1-3ms               | ✅ Applied |
+| Directory Path Constant    | 🟡 Medium | ~0.5ms              | ✅ Applied |
+| Template Sanitization      | 🟡 Medium | ~0.1ms              | ✅ Applied |
 
 **Total Improvement: 10-25ms per request (30-60% faster)**
 
@@ -31,11 +31,13 @@ All high and medium impact performance optimizations have been successfully appl
 **File:** `coreapp/hooks.php`
 
 **Changes:**
+
 - Added `$hooksSorted` array to track which hooks have been sorted
 - Moved `usort()` from `register()` to `trigger()` method
 - Hooks are now sorted only once on first trigger, not on every registration
 
 **Impact:**
+
 - Hook registration is ~10x faster
 - 5-10ms savings per request with multiple hooks
 - No change in functionality - priority order still works correctly
@@ -49,12 +51,14 @@ All high and medium impact performance optimizations have been successfully appl
 **File:** `coreapp/models.php`
 
 **Changes:**
+
 - Models are now discovered but NOT instantiated on startup
 - New `model($name)` function for lazy loading
 - Added `LazyModelLoader` class with `ArrayAccess` for backward compatibility
 - Models are instantiated only when first accessed and then cached
 
 **Backward Compatibility:**
+
 ```php
 // Old syntax (still works, now lazy loads):
 global $models;
@@ -65,6 +69,7 @@ $user = model('user_model')->getUser($id);
 ```
 
 **Impact:**
+
 - 3-10ms savings per request (depending on model count)
 - Memory savings from not instantiating unused models
 - Faster application bootstrap
@@ -78,6 +83,7 @@ $user = model('user_model')->getUser($id);
 **Files:** `coreapp/router.php`, `public/index.php`, `cache/` directory
 
 **Changes:**
+
 - Added route caching methods to Router class:
   - `enableCache($file)` - Enable caching
   - `loadFromCache()` - Load cached routes
@@ -88,6 +94,7 @@ $user = model('user_model')->getUser($id);
 - Created `/cache` directory with proper protection
 
 **Usage:**
+
 ```php
 // In production (DEBUG=0): Routes loaded from cache
 // In development (DEBUG=1): Routes loaded from routes.php (no caching)
@@ -97,6 +104,7 @@ Router::clearCache();
 ```
 
 **Impact:**
+
 - 1-3ms savings per request
 - Especially beneficial with many routes (50+)
 - Automatic in production, disabled in debug mode
@@ -110,6 +118,7 @@ Router::clearCache();
 **Files:** `public/index.php`, `coreapp/router.php`, `coreapp/controller.php`
 
 **Changes:**
+
 - Added `PHPWEAVE_ROOT` constant defined once in `index.php`
 - Replaced repeated `dirname(__FILE__, 2)` calls with constant
 - Updated in 3 locations:
@@ -117,6 +126,7 @@ Router::clearCache();
   - `controller.php` - View rendering and legacy routing
 
 **Before:**
+
 ```php
 $dir = dirname(__FILE__, 2);
 $dir = str_replace("\\", "/", $dir);
@@ -124,11 +134,13 @@ $path = "$dir/controller/blog.php";
 ```
 
 **After:**
+
 ```php
 $path = PHPWEAVE_ROOT . "/controller/blog.php";
 ```
 
 **Impact:**
+
 - ~0.5ms savings per request
 - Cleaner, more maintainable code
 - 95.6% faster than repeated calculations
@@ -142,10 +154,12 @@ $path = PHPWEAVE_ROOT . "/controller/blog.php";
 **File:** `coreapp/controller.php`
 
 **Changes:**
+
 - Replaced 4 separate `str_replace()` calls with single `strtr()` call
 - More efficient single-pass string manipulation
 
 **Before:**
+
 ```php
 $template = str_replace('https://','',$template);
 $template = str_replace('http://','',$template);
@@ -154,6 +168,7 @@ $template = str_replace('.php','',$template);
 ```
 
 **After:**
+
 ```php
 $template = strtr($template, [
     'https://' => '',
@@ -164,6 +179,7 @@ $template = strtr($template, [
 ```
 
 **Impact:**
+
 - ~0.1ms per view render
 - 44.7% faster than multiple str_replace calls
 - Cleaner, more readable code
@@ -175,7 +191,9 @@ $template = strtr($template, [
 ## Testing Results
 
 ### Syntax Validation ✅
+
 All modified files passed PHP lint checks:
+
 - ✅ `coreapp/hooks.php` - No syntax errors
 - ✅ `coreapp/models.php` - No syntax errors
 - ✅ `coreapp/router.php` - No syntax errors
@@ -183,7 +201,9 @@ All modified files passed PHP lint checks:
 - ✅ `public/index.php` - No syntax errors
 
 ### Functional Testing ✅
+
 All hook tests passed:
+
 - ✅ Test 1: Basic Hook Registration - PASS
 - ✅ Test 2: Hook Priority Order - PASS
 - ✅ Test 3: Data Modification - PASS
@@ -194,7 +214,9 @@ All hook tests passed:
 - ✅ Test 8: Exception Handling - PASS
 
 ### Performance Benchmarks ✅
+
 Measured improvements:
+
 - Hook registration: **0.0004ms** per hook (lazy sorting)
 - Directory path: **95.6% faster** with constant
 - Template sanitization: **44.7% faster** with strtr
@@ -219,6 +241,7 @@ All optimizations are **100% backward compatible**:
 ## Files Modified
 
 ### Core Framework Files
+
 1. `coreapp/hooks.php` - Lazy priority sorting
 2. `coreapp/models.php` - Lazy model loading
 3. `coreapp/router.php` - Route caching methods
@@ -226,6 +249,7 @@ All optimizations are **100% backward compatible**:
 5. `public/index.php` - Route caching + path constant
 
 ### New Files Created
+
 6. `cache/` - Cache directory
 7. `cache/index.php` - Access protection
 8. `cache/.gitignore` - Ignore cache files in git
@@ -235,6 +259,7 @@ All optimizations are **100% backward compatible**:
 12. `OPTIMIZATIONS_APPLIED.md` - This file
 
 ### Total Lines Changed
+
 - Added: ~350 lines
 - Modified: ~50 lines
 - Total impact: ~400 lines across 5 core files
@@ -244,6 +269,7 @@ All optimizations are **100% backward compatible**:
 ## Production Deployment
 
 ### Requirements Met ✅
+
 - ✅ All syntax errors resolved
 - ✅ All functional tests passing
 - ✅ Backward compatibility maintained
@@ -251,6 +277,7 @@ All optimizations are **100% backward compatible**:
 - ✅ Documentation updated
 
 ### Deployment Checklist
+
 - [x] Run syntax checks
 - [x] Run functional tests
 - [x] Run performance benchmarks
@@ -267,6 +294,7 @@ All optimizations are **100% backward compatible**:
 For even better performance in production:
 
 1. **Enable OPcache** (php.ini):
+
    ```ini
    opcache.enable=1
    opcache.memory_consumption=128
@@ -275,11 +303,13 @@ For even better performance in production:
    ```
 
 2. **Use Production Settings** (.env):
+
    ```ini
    DEBUG=0
    ```
 
 3. **Set Cache Permissions**:
+
    ```bash
    chmod 755 cache/
    chmod 644 cache/*.cache
@@ -295,18 +325,21 @@ For even better performance in production:
 ## Performance Comparison
 
 ### Before Optimizations
+
 - Framework bootstrap: ~15-25ms
 - With 10 hooks: ~20-30ms
 - With 20 models (eager): ~25-35ms
 - Total per request: ~30-50ms
 
 ### After Optimizations
+
 - Framework bootstrap: ~5-10ms
 - With 10 hooks: ~8-12ms
 - With 20 models (lazy): ~8-12ms (if only 2-3 used)
 - Total per request: ~15-25ms
 
 ### Improvement
+
 - **Average: 40-60% faster**
 - **Best case: 60-70% faster** (many models, few used)
 - **Worst case: 30-40% faster** (few optimizations triggered)
@@ -318,11 +351,13 @@ For even better performance in production:
 To monitor performance improvements:
 
 1. **Enable performance hooks**:
+
    ```php
    // hooks/performance.php already includes timing code
    ```
 
 2. **Check execution logs** (when DEBUG=1):
+
    ```php
    Hook::getExecutionLog();
    ```
@@ -337,18 +372,22 @@ To monitor performance improvements:
 ## Troubleshooting
 
 ### Route Cache Issues
+
 **Problem:** Routes not updating
 **Solution:** Clear cache manually or disable caching in .env:
+
 ```php
 Router::clearCache();
 // or set DEBUG=1 in .env
 ```
 
 ### Model Not Found
+
 **Problem:** `Model 'xxx' not found` exception
 **Solution:** Ensure model file exists in `models/` directory and class name matches filename
 
 ### Hook Priority Not Working
+
 **Problem:** Hooks executing in wrong order
 **Solution:** Hooks are sorted on first trigger - priority works as expected, just deferred
 
@@ -377,6 +416,7 @@ Router::clearCache();
 **Result:** PHPWeave 2.0.1 is now production-ready with significant performance improvements! 🚀
 
 **Overall Assessment:** ⭐⭐⭐⭐⭐ (5/5)
+
 - Excellent performance
 - Maintained backward compatibility
 - Clean, maintainable code
