@@ -1,0 +1,38 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: phpweave
+
+resources:
+  - mysql.yaml
+  - pvc.yaml
+  - configmap.yaml
+  - secret.yaml
+  - deployment.yaml
+  - service.yaml
+  - hpa.yaml
+  - ingress.yaml
+
+images:
+  - name: ghcr.io/yourusername/phpweave
+    newTag: latest
+
+replicas:
+  - name: phpweave
+    count: 3
+
+commonLabels:
+  app: phpweave
+  environment: production
+
+configMapGenerator:
+  - name: phpweave-config
+    behavior: merge
+    literals:
+      - APP_VERSION=v2.1.1
+
+secretGenerator:
+  - name: phpweave-secret
+    behavior: merge
+    envs:
+      - secrets.env
