@@ -490,7 +490,7 @@ docker-compose -f docker-compose.scale.yml up -d
 - Automatic Docker environment detection
 - Multi-container support with Nginx load balancing
 - Read-only filesystem compatible
-- Kubernetes ready
+- Kubernetes ready with manifests included
 
 **Caching Strategy:**
 - **In Docker**: Prefers APCu (in-memory, container-isolated)
@@ -807,6 +807,7 @@ Customize error pages by modifying `coreapp/router.php`:
 - **docs/DOCKER_DEPLOYMENT.md** - Complete Docker deployment guide
 - **docs/DOCKER_CACHING_GUIDE.md** - Caching strategies for Docker (APCu vs file)
 - **docs/DOCKER_CACHING_APPLIED.md** - Docker caching implementation summary
+- **docs/KUBERNETES_DEPLOYMENT.md** - Kubernetes deployment with auto-scaling
 
 ### Testing
 - **tests/README.md** - Testing guide
@@ -900,6 +901,18 @@ docker-compose -f docker-compose.scale.yml up -d
 # Test APCu caching
 docker exec phpweave-app php tests/test_docker_caching.php
 ```
+
+### Kubernetes
+
+PHPWeave includes production-ready Kubernetes manifests with auto-scaling, health checks, and MySQL StatefulSet.
+
+**Quick deploy:**
+```bash
+kubectl create namespace phpweave
+kubectl apply -k k8s/
+```
+
+See complete Kubernetes deployment guide in **docs/KUBERNETES_DEPLOYMENT.md**.
 
 **Features:**
 - APCu in-memory caching (container-isolated, no shared state issues)
