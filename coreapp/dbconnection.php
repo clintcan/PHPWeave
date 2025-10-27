@@ -136,10 +136,10 @@ class DBConnection
 	 * // Without parameters
 	 * $stmt = $this->executePreparedSQL("SELECT * FROM users");
 	 */
-	function executePreparedSQL($sql, $params="")
+	function executePreparedSQL($sql, $params = [])
 	{
 		$stmt = $this->pdo->prepare($sql);
-		if($params == "")
+		if(empty($params))
 			$stmt->execute();
 		else
 			$stmt->execute($params);

@@ -81,7 +81,7 @@ class ErrorClass {
      *
      * Catches uncaught exceptions and logs them with stack trace.
      *
-     * @param Exception $exception The uncaught exception
+     * @param Throwable $exception The uncaught exception or error
      * @return void
      */
     function globalExceptionHandler($exception) {
