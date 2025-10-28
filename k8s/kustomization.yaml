@@ -1,8 +1,15 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+metadata:
+  name: phpweave
+  annotations:
+    config.kubernetes.io/local-config: "false"
+
+# Namespace where resources will be deployed
 namespace: phpweave
 
+# Resources to include in order of dependency
 resources:
   - mysql.yaml
   - pvc.yaml
@@ -12,27 +19,93 @@ resources:
   - service.yaml
   - hpa.yaml
   - ingress.yaml
+  - networkpolicy.yaml
+  - poddisruptionbudget.yaml
+  - servicemonitor.yaml
 
+# Common labels applied to all resources
+commonLabels:
+  app: phpweave
+  app.kubernetes.io/part-of: phpweave
+  app.kubernetes.io/managed-by: kustomize
+  environment: production
+
+# Common annotations applied to all resources  
+commonAnnotations:
+  app.kubernetes.io/instance: phpweave-prod
+  deployed-by: kustomize
+  kustomize.toolkit.fluxcd.io/reconcile: "enabled"
+
+# Image transformations
 images:
   - name: ghcr.io/yourusername/phpweave
     newTag: latest
+  - name: mysql
+    newName: mysql
+    newTag: 8.0.35
+  - name: prom/mysqld-exporter
+    newTag: v0.15.1
+  - name: busybox
+    newTag: 1.36
 
+# Replica configuration
 replicas:
   - name: phpweave
     count: 3
+  - name: mysql
+    count: 1
 
-commonLabels:
-  app: phpweave
-  environment: production
-
+# Config generation with merge behavior
 configMapGenerator:
   - name: phpweave-config
     behavior: merge
     literals:
       - APP_VERSION=v2.1.1
+      - KUBERNETES_VERSION=1.29+
 
+# Secret generation with merge behavior
 secretGenerator:
   - name: phpweave-secret
     behavior: merge
     envs:
       - secrets.env
+
+# Patches for environment-specific configurations
+patchesStrategicMerge:
+  # You can add patch files here for environment-specific overrides
+  # - patches/production-deployment.yaml
+  # - patches/production-ingress.yaml
+
+# JSON patches for precise modifications
+patchesJson6902:
+  # Example: Modify HPA for production
+  # - target:
+  #     group: autoscaling
+  #     version: v2
+  #     kind: HorizontalPodAutoscaler
+  #     name: phpweave-hpa
+  #   path: patches/hpa-production.yaml
+
+# Variables for cross-resource references
+vars:
+  - name: SERVICE_NAME
+    objref:
+      kind: Service
+      name: phpweave
+      apiVersion: v1
+    fieldref:
+      fieldpath: metadata.name
+  - name: MYSQL_SERVICE
+    objref:
+      kind: Service
+      name: mysql-service
+      apiVersion: v1
+    fieldref:
+      fieldpath: metadata.name
+
+# Name prefix/suffix for all resources (optional)
+# namePrefix: prod-
+# nameSuffix: -v2
+
+# Build metadata
+buildMetadata: [managedByLabel, originAnnotations]
