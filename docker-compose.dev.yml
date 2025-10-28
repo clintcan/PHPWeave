@@ -43,6 +43,9 @@ services:
       - DB_USER=${DB_USER:-dev}
       - DB_PASSWORD=${DB_PASSWORD:-dev}
       - DB_CHARSET=${DB_CHARSET:-utf8mb4}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_DRIVER=${DB_DRIVER:-pdo_mysql}
+      - DB_DSN=${DB_DSN:-}
 
       # Application settings
       - DEBUG=${DEBUG:-1}

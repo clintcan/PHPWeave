@@ -83,6 +83,7 @@ Complete documentation for the PHPWeave framework.
 ### Docker Documentation
 
 - [**DOCKER_DEPLOYMENT.md**](DOCKER_DEPLOYMENT.md) - Complete Docker deployment guide
+- [**DOCKER_DATABASE_SUPPORT.md**](DOCKER_DATABASE_SUPPORT.md) - Multi-database support (MySQL, PostgreSQL, SQLite, SQL Server) ⭐ NEW!
 - [**DOCKER_CACHING_GUIDE.md**](DOCKER_CACHING_GUIDE.md) - Caching strategies for Docker
 - [**DOCKER_CACHING_APPLIED.md**](DOCKER_CACHING_APPLIED.md) - Docker caching implementation summary
 
@@ -95,6 +96,7 @@ Complete documentation for the PHPWeave framework.
 - ✅ Kubernetes ready
 - ✅ Thread-safe model/library loading (v2.1.1)
 - ✅ Swoole/RoadRunner/FrankenPHP compatible (v2.1.1)
+- ✅ Multi-database support (MySQL, PostgreSQL, SQLite, SQL Server) ⭐ NEW!
 
 ---
 

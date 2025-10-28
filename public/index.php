@@ -16,6 +16,9 @@ if (file_exists('../.env')) {
     $GLOBALS['configs']['DBUSER'] = getenv('DB_USER') ?: getenv('DBUSER') ?: '';
     $GLOBALS['configs']['DBPASSWORD'] = getenv('DB_PASSWORD') ?: getenv('DBPASSWORD') ?: '';
     $GLOBALS['configs']['DBCHARSET'] = getenv('DB_CHARSET') ?: getenv('DBCHARSET') ?: 'utf8';
+    $GLOBALS['configs']['DBDRIVER'] = getenv('DB_DRIVER') ?: getenv('DBDRIVER') ?: 'pdo_mysql';
+    $GLOBALS['configs']['DBPORT'] = getenv('DB_PORT') ?: getenv('DBPORT') ?: '3306';
+    $GLOBALS['configs']['DBDSN'] = getenv('DB_DSN') ?: getenv('DBDSN') ?: null; // For custom DSN/ODBC
     $GLOBALS['configs']['DEBUG'] = getenv('DEBUG') ?: 0;
 }
 

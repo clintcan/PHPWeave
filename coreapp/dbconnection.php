@@ -76,6 +76,18 @@ class DBConnection
 	public $pdo;
 
 	/**
+	 * Database driver
+	 * @var string
+	 */
+	public $driver;
+
+	/**
+	 * Database port
+	 * @var int
+	 */
+	public $port;
+
+	/**
 	 * Constructor
 	 *
 	 * Initializes database connection using configuration from .env file.
@@ -94,12 +106,60 @@ class DBConnection
 		$this->user = $GLOBALS['configs']['DBUSER'];
 		$this->password = $GLOBALS['configs']['DBPASSWORD'];
 		$this->charset = $GLOBALS['configs']['DBCHARSET'];
+		$this->driver = $GLOBALS['configs']['DBDRIVER'];
+		$this->port = $GLOBALS['configs']['DBPORT'];
 		$this->options = [
 		    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
 		    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
 		    PDO::ATTR_EMULATE_PREPARES   => false,
 		];
-		$this->dsn = "mysql:host=$this->host;dbname=$this->db;charset=$this->charset";
+
+		switch ($this->driver) {
+			case 'pdo_mysql':
+				$this->dsn = "mysql:host=$this->host;dbname=$this->db;charset=$this->charset;port=$this->port";
+				break;
+
+			case 'pdo_pgsql':
+				// PostgreSQL uses 'options' for client_encoding instead of 'charset'
+				$this->dsn = "pgsql:host=$this->host;dbname=$this->db;port=$this->port";
+				if (!empty($this->charset)) {
+					$this->dsn .= ";options='--client_encoding=$this->charset'";
+				}
+				break;
+
+			case 'pdo_sqlite':
+				// SQLite only needs database file path
+				$this->dsn = "sqlite:$this->db";
+				// SQLite doesn't use username/password
+				$this->user = null;
+				$this->password = null;
+				break;
+
+			case 'pdo_sqlsrv':
+				// SQL Server native driver
+				$this->dsn = "sqlsrv:Server=$this->host,$this->port;Database=$this->db";
+				break;
+
+			case 'pdo_dblib':
+				// SQL Server via FreeTDS (dblib)
+				$this->dsn = "dblib:host=$this->host:$this->port;dbname=$this->db";
+				if (!empty($this->charset)) {
+					$this->dsn .= ";charset=$this->charset";
+				}
+				break;
+
+			case 'pdo_odbc':
+				// ODBC requires custom DSN string
+				if (empty($GLOBALS['configs']['DBDSN'])) {
+					throw new Exception("ODBC driver requires DBDSN configuration variable");
+				}
+				$this->dsn = $GLOBALS['configs']['DBDSN'];
+				break;
+
+			default:
+				throw new Exception("Unsupported database driver: " . $this->driver);
+		}
+
 		try {
 			$this->pdo = new PDO($this->dsn, $this->user, $this->password, $this->options);
 		} catch (Exception $e) {
