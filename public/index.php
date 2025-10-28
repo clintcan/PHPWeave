@@ -8,6 +8,12 @@ define('PHPWEAVE_ROOT', str_replace("\\", "/", dirname(__FILE__, 2)));
 // Check if .env file exists
 if (file_exists('../.env')) {
     $GLOBALS['configs'] = parse_ini_file('../.env');
+
+    // Set defaults for new fields if not present in .env (backward compatibility)
+    $GLOBALS['configs']['DBCHARSET'] = $GLOBALS['configs']['DBCHARSET'] ?? 'utf8mb4';
+    $GLOBALS['configs']['DBDRIVER'] = $GLOBALS['configs']['DBDRIVER'] ?? 'pdo_mysql';
+    $GLOBALS['configs']['DBPORT'] = $GLOBALS['configs']['DBPORT'] ?? 3306;
+    $GLOBALS['configs']['DBDSN'] = $GLOBALS['configs']['DBDSN'] ?? null;
 } else {
     // We will load the database connection variables from environment
     // Support both naming conventions: DB_HOST and DBHOST for compatibility
@@ -15,9 +21,9 @@ if (file_exists('../.env')) {
     $GLOBALS['configs']['DBNAME'] = getenv('DB_NAME') ?: getenv('DBNAME') ?: '';
     $GLOBALS['configs']['DBUSER'] = getenv('DB_USER') ?: getenv('DBUSER') ?: '';
     $GLOBALS['configs']['DBPASSWORD'] = getenv('DB_PASSWORD') ?: getenv('DBPASSWORD') ?: '';
-    $GLOBALS['configs']['DBCHARSET'] = getenv('DB_CHARSET') ?: getenv('DBCHARSET') ?: 'utf8';
+    $GLOBALS['configs']['DBCHARSET'] = getenv('DB_CHARSET') ?: getenv('DBCHARSET') ?: 'utf8mb4';
     $GLOBALS['configs']['DBDRIVER'] = getenv('DB_DRIVER') ?: getenv('DBDRIVER') ?: 'pdo_mysql';
-    $GLOBALS['configs']['DBPORT'] = getenv('DB_PORT') ?: getenv('DBPORT') ?: '3306';
+    $GLOBALS['configs']['DBPORT'] = getenv('DB_PORT') ?: getenv('DBPORT') ?: 3306;
     $GLOBALS['configs']['DBDSN'] = getenv('DB_DSN') ?: getenv('DBDSN') ?: null; // For custom DSN/ODBC
     $GLOBALS['configs']['DEBUG'] = getenv('DEBUG') ?: 0;
 }
