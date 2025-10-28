@@ -22,23 +22,39 @@ This migration represents PHPWeave's commitment to staying relevant while honori
 
 ## Features
 
+### Core Framework
 - **Modern Routing System**: Express-style route definitions with dynamic parameters
 - **Full HTTP Verb Support**: GET, POST, PUT, DELETE, PATCH methods
 - **Global Framework Object**: Clean `$PW->models->model_name` syntax (v2.1+)
 - **Auto-Extracted View Variables**: Pass arrays to views, access as individual variables
 - **Lazy-Loaded Libraries**: Reusable utility classes with automatic discovery (v2.1.1+)
 - **Event-Driven Hooks System**: 18 lifecycle hook points for extending functionality
-- **Async Task System**: Simple background job processing without external dependencies
-- **Performance Optimized**: Lazy loading, route caching, 30-60% faster than v1
-- **Docker Ready**: APCu in-memory caching, multi-container support, Kubernetes compatible
 - **MVC Architecture**: Clean separation of concerns
-- **Auto-loading Models**: Lazy model loading for optimal performance
-- **PDO Database Layer**: Secure prepared statements out of the box
-- **Simple Template System**: No complex templating engine, just PHP with automatic variable extraction
-- **Error Handling**: Comprehensive error logging and handling
-- **Backward Compatible**: Legacy routing still available for existing projects
 - **Zero Dependencies**: Pure PHP, no Composer required
 - **Lightweight**: Minimal footprint, maximum performance
+
+### Database (v2.2.0+)
+- **Built-in Migrations**: Version-controlled schema management with rollback support
+- **Connection Pooling**: 6-30% performance improvement with automatic connection reuse
+- **Multi-Database Support**: MySQL, PostgreSQL, SQLite, SQL Server, ODBC
+- **PDO Database Layer**: Secure prepared statements out of the box
+- **Lazy Model Loading**: Models loaded on-demand for optimal performance
+
+### Performance
+- **Connection Pooling**: Automatic connection reuse (v2.2.0+)
+- **Route Caching**: APCu and file-based caching
+- **Lazy Loading**: Models and libraries loaded only when needed
+- **30-60% faster**: Compared to v1.x
+
+### Developer Tools (v2.2.0+)
+- **Migration CLI**: Create, run, rollback database migrations
+- **Async Task System**: Background job processing without external dependencies
+- **Error Handling**: Comprehensive error logging and monitoring
+
+### Deployment
+- **Docker Ready**: APCu in-memory caching, multi-container support
+- **Kubernetes Compatible**: Environment variable configuration
+- **Backward Compatible**: Legacy routing still available for existing projects
 
 ## Quick Start
 
@@ -53,13 +69,24 @@ DBHOST=localhost
 DBNAME=your_database
 DBUSER=your_username
 DBPASSWORD=your_password
-DBCHARSET=utf8
+DBCHARSET=utf8mb4
+DBDRIVER=pdo_mysql
+DB_POOL_SIZE=10
 DEBUG=1
 ```
 
 **Note:** If you don't create a `.env` file (e.g., for Docker/Kubernetes deployments), PHPWeave will automatically fall back to reading environment variables: `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_CHARSET`.
 
-4. Create your database and tables
+4. Create your database and run migrations (v2.2.0+):
+
+```bash
+# Create your database
+mysql -u root -p -e "CREATE DATABASE your_database"
+
+# Run migrations (optional - for schema management)
+php migrate.php migrate
+```
+
 5. Start building!
 
 ### Your First Route
@@ -316,6 +343,52 @@ $slug = $libraries['string_helper']->slugify("Hello World");
 Visit `/blog/slugify/Hello-World-Testing-Libraries` to see the string helper library in action!
 
 See **docs/LIBRARIES.md** for complete documentation.
+
+### Database Migrations (v2.2.0+)
+
+**New in v2.2.0!** Built-in database migration system for version-controlled schema management.
+
+**Create a Migration:**
+```bash
+php migrate.php create create_users_table
+```
+
+**Edit the Migration** (`migrations/YYYY_MM_DD_HHMMSS_create_users_table.php`):
+```php
+<?php
+class CreateUsersTable extends Migration {
+    public function up() {
+        $this->createTable('users', [
+            'id' => 'INT AUTO_INCREMENT PRIMARY KEY',
+            'email' => 'VARCHAR(255) NOT NULL UNIQUE',
+            'password' => 'VARCHAR(255) NOT NULL',
+            'created_at' => 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP'
+        ]);
+        $this->createIndex('users', 'idx_users_email', ['email'], true);
+    }
+
+    public function down() {
+        $this->dropTable('users');
+    }
+}
+```
+
+**Run Migrations:**
+```bash
+php migrate.php migrate    # Run all pending migrations
+php migrate.php status     # Check status
+php migrate.php rollback   # Rollback last batch
+```
+
+**Migration Features:**
+- Version control for database schema
+- Rollback capability
+- Multi-database support (MySQL, PostgreSQL, SQLite, SQL Server)
+- Helper methods (createTable, addColumn, createIndex, etc.)
+- Transaction support
+- Batch tracking
+
+See **docs/MIGRATIONS.md** for complete guide.
 
 ### Views
 
