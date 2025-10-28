@@ -95,6 +95,7 @@ class DBConnection
 	 * - Exception mode for errors
 	 * - Associative array fetch mode
 	 * - Real prepared statements (no emulation)
+	 * - Connection pooling for improved performance
 	 *
 	 * @return void
 	 * @throws Exception If connection fails
@@ -110,6 +111,12 @@ class DBConnection
 		// Set default driver and port for backward compatibility
 		$this->driver = $GLOBALS['configs']['DBDRIVER'] ?? 'pdo_mysql';
 		$this->port = $GLOBALS['configs']['DBPORT'] ?? 3306;
+
+		// Configure connection pool size if specified
+		if (isset($GLOBALS['configs']['DB_POOL_SIZE']) && $GLOBALS['configs']['DB_POOL_SIZE'] > 0) {
+			require_once PHPWEAVE_ROOT . '/coreapp/connectionpool.php';
+			ConnectionPool::setMaxConnections((int)$GLOBALS['configs']['DB_POOL_SIZE']);
+		}
 
 		$this->options = [
 		    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
@@ -164,7 +171,20 @@ class DBConnection
 		}
 
 		try {
-			$this->pdo = new PDO($this->dsn, $this->user, $this->password, $this->options);
+			// Use connection pooling if enabled, otherwise create direct connection
+			if (isset($GLOBALS['configs']['DB_POOL_SIZE']) && $GLOBALS['configs']['DB_POOL_SIZE'] > 0) {
+				require_once PHPWEAVE_ROOT . '/coreapp/connectionpool.php';
+				$this->pdo = ConnectionPool::getConnection(
+					$this->driver,
+					$this->dsn,
+					$this->user,
+					$this->password,
+					$this->options
+				);
+			} else {
+				// Direct PDO connection (legacy mode)
+				$this->pdo = new PDO($this->dsn, $this->user, $this->password, $this->options);
+			}
 		} catch (Exception $e) {
 			// Log the error securely without exposing sensitive information
 			error_log("Database Connection Error: " . $e->getMessage());
