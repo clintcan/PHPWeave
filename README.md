@@ -833,6 +833,7 @@ Customize error pages by modifying `coreapp/router.php`:
 
 ### Docker & Deployment
 - **docs/DOCKER_DEPLOYMENT.md** - Complete Docker deployment guide
+- **docs/DOCKER_DATABASE_SUPPORT.md** - Multi-database support (MySQL, PostgreSQL, SQLite, SQL Server)
 - **docs/DOCKER_CACHING_GUIDE.md** - Caching strategies for Docker (APCu vs file)
 - **docs/DOCKER_CACHING_APPLIED.md** - Docker caching implementation summary
 - **docs/KUBERNETES_DEPLOYMENT.md** - Kubernetes deployment with auto-scaling
@@ -875,7 +876,7 @@ PHPWeave believes in:
 - PHP 7.0 or higher (PHP 8.x recommended)
 - PDO extension (usually enabled by default)
 - mod_rewrite (Apache) or equivalent for clean URLs
-- MySQL 5.6+ or MariaDB 10.0+ (or any PDO-supported database)
+- Database: MySQL, MariaDB, PostgreSQL, SQLite, SQL Server, or any PDO-supported database
 - APCu extension (optional, recommended for Docker/production)
 
 **Install APCu for optimal performance:**

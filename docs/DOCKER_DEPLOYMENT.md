@@ -155,8 +155,8 @@ PHPWeave supports two configuration methods:
 If `.env` file exists, it will be loaded. Otherwise, PHPWeave falls back to environment variables.
 
 **Naming Convention Support:**
-- **New style:** `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_CHARSET` (recommended for Kubernetes)
-- **Legacy style:** `DBHOST`, `DBNAME`, `DBUSER`, `DBPASSWORD`, `DBCHARSET` (backward compatible)
+- **New style:** `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_CHARSET`, `DB_PORT`, `DB_DRIVER` (recommended for Kubernetes)
+- **Legacy style:** `DBHOST`, `DBNAME`, `DBUSER`, `DBPASSWORD`, `DBCHARSET`, `DBPORT`, `DBDRIVER` (backward compatible)
 - Both work! Framework checks both (new style first, then legacy)
 
 ### Required
@@ -182,9 +182,29 @@ docker compose -f docker-compose.env.yml up -d
 # Docker environment (auto-detected)
 DOCKER_ENV=production
 
+# Database driver and port (new in v2.1+)
+DB_DRIVER=pdo_mysql      # or DBDRIVER (legacy)
+DB_PORT=3306             # or DBPORT (legacy)
+DB_DSN=                  # or DBDSN (for ODBC connections)
+
 # Force specific caching
 DISABLE_CACHE=0  # Set to 1 to disable all caching
 ```
+
+### Supported Database Drivers
+
+PHPWeave supports multiple database systems (all drivers pre-installed in Docker image):
+
+| Driver | Database | Default Port |
+|--------|----------|--------------|
+| `pdo_mysql` | MySQL/MariaDB (default) | 3306 |
+| `pdo_pgsql` | PostgreSQL | 5432 |
+| `pdo_sqlite` | SQLite | N/A |
+| `pdo_sqlsrv` | SQL Server | 1433 |
+| `pdo_dblib` | SQL Server (FreeTDS) | 1433 |
+| `pdo_odbc` | ODBC (various) | Varies |
+
+**See `docs/DOCKER_DATABASE_SUPPORT.md` for complete multi-database setup guide with examples.**
 
 ---
 

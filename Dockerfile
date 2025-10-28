@@ -3,16 +3,33 @@
 
 FROM php:8.4-apache
 
-# Install system dependencies
+# Install system dependencies for multiple database drivers
 RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     unzip \
     git \
+    libpq-dev \
+    libsqlite3-dev \
+    unixodbc-dev \
+    freetds-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo pdo_mysql mysqli zip
+# Install PHP extensions for multiple database support
+# MySQL/MariaDB
+RUN docker-php-ext-install pdo pdo_mysql mysqli
+
+# PostgreSQL
+RUN docker-php-ext-install pdo_pgsql
+
+# SQLite (built-in, just enable PDO)
+RUN docker-php-ext-install pdo_sqlite
+
+# SQL Server (FreeTDS/ODBC)
+RUN docker-php-ext-install pdo_dblib pdo_odbc
+
+# Additional extensions
+RUN docker-php-ext-install zip
 
 # Install and configure APCu for route caching
 RUN pecl install apcu && \
