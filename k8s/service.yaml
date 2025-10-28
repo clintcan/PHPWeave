@@ -4,15 +4,27 @@ metadata:
   name: phpweave
   labels:
     app: phpweave
+    app.kubernetes.io/name: phpweave
+    app.kubernetes.io/component: web
+    app.kubernetes.io/managed-by: kustomize
+  annotations:
+    service.kubernetes.io/topology-mode: Auto
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "80"
 spec:
   type: ClusterIP
+  ipFamilyPolicy: PreferDualStack
+  ipFamilies:
+  - IPv4
   selector:
     app: phpweave
+    app.kubernetes.io/name: phpweave
   ports:
   - port: 80
-    targetPort: 80
+    targetPort: http
     protocol: TCP
     name: http
+    appProtocol: http
   sessionAffinity: ClientIP
   sessionAffinityConfig:
     clientIP:
