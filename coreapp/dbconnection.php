@@ -105,9 +105,12 @@ class DBConnection
 		$this->db = $GLOBALS['configs']['DBNAME'];
 		$this->user = $GLOBALS['configs']['DBUSER'];
 		$this->password = $GLOBALS['configs']['DBPASSWORD'];
-		$this->charset = $GLOBALS['configs']['DBCHARSET'];
-		$this->driver = $GLOBALS['configs']['DBDRIVER'];
-		$this->port = $GLOBALS['configs']['DBPORT'];
+		$this->charset = $GLOBALS['configs']['DBCHARSET'] ?? 'utf8mb4';
+
+		// Set default driver and port for backward compatibility
+		$this->driver = $GLOBALS['configs']['DBDRIVER'] ?? 'pdo_mysql';
+		$this->port = $GLOBALS['configs']['DBPORT'] ?? 3306;
+
 		$this->options = [
 		    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
 		    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
