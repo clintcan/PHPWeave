@@ -2,6 +2,14 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: phpweave-storage
+  labels:
+    app: phpweave
+    app.kubernetes.io/name: phpweave
+    app.kubernetes.io/component: storage
+    app.kubernetes.io/managed-by: kustomize
+  annotations:
+    volume.kubernetes.io/storage-class: "standard"
+    volume.beta.kubernetes.io/storage-provisioner: "kubernetes.io/gce-pd"
 spec:
   accessModes:
   - ReadWriteMany
@@ -9,3 +17,9 @@ spec:
   resources:
     requests:
       storage: 5Gi
+  # Volume expansion support (requires expandable storage class)
+  volumeMode: Filesystem
+  # Data source for cloning (optional)
+  # dataSource:
+  #   kind: PersistentVolumeClaim
+  #   name: existing-pvc
