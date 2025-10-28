@@ -2,18 +2,34 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mysql-service
+  labels:
+    app: mysql
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/component: database
+    app.kubernetes.io/managed-by: kustomize
 spec:
   selector:
     app: mysql
+    app.kubernetes.io/name: mysql
   ports:
   - port: 3306
     targetPort: 3306
-  clusterIP: None
+    protocol: TCP
+    name: mysql
+    appProtocol: mysql
+  clusterIP: None  # Headless service for StatefulSet
+  type: ClusterIP
+  sessionAffinity: None
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: mysql-pvc
+  labels:
+    app: mysql
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/component: storage
+    app.kubernetes.io/managed-by: kustomize
 spec:
   accessModes:
   - ReadWriteOnce
@@ -21,28 +37,80 @@ spec:
   resources:
     requests:
       storage: 10Gi
+  volumeMode: Filesystem
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: mysql
+  labels:
+    app: mysql
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/component: database
+    app.kubernetes.io/version: "8.0"
+    app.kubernetes.io/managed-by: kustomize
 spec:
   serviceName: mysql-service
   replicas: 1
+  revisionHistoryLimit: 5
   selector:
     matchLabels:
       app: mysql
+      app.kubernetes.io/name: mysql
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: OrderedReady
   template:
     metadata:
       labels:
         app: mysql
+        app.kubernetes.io/name: mysql
+        app.kubernetes.io/component: database
+        app.kubernetes.io/version: "8.0"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9104"
+        prometheus.io/path: "/metrics"
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: mysql
+              topologyKey: kubernetes.io/hostname
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+      # Init container to set proper permissions
+      - name: init-mysql
+        image: busybox:1.36
+        command: 
+        - sh
+        - -c
+        - |
+          echo "Setting up MySQL data directory permissions..."
+          chown -R 999:999 /var/lib/mysql
+        volumeMounts:
+        - name: mysql-storage
+          mountPath: /var/lib/mysql
+        securityContext:
+          runAsUser: 0
       containers:
       - name: mysql
-        image: mysql:8.0
+        image: mysql:8.0.35
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3306
           name: mysql
+          protocol: TCP
         env:
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
@@ -61,16 +129,54 @@ spec:
             secretKeyRef:
               name: phpweave-secret
               key: DBPASSWORD
+        # MySQL configuration
+        - name: MYSQL_INITDB_SKIP_TZINFO
+          value: "1"
+        - name: MYSQL_CHARACTER_SET_SERVER
+          value: "utf8mb4"
+        - name: MYSQL_COLLATION_SERVER
+          value: "utf8mb4_unicode_ci"
+        # Performance tuning
+        args:
+        - --default-authentication-plugin=mysql_native_password
+        - --character-set-server=utf8mb4
+        - --collation-server=utf8mb4_unicode_ci
+        - --max_connections=200
+        - --max_allowed_packet=64M
+        - --innodb_buffer_pool_size=512M
+        - --innodb_log_file_size=128M
+        - --innodb_flush_log_at_trx_commit=2
+        - --innodb_flush_method=O_DIRECT
+        - --innodb_file_per_table=1
+        - --slow_query_log=1
+        - --long_query_time=2
         volumeMounts:
         - name: mysql-storage
           mountPath: /var/lib/mysql
+        - name: mysql-config
+          mountPath: /etc/mysql/conf.d
+          readOnly: true
         resources:
           requests:
             memory: "512Mi"
             cpu: "250m"
+            ephemeral-storage: "100Mi"
           limits:
             memory: "1Gi"
-            cpu: "500m"
+            cpu: "1000m"
+            ephemeral-storage: "500Mi"
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 999
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - CHOWN
+            - SETGID
+            - SETUID
         livenessProbe:
           exec:
             command:
@@ -78,27 +184,133 @@ spec:
             - ping
             - -h
             - localhost
-          initialDelaySeconds: 30
+          initialDelaySeconds: 45
           periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
         readinessProbe:
           exec:
             command:
             - mysql
             - -h
             - localhost
+            - -u
+            - root
+            - -p$(MYSQL_ROOT_PASSWORD)
             - -e
             - "SELECT 1"
-          initialDelaySeconds: 5
+          initialDelaySeconds: 15
           periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+        startupProbe:
+          exec:
+            command:
+            - mysqladmin
+            - ping
+            - -h
+            - localhost
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 30
+      # MySQL exporter for Prometheus monitoring
+      - name: mysql-exporter
+        image: prom/mysqld-exporter:v0.15.1
+        ports:
+        - containerPort: 9104
+          name: metrics
+          protocol: TCP
+        env:
+        - name: DATA_SOURCE_NAME
+          value: "root:$(MYSQL_ROOT_PASSWORD)@(localhost:3306)/"
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: root-password
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "10m"
+          limits:
+            memory: "64Mi"
+            cpu: "50m"
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65534
+          capabilities:
+            drop:
+            - ALL
       volumes:
       - name: mysql-storage
         persistentVolumeClaim:
           claimName: mysql-pvc
+      - name: mysql-config
+        configMap:
+          name: mysql-config
+          optional: true
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-config
+  labels:
+    app: mysql
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/component: config
+    app.kubernetes.io/managed-by: kustomize
+data:
+  custom.cnf: |
+    [mysqld]
+    # Custom MySQL configuration
+    # Networking
+    bind-address = 0.0.0.0
+    skip-name-resolve
+    
+    # InnoDB Settings
+    innodb_buffer_pool_instances = 4
+    innodb_thread_concurrency = 0
+    innodb_io_capacity = 200
+    innodb_io_capacity_max = 2000
+    innodb_read_io_threads = 4
+    innodb_write_io_threads = 4
+    
+    # Query Cache (disabled in MySQL 8.0 by default)
+    query_cache_size = 0
+    query_cache_type = 0
+    
+    # Temporary Tables
+    tmp_table_size = 32M
+    max_heap_table_size = 32M
+    
+    # Binary Logging (for replication)
+    log_bin = mysql-bin
+    binlog_format = ROW
+    expire_logs_days = 7
+    max_binlog_size = 100M
+    
+    # Error Logging
+    log_error = /var/lib/mysql/mysql-error.log
+    log_error_verbosity = 2
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   name: mysql-secret
+  labels:
+    app: mysql
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/component: credentials
+    app.kubernetes.io/managed-by: kustomize
 type: Opaque
 stringData:
   root-password: "your_mysql_root_password_here"

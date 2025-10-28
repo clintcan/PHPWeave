@@ -1,0 +1,46 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: phpweave-pdb
+  labels:
+    app: phpweave
+    app.kubernetes.io/name: phpweave
+    app.kubernetes.io/component: availability
+    app.kubernetes.io/managed-by: kustomize
+spec:
+  # Minimum number of pods that must remain available during disruptions
+  minAvailable: 2
+  
+  # Alternative: Maximum number of pods that can be unavailable
+  # maxUnavailable: 1
+  
+  # Selector for pods covered by this PDB
+  selector:
+    matchLabels:
+      app: phpweave
+      app.kubernetes.io/name: phpweave
+  
+  # Allow unhealthy pods to be evicted (Kubernetes 1.26+)
+  unhealthyPodEvictionPolicy: AlwaysAllow
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: mysql-pdb
+  labels:
+    app: mysql
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/component: availability
+    app.kubernetes.io/managed-by: kustomize
+spec:
+  # For StatefulSet with 1 replica, ensure it's always available
+  minAvailable: 1
+  
+  # Selector for pods covered by this PDB
+  selector:
+    matchLabels:
+      app: mysql
+      app.kubernetes.io/name: mysql
+  
+  # Don't allow eviction of unhealthy MySQL pods
+  unhealthyPodEvictionPolicy: IfHealthyBudget

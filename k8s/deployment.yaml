@@ -5,17 +5,62 @@ metadata:
   labels:
     app: phpweave
     version: v2.1.1
+    app.kubernetes.io/name: phpweave
+    app.kubernetes.io/version: "2.1.1"
+    app.kubernetes.io/component: web
+    app.kubernetes.io/managed-by: kustomize
 spec:
   replicas: 3
+  revisionHistoryLimit: 5
+  progressDeadlineSeconds: 600
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: phpweave
+      app.kubernetes.io/name: phpweave
   template:
     metadata:
       labels:
         app: phpweave
         version: v2.1.1
+        app.kubernetes.io/name: phpweave
+        app.kubernetes.io/version: "2.1.1"
+        app.kubernetes.io/component: web
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
+        prometheus.io/path: "/metrics"
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - phpweave
+              topologyKey: kubernetes.io/hostname
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: phpweave
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: phpweave
         image: ghcr.io/yourusername/phpweave:latest
@@ -23,11 +68,24 @@ spec:
         ports:
         - containerPort: 80
           name: http
+          protocol: TCP
         env:
         - name: DOCKER_ENV
           value: "1"
         - name: KUBERNETES_ENV
           value: "1"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
         envFrom:
         - configMapRef:
             name: phpweave-config
@@ -37,33 +95,68 @@ spec:
           requests:
             memory: "128Mi"
             cpu: "100m"
+            ephemeral-storage: "100Mi"
           limits:
             memory: "256Mi"
             cpu: "500m"
+            ephemeral-storage: "500Mi"
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - NET_BIND_SERVICE
         livenessProbe:
           httpGet:
             path: /health
             port: 80
+            scheme: HTTP
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
+          successThreshold: 1
           failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /health
             port: 80
+            scheme: HTTP
           initialDelaySeconds: 5
           periodSeconds: 5
           timeoutSeconds: 3
+          successThreshold: 1
           failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 80
+            scheme: HTTP
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 30
         volumeMounts:
         - name: storage
           mountPath: /var/www/html/storage
         - name: cache
           mountPath: /var/www/html/cache
+        - name: tmp
+          mountPath: /tmp
       volumes:
       - name: storage
         persistentVolumeClaim:
           claimName: phpweave-storage
       - name: cache
-        emptyDir: {}
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: tmp
+        emptyDir:
+          sizeLimit: 500Mi
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
