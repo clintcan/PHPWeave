@@ -252,10 +252,10 @@ class MigrationRunner extends DBConnection
 	/**
 	 * Run a single migration
 	 *
-	 * @param string $migrationFile Migration file name
-	 * @param int    $batch         Batch number
-	 * @param string $direction     Direction ('up' or 'down')
-	 * @param bool   $verbose       Show detailed output
+	 * @param string   $migrationFile Migration file name
+	 * @param int|null $batch         Batch number (null for rollback)
+	 * @param string   $direction     Direction ('up' or 'down')
+	 * @param bool     $verbose       Show detailed output
 	 * @return void
 	 */
 	private function runMigration($migrationFile, $batch, $direction = 'up', $verbose = true)
@@ -293,8 +293,10 @@ class MigrationRunner extends DBConnection
 				}
 				$migration->up();
 
-				// Record migration
-				$this->recordMigration($migrationName, $batch);
+				// Record migration (batch should not be null for 'up' direction)
+				if ($batch !== null) {
+					$this->recordMigration($migrationName, $batch);
+				}
 
 				if ($verbose) {
 					echo "✓\n";

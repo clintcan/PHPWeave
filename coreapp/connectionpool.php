@@ -40,11 +40,6 @@ class ConnectionPool
 	 */
 	private static $maxConnections = 10;
 
-	/**
-	 * Connection timeout in seconds
-	 * @var int
-	 */
-	private static $connectionTimeout = 5;
 
 	/**
 	 * Get or create a pooled PDO connection
