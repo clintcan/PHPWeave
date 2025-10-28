@@ -12,7 +12,16 @@ Complete documentation for the PHPWeave framework.
 
 ### Core Features
 
-#### Version 2.1.1 Features (LATEST!)
+#### Version 2.2.0 Features (LATEST!)
+
+- **Built-in Migrations** - Database schema version control with rollback support
+- **Connection Pooling** - 6-30% performance improvement with automatic connection reuse
+- **Multi-Database Support** - MySQL, PostgreSQL, SQLite, SQL Server, ODBC
+- [**MIGRATIONS.md**](MIGRATIONS.md) - Complete migration system documentation
+- [**CONNECTION_POOLING.md**](CONNECTION_POOLING.md) - Connection pooling guide
+- [**DOCKER_DATABASE_SUPPORT.md**](DOCKER_DATABASE_SUPPORT.md) - Multi-database deployment guide
+
+#### Version 2.1.1 Features
 
 - **Lazy-Loaded Libraries** - Reusable utility classes loaded on-demand (3-10ms performance gain)
 - **Thread-Safe Model/Library Loading** - File locking for Docker/Kubernetes environments
@@ -110,6 +119,8 @@ Complete documentation for the PHPWeave framework.
 | --------------------------- | ---------------------------------------------------------- |
 | Get started quickly         | [README.md](../README.md)                                  |
 | Learn v2.1 features         | [V2.1_FEATURES.md](V2.1_FEATURES.md)                       |
+| Use migrations              | [MIGRATIONS.md](MIGRATIONS.md)                             |
+| Enable connection pooling   | [CONNECTION_POOLING.md](CONNECTION_POOLING.md)             |
 | Define routes               | [ROUTING_GUIDE.md](ROUTING_GUIDE.md)                       |
 | Add hooks                   | [HOOKS.md](HOOKS.md)                                       |
 | Create utility libraries    | [LIBRARIES.md](LIBRARIES.md)                               |
@@ -138,7 +149,10 @@ Complete documentation for the PHPWeave framework.
 
    - `Router` - Modern routing with dynamic parameters + JSON cache (v2.1.1)
    - `Controller` - Base controller with path traversal protection (v2.1.1)
-   - `DBConnection` - PDO-based database connection
+   - `DBConnection` - PDO-based database connection with connection pooling (v2.2.0)
+   - `ConnectionPool` - Database connection pooling for performance (v2.2.0)
+   - `Migration` - Database schema version control base class (v2.2.0)
+   - `MigrationRunner` - Migration execution and rollback engine (v2.2.0)
    - `Hook` - Event-driven hooks system
    - `Models` - Lazy-loaded models with thread safety (v2.1.1)
    - `Libraries` - Lazy-loaded utility classes (v2.1.1)
@@ -300,6 +314,56 @@ Async::run(function() { /* ... */ });
 
 // Job class (best for production)
 Async::queue('SendEmailJob', ['to' => 'user@example.com']);
+```
+
+**Migrations (v2.2.0):**
+
+```bash
+# Create migration
+php migrate.php create create_users_table
+
+# Run pending migrations
+php migrate.php migrate
+
+# Rollback last batch
+php migrate.php rollback
+
+# Check status
+php migrate.php status
+```
+
+```php
+// In migration file
+class CreateUsersTable extends Migration {
+    public function up() {
+        $this->createTable('users', [
+            'id' => 'INT AUTO_INCREMENT PRIMARY KEY',
+            'email' => 'VARCHAR(255) NOT NULL UNIQUE',
+            'password' => 'VARCHAR(255) NOT NULL',
+            'created_at' => 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP'
+        ]);
+    }
+
+    public function down() {
+        $this->dropTable('users');
+    }
+}
+```
+
+**Connection Pooling (v2.2.0):**
+
+```ini
+# .env configuration
+DB_POOL_SIZE=10  # Enable pooling with 10 max connections
+
+# Disable pooling
+DB_POOL_SIZE=0
+```
+
+```php
+// Get pool statistics
+$stats = ConnectionPool::getStatistics();
+echo "Reuse rate: " . $stats['reuse_rate'] . "%";
 ```
 
 **Models (v2.1):**
