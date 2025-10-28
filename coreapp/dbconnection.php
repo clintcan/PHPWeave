@@ -41,13 +41,13 @@ class DBConnection
 
 	/**
 	 * Database username
-	 * @var string
+	 * @var string|null
 	 */
 	public $user;
 
 	/**
 	 * Database password
-	 * @var string
+	 * @var string|null
 	 */
 	public $password;
 
