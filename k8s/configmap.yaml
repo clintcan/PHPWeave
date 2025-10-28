@@ -2,13 +2,58 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: phpweave-config
+  labels:
+    app: phpweave
+    app.kubernetes.io/name: phpweave
+    app.kubernetes.io/component: config
+    app.kubernetes.io/managed-by: kustomize
+  annotations:
+    config.kubernetes.io/resource-version: "v1"
 data:
+  # Application Configuration
   DEBUG: "0"
   APP_ENV: "production"
+  APP_NAME: "PHPWeave"
+  APP_VERSION: "2.1.1"
+  
+  # Database Configuration
   DBHOST: "mysql-service"
   DBNAME: "phpweave"
   DBCHARSET: "utf8mb4"
+  DBCOLLATION: "utf8mb4_unicode_ci"
+  DB_CONNECTION_TIMEOUT: "10"
+  DB_MAX_CONNECTIONS: "100"
+  
+  # Cache Configuration
   CACHE_ENABLED: "1"
   APCU_ENABLED: "1"
+  APCU_TTL: "3600"
+  CACHE_TTL: "3600"
+  ROUTE_CACHE_ENABLED: "1"
+  
+  # Performance Configuration
+  MEMORY_LIMIT: "256M"
+  MAX_EXECUTION_TIME: "30"
+  MAX_INPUT_TIME: "60"
+  POST_MAX_SIZE: "10M"
+  UPLOAD_MAX_FILESIZE: "10M"
+  
+  # Error Handling
   ERROR_REPORTING: "E_ALL & ~E_NOTICE"
+  DISPLAY_ERRORS: "0"
+  LOG_ERRORS: "1"
+  ERROR_LOG_FILE: "/var/log/php/error.log"
+  
+  # Locale Configuration
   TIMEZONE: "UTC"
+  DEFAULT_LOCALE: "en_US"
+  
+  # Security Configuration
+  SESSION_SECURE: "1"
+  SESSION_HTTPONLY: "1"
+  SESSION_SAMESITE: "Strict"
+  CSRF_PROTECTION: "1"
+  
+  # Monitoring
+  METRICS_ENABLED: "1"
+  HEALTH_CHECK_ENABLED: "1"
