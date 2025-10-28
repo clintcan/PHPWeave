@@ -11,13 +11,18 @@ RUN apt-get update && apt-get install -y \
     git \
     libpq-dev \
     libsqlite3-dev \
+    unixodbc \
     unixodbc-dev \
     freetds-dev \
+    freetds-bin \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions for multiple database support
+# Core PDO
+RUN docker-php-ext-install pdo
+
 # MySQL/MariaDB
-RUN docker-php-ext-install pdo pdo_mysql mysqli
+RUN docker-php-ext-install pdo_mysql mysqli
 
 # PostgreSQL
 RUN docker-php-ext-install pdo_pgsql
@@ -25,8 +30,12 @@ RUN docker-php-ext-install pdo_pgsql
 # SQLite (built-in, just enable PDO)
 RUN docker-php-ext-install pdo_sqlite
 
-# SQL Server (FreeTDS/ODBC)
-RUN docker-php-ext-install pdo_dblib pdo_odbc
+# SQL Server via FreeTDS (dblib)
+RUN docker-php-ext-install pdo_dblib
+
+# ODBC with unixODBC configuration
+RUN docker-php-ext-configure pdo_odbc --with-pdo-odbc=unixODBC,/usr && \
+    docker-php-ext-install pdo_odbc
 
 # Additional extensions
 RUN docker-php-ext-install zip
