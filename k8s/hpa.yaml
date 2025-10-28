@@ -2,6 +2,14 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: phpweave-hpa
+  labels:
+    app: phpweave
+    app.kubernetes.io/name: phpweave
+    app.kubernetes.io/component: autoscaler
+    app.kubernetes.io/managed-by: kustomize
+  annotations:
+    # Performance HPA profile for faster reaction time (K8s 1.31+)
+    autoscaling.k8s.io/profile: "performance"
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -10,36 +18,62 @@ spec:
   minReplicas: 3
   maxReplicas: 10
   metrics:
+  # CPU utilization target
   - type: Resource
     resource:
       name: cpu
       target:
         type: Utilization
         averageUtilization: 70
+  # Memory utilization target
   - type: Resource
     resource:
       name: memory
       target:
         type: Utilization
         averageUtilization: 80
+  # Request rate target (requires custom metrics server)
+  - type: Pods
+    pods:
+      metric:
+        name: http_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "1000"
+  # Response time target (requires custom metrics server)
+  - type: Object
+    object:
+      metric:
+        name: ingress_response_time_p95
+      describedObject:
+        apiVersion: networking.k8s.io/v1
+        kind: Ingress
+        name: phpweave-ingress
+      target:
+        type: Value
+        value: "500m"  # 500 milliseconds
   behavior:
     scaleDown:
       stabilizationWindowSeconds: 300
       policies:
+      # Remove at most 50% of pods in a single scale down
       - type: Percent
         value: 50
         periodSeconds: 60
+      # Remove at most 2 pods every 60 seconds
       - type: Pods
         value: 2
         periodSeconds: 60
-      selectPolicy: Min
+      selectPolicy: Min  # Choose the policy that scales down the least
     scaleUp:
-      stabilizationWindowSeconds: 60
+      stabilizationWindowSeconds: 30  # Reduced for faster scale up
       policies:
+      # Double the pods if needed
       - type: Percent
         value: 100
         periodSeconds: 30
+      # Add at most 5 pods every 30 seconds
       - type: Pods
-        value: 4
+        value: 5
         periodSeconds: 30
-      selectPolicy: Max
+      selectPolicy: Max  # Choose the policy that scales up the most
