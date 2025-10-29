@@ -21,22 +21,22 @@ For quick one-off tasks, `Async::run()` supports multiple callable types:
 ```php
 // Option 1: Static method (recommended - no external library needed)
 class EmailHelper {
-    public static function sendWelcome($email) {
-        mail($email, 'Welcome', 'Thanks for signing up!');
+    public static function sendWelcome($email, $name = 'User') {
+        mail($email, 'Welcome', "Thanks for signing up, $name!");
     }
 }
-Async::run(['EmailHelper', 'sendWelcome']);
+Async::run(['EmailHelper', 'sendWelcome'], ['user@example.com', 'John']);
 
 // Option 2: Global function (no external library needed)
-function send_welcome_email() {
-    mail('user@example.com', 'Welcome', 'Thanks for signing up!');
+function send_welcome_email($email) {
+    mail($email, 'Welcome', 'Thanks for signing up!');
 }
-Async::run('send_welcome_email');
+Async::run('send_welcome_email', ['user@example.com']);
 
 // Option 3: Closure (requires: composer require opis/closure)
-Async::run(function() {
-    mail('user@example.com', 'Welcome', 'Thanks for signing up!');
-});
+Async::run(function($email, $subject) {
+    mail($email, $subject, 'Thanks for signing up!');
+}, ['user@example.com', 'Welcome']);
 
 // Response returns immediately, task runs in background
 ```
@@ -78,27 +78,27 @@ Async::defer(function() {
 1. **Static Methods** (recommended - works without external libraries):
    ```php
    class EmailTasks {
-       public static function sendWelcome($email) {
-           mail($email, 'Welcome', 'Thanks for signing up!');
+       public static function sendWelcome($email, $name) {
+           mail($email, 'Welcome', "Thanks for signing up, $name!");
        }
    }
-   Async::run(['EmailTasks', 'sendWelcome']);
+   Async::run(['EmailTasks', 'sendWelcome'], ['user@example.com', 'John']);
    ```
 
 2. **Global Functions** (works without external libraries):
    ```php
-   function send_notification() {
-       mail('admin@example.com', 'Alert', 'New signup');
+   function send_notification($email, $message) {
+       mail($email, 'Alert', $message);
    }
-   Async::run('send_notification');
+   Async::run('send_notification', ['admin@example.com', 'New signup']);
    ```
 
 3. **Closures** (requires `composer require opis/closure`):
    ```php
-   Async::run(function() use ($userId) {
+   Async::run(function($userId) {
        $user = $GLOBALS['models']['user_model']->getUser($userId);
        mail($user['email'], 'Welcome!', 'Thanks for joining!');
-   });
+   }, [$userId]);
    ```
 
 **Example:**
@@ -113,7 +113,7 @@ class User extends Controller
         $userId = $models['user_model']->create($_POST);
 
         // Send welcome email in background using static method
-        Async::run(['EmailTasks', 'sendWelcome']);
+        Async::run(['EmailTasks', 'sendWelcome'], [$_POST['email'], $_POST['name']]);
 
         // Return immediately
         $this->show("register_success");
@@ -127,6 +127,7 @@ class User extends Controller
 - Works without external libraries (for static methods/functions)
 - Perfect for simple tasks
 - Uses secure JSON serialization (for static methods/functions)
+- **Supports parameters** - pass arguments as second parameter
 
 **Cons:**
 
@@ -462,7 +463,7 @@ class Auth extends Controller
             'name' => $_POST['name']
         ], 15); // Low priority
 
-        // Defer analytics logging
+        // Defer analytics logging (note: defer() still uses closures without parameters)
         Async::defer(function() use ($userId) {
             logEvent('user_registered', ['user_id' => $userId]);
         });
