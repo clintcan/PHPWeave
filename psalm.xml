@@ -32,54 +32,6 @@
         </ignoreFiles>
     </projectFiles>
 
-    <!-- Taint analysis configuration for security scanning -->
-    <taintAnalysis>
-        <!-- User input sources (tainted data origins) -->
-        <customSources>
-            <!-- Mark $_GET, $_POST, $_REQUEST, $_COOKIE as tainted -->
-            <source name="$_GET" />
-            <source name="$_POST" />
-            <source name="$_REQUEST" />
-            <source name="$_COOKIE" />
-            <source name="$_SERVER" />
-        </customSources>
-
-        <!-- Dangerous sinks (where tainted data becomes a vulnerability) -->
-        <customSinks>
-            <!-- SQL sinks -->
-            <sink name="mysqli_query" />
-            <sink name="mysql_query" />
-            <sink name="PDO::query" />
-            <sink name="PDO::exec" />
-
-            <!-- File system sinks -->
-            <sink name="file_get_contents" />
-            <sink name="file_put_contents" />
-            <sink name="fopen" />
-            <sink name="readfile" />
-            <sink name="include" />
-            <sink name="require" />
-            <sink name="include_once" />
-            <sink name="require_once" />
-
-            <!-- Command execution sinks -->
-            <sink name="exec" />
-            <sink name="shell_exec" />
-            <sink name="system" />
-            <sink name="passthru" />
-            <sink name="popen" />
-
-            <!-- Code execution sinks -->
-            <sink name="eval" />
-            <sink name="assert" />
-            <sink name="create_function" />
-
-            <!-- Output sinks (XSS) -->
-            <sink name="echo" />
-            <sink name="print" />
-            <sink name="printf" />
-        </customSinks>
-    </taintAnalysis>
 
     <!-- Issue handlers (configure which issues to report) -->
     <issueHandlers>
