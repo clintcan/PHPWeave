@@ -559,10 +559,10 @@ class Router
         header("HTTP/1.0 500 Internal Server Error");
         echo "500 - Internal Server Error<br>";
 
-        // Show detailed error in development
+        // Show detailed error in development (sanitized to prevent XSS)
         if (isset($GLOBALS['configs']['DEBUG']) && $GLOBALS['configs']['DEBUG']) {
-            echo "Error: " . $e->getMessage() . "<br>";
-            echo "Trace: <pre>" . $e->getTraceAsString() . "</pre>";
+            echo "Error: " . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . "<br>";
+            echo "Trace: <pre>" . htmlspecialchars($e->getTraceAsString(), ENT_QUOTES, 'UTF-8') . "</pre>";
         }
         die();
     }
