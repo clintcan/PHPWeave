@@ -16,19 +16,8 @@
         <!-- Public entry point -->
         <directory name="public" />
 
-        <!-- Application directories (optional, scanned if they exist) -->
-        <directory name="controller" />
-        <directory name="models" />
-        <directory name="hooks" />
-        <directory name="jobs" />
-        <directory name="libraries" />
-
         <ignoreFiles>
             <directory name="vendor" />
-            <directory name="tests" />
-            <directory name="storage" />
-            <directory name="cache" />
-            <directory name="migrations" />
         </ignoreFiles>
     </projectFiles>
 
