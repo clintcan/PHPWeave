@@ -216,7 +216,9 @@ class ErrorClass {
      */
     function mailError($error) {
         $to = 'admin@yourdomain.com';
-        $subject = "Critical Error on " . $_SERVER['HTTP_HOST'];
+        // Sanitize HTTP_HOST to prevent header injection
+        $host = isset($_SERVER['HTTP_HOST']) ? preg_replace('/[^a-zA-Z0-9.-]/', '', $_SERVER['HTTP_HOST']) : 'unknown';
+        $subject = "Critical Error on " . $host;
         $message = "A critical error occurred:\n\n" . print_r($error, true);
         $headers = 'From: webmaster@yourdomain.com' . "\r\n" .
                 'X-Mailer: PHP/' . phpversion();
