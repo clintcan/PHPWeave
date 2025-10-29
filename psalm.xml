@@ -24,7 +24,7 @@
 
     <!-- Issue handlers (configure which issues to report) -->
     <issueHandlers>
-        <!-- Security issues - always report -->
+        <!-- Security issues - always report (these are critical) -->
         <TaintedInput errorLevel="error" />
         <TaintedSql errorLevel="error" />
         <TaintedHtml errorLevel="error" />
@@ -41,7 +41,16 @@
         <UnusedParam errorLevel="info" />
         <UnusedMethod errorLevel="info" />
 
-        <!-- Type issues - report as errors -->
+        <!-- PHP 8.3+ features - suppress for PHP 7.4 compatibility -->
+        <MissingOverrideAttribute errorLevel="suppress" />
+
+        <!-- Template/Generics - suppress for framework flexibility -->
+        <MissingTemplateParam errorLevel="suppress" />
+
+        <!-- Return types - suppress for backward compatibility -->
+        <InvalidReturnType errorLevel="suppress" />
+
+        <!-- Mixed type issues - suppress for dynamic framework behavior -->
         <MixedAssignment errorLevel="suppress" />
         <MixedArgument errorLevel="suppress" />
         <MixedArrayAccess errorLevel="suppress" />

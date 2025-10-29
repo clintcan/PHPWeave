@@ -60,9 +60,10 @@ Complete documentation for the PHPWeave framework.
 - **OWASP Top 10 (2021) Compliant**
 - **Automated Security Analysis: PHPStan + Psalm**
 
+- [**PSALM_CONFIGURATION_SUMMARY.md**](PSALM_CONFIGURATION_SUMMARY.md) - Complete Psalm security configuration and current status ⭐ LATEST!
+- [**SECURITY_ANALYSIS.md**](SECURITY_ANALYSIS.md) - Psalm security analysis guide (SQL injection, XSS, path traversal detection)
+- [**PSALM_SETUP_COMPLETE.md**](PSALM_SETUP_COMPLETE.md) - Psalm setup summary and quick reference
 - [**SECURITY_BEST_PRACTICES.md**](SECURITY_BEST_PRACTICES.md) - Comprehensive security guidelines for developers
-- [**SECURITY_ANALYSIS.md**](SECURITY_ANALYSIS.md) - Psalm security analysis guide (SQL injection, XSS, path traversal detection) ⭐ NEW!
-- [**PSALM_SETUP_COMPLETE.md**](PSALM_SETUP_COMPLETE.md) - Psalm setup summary and quick reference ⭐ NEW!
 - [**SECURITY_AUDIT.md**](../SECURITY_AUDIT.md) - OWASP Top 10 security audit report (Rating: A)
 
 ---
