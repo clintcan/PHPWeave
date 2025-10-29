@@ -171,7 +171,7 @@ jobs:
           cat > composer.json <<EOF
         {
           "require-dev": {
-            "vimeo/psalm": "^5.0"
+            "vimeo/psalm": "^6.0"
           }
         }
         EOF
@@ -179,37 +179,38 @@ jobs:
 
         # Check if psalm is already in composer.json
         if ! grep -q "vimeo/psalm" composer.json 2>/dev/null; then
-          composer require --dev vimeo/psalm:^5.0 --no-interaction
+          composer require --dev vimeo/psalm:^6.0 --no-interaction
         else
           composer install --no-interaction --prefer-dist --no-progress
         fi
 
-    - name: Create Psalm config
+    - name: Create Psalm bootstrap (if needed)
+      run: |
+        if [ ! -f "psalm-bootstrap.php" ]; then
+          cat > psalm-bootstrap.php <<'EOF'
+        <?php
+        // Psalm Bootstrap - Define constants for static analysis
+        if (!defined('PHPWEAVE_ROOT')) {
+            define('PHPWEAVE_ROOT', __DIR__);
+        }
+        $GLOBALS['baseurl'] = '/';
+        $GLOBALS['configs'] = [];
+        $GLOBALS['models'] = [];
+        $GLOBALS['libraries'] = [];
+        $GLOBALS['PW'] = new stdClass();
+        EOF
+          echo "✓ Created psalm-bootstrap.php"
+        else
+          echo "✓ Using existing psalm-bootstrap.php"
+        fi
+
+    - name: Verify Psalm config exists
       run: |
         if [ ! -f "psalm.xml" ]; then
-          cat > psalm.xml <<'EOF'
-        <?xml version="1.0"?>
-        <psalm
-            errorLevel="5"
-            resolveFromConfigFile="true"
-            findUnusedBaselineEntry="true"
-            findUnusedCode="false"
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xmlns="https://getpsalm.org/schema/config"
-            xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
-        >
-            <projectFiles>
-                <directory name="coreapp" />
-                <directory name="public" />
-                <ignoreFiles>
-                    <directory name="vendor" />
-                </ignoreFiles>
-            </projectFiles>
-        </psalm>
-        EOF
-          echo "✓ Created psalm.xml"
+          echo "❌ Error: psalm.xml not found in repository"
+          exit 1
         else
-          echo "✓ Using existing psalm.xml"
+          echo "✓ Using psalm.xml from repository"
         fi
 
     - name: Run Psalm Taint Analysis

@@ -8,6 +8,9 @@
     xmlns="https://getpsalm.org/schema/config"
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
 >
+    <!-- Bootstrap file for constants and globals -->
+    <autoloader>psalm-bootstrap.php</autoloader>
+
     <projectFiles>
         <!-- Core framework files (highest security priority) -->
         <directory name="coreapp" />
@@ -27,6 +30,7 @@
             <directory name="tests" />
             <directory name="storage" />
             <directory name="cache" />
+            <directory name="migrations" />
         </ignoreFiles>
     </projectFiles>
 

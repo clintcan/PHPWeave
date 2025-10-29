@@ -24,8 +24,8 @@ if not exist "vendor\" (
 
 REM Check if Psalm is installed
 if not exist "vendor\bin\psalm" (
-    echo Installing Psalm...
-    composer require --dev vimeo/psalm:^5.0
+    echo Installing Psalm 6.x (PHP 8.4 compatible)...
+    composer require --dev vimeo/psalm:^6.0
     echo.
 )
 

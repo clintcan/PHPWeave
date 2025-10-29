@@ -22,7 +22,16 @@
  *     }
  * }
  */
-include_once "../coreapp/error.php";
+// Load ErrorClass if not already loaded (handles both runtime and static analysis)
+if (!class_exists('ErrorClass', false)) {
+    $errorPath = file_exists(__DIR__ . '/error.php')
+        ? __DIR__ . '/error.php'
+        : dirname(__DIR__) . '/coreapp/error.php';
+
+    if (file_exists($errorPath)) {
+        include_once $errorPath;
+    }
+}
 
 class Controller
 {
