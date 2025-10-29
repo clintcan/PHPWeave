@@ -213,6 +213,7 @@ class ErrorClass {
      *
      * @param array $error Error information array
      * @return void
+     * @psalm-suppress TaintedHtml - Email body is plain text, not HTML. Safe for admin notification.
      */
     function mailError($error) {
         $to = 'admin@yourdomain.com';
