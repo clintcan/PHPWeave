@@ -84,17 +84,20 @@ class Controller
 	 *
 	 * Loads and displays a view template from the views/ directory.
 	 * Data passed to this method is available in the view:
-	 * - As $data variable (always available)
-	 * - As individual variables if $data is an associative array (via extract())
+	 * - As individual variables if data is an associative array (via extract())
+	 * - You can now pass 'data', 'dir', or 'template' as keys without collision
 	 *
 	 * Security features:
 	 * - Strips http://, https://, and // to prevent remote includes
+	 * - Blocks path traversal attempts (..)
+	 * - Removes null bytes
 	 * - Automatically appends .php extension
 	 * - Returns 404 if template not found
 	 * - Uses EXTR_SKIP to prevent overwriting existing variables
+	 * - System variables use __ prefix to avoid collision with user data
 	 *
 	 * @param string $template Template name (without .php extension)
-	 * @param mixed  $data     Data to pass to the view (default: empty string)
+	 * @param mixed  $__data   Data to pass to the view (default: empty string)
 	 * @return void
 	 *
 	 * @example
@@ -102,19 +105,23 @@ class Controller
 	 * $this->show("blog/index", [
 	 *     'title' => 'Hello',
 	 *     'content' => 'World',
-	 *     'author' => 'John'
+	 *     'author' => 'John',
+	 *     'data' => 'Now this works!',  // No collision
+	 *     'template' => 'metadata',      // No collision
+	 *     'dir' => 'uploads'             // No collision
 	 * ]);
 	 *
 	 * @example
-	 * // Pass string - access as $data in view
+	 * // Pass string or object
 	 * $this->show("home", "Welcome!");
 	 */
-	function show($template, $data=""){
+	function show($template, $__data=""){
 		// Security: Sanitize template path to prevent path traversal and remote includes
-		$dir = PHPWEAVE_ROOT;
+		// Use __ prefix for system variables to avoid collision with user data
+		$__dir = PHPWEAVE_ROOT;
 
 		// Remove remote URL patterns
-		$template = strtr($template, [
+		$__template = strtr($template, [
 			'https://' => '',
 			'http://' => '',
 			'//' => '/',
@@ -122,42 +129,45 @@ class Controller
 		]);
 
 		// Block path traversal attempts
-		$template = str_replace('..', '', $template);
+		$__template = str_replace('..', '', $__template);
 
 		// Remove null bytes (rare but possible attack)
-		$template = str_replace("\0", '', $template);
+		$__template = str_replace("\0", '', $__template);
 
 		// Normalize path separators to forward slash
-		$template = str_replace('\\', '/', $template);
+		$__template = str_replace('\\', '/', $__template);
 
 		// Remove leading/trailing slashes
-		$template = trim($template, '/');
+		$__template = trim($__template, '/');
 
-		if(file_exists("$dir/views/$template.php")){
+		if(file_exists("$__dir/views/$__template.php")){
 			// Trigger before view render hook
 			$hookData = Hook::trigger('before_view_render', [
-				'template' => $template,
-				'data' => $data,
-				'path' => "$dir/views/$template.php"
+				'template' => $__template,
+				'data' => $__data,
+				'path' => "$__dir/views/$__template.php"
 			]);
 
 			// Allow hooks to modify data
 			if (isset($hookData['data'])) {
-				$data = $hookData['data'];
+				$__data = $hookData['data'];
 			}
+
+			// Store template path before extraction to prevent variable collision
+			$__template_path = "$__dir/views/$__template.php";
 
 			// Extract array data into individual variables for easier view access
-			// EXTR_SKIP prevents overwriting existing variables (security)
-			if (is_array($data)) {
-				extract($data, EXTR_SKIP);
+			// System variables use __ prefix to avoid collision with user data
+			if (is_array($__data)) {
+				extract($__data, EXTR_SKIP);
 			}
 
-			include_once "$dir/views/$template.php";
+			include_once $__template_path;
 
 			// Trigger after view render hook
 			Hook::trigger('after_view_render', [
-				'template' => $template,
-				'data' => $data
+				'template' => $__template,
+				'data' => $__data
 			]);
 		} else {
 			header("HTTP/1.0 404 Not Found");

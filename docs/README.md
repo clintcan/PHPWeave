@@ -45,6 +45,10 @@ Complete documentation for the PHPWeave framework.
 
 - [**HOOKS.md**](HOOKS.md) - Complete hooks documentation with all 18 hook points
 
+#### Models System
+
+- [**MODELS.md**](MODELS.md) - Complete models documentation with database operations
+
 #### Async/Jobs System
 
 - [**ASYNC_GUIDE.md**](ASYNC_GUIDE.md) - Complete async job processing guide (Updated v2.1.1)
@@ -123,6 +127,7 @@ Complete documentation for the PHPWeave framework.
 | Enable connection pooling   | [CONNECTION_POOLING.md](CONNECTION_POOLING.md)             |
 | Define routes               | [ROUTING_GUIDE.md](ROUTING_GUIDE.md)                       |
 | Add hooks                   | [HOOKS.md](HOOKS.md)                                       |
+| Work with models            | [MODELS.md](MODELS.md)                                     |
 | Create utility libraries    | [LIBRARIES.md](LIBRARIES.md)                               |
 | Process background jobs     | [ASYNC_QUICK_START.md](ASYNC_QUICK_START.md)               |
 | Deploy to Docker            | [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md)               |
@@ -169,6 +174,7 @@ Complete documentation for the PHPWeave framework.
 
 - [ROUTING_GUIDE.md](ROUTING_GUIDE.md) - Route patterns and methods
 - [HOOKS.md](HOOKS.md) - All available hooks with examples
+- [MODELS.md](MODELS.md) - Database models and operations
 - [LIBRARIES.md](LIBRARIES.md) - Creating reusable utility libraries
 - [ASYNC_GUIDE.md](ASYNC_GUIDE.md) - Job queues and workers
 - [SECURITY_BEST_PRACTICES.md](SECURITY_BEST_PRACTICES.md) - Security guidelines
@@ -218,6 +224,7 @@ PHPWeave/
 │   ├── ROUTING_GUIDE.md              # Routing system
 │   ├── MIGRATION_TO_NEW_ROUTING.md   # Migration guide
 │   ├── HOOKS.md                       # Hooks system (18 points)
+│   ├── MODELS.md                      # Models system
 │   ├── LIBRARIES.md                   # Libraries system (NEW!)
 │   ├── ASYNC_GUIDE.md                 # Async jobs (detailed)
 │   ├── ASYNC_QUICK_START.md           # Async jobs (quick)
@@ -254,23 +261,24 @@ PHPWeave/
 
 1. Read [README.md](../README.md) - Overview
 2. Read [V2.1_FEATURES.md](V2.1_FEATURES.md) - v2.1 features (PHPWeave global object)
-3. Read [LIBRARIES.md](LIBRARIES.md) - v2.1.1 lazy-loaded libraries
-4. Read [ROUTING_GUIDE.md](ROUTING_GUIDE.md) - Define routes
-5. Read [HOOKS.md](HOOKS.md) - Add custom logic
-6. Read [SECURITY_BEST_PRACTICES.md](SECURITY_BEST_PRACTICES.md) - Security basics (v2.1.1)
+3. Read [ROUTING_GUIDE.md](ROUTING_GUIDE.md) - Define routes
+4. Read [MODELS.md](MODELS.md) - Work with database models
+5. Read [LIBRARIES.md](LIBRARIES.md) - v2.1.1 lazy-loaded libraries
+6. Read [HOOKS.md](HOOKS.md) - Add custom logic
+7. Read [SECURITY_BEST_PRACTICES.md](SECURITY_BEST_PRACTICES.md) - Security basics (v2.1.1)
 
 ### Intermediate
 
-7. Read [ASYNC_QUICK_START.md](ASYNC_QUICK_START.md) - Background jobs
-8. Read [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) - Docker deployment
-9. Read [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md) - Performance
+8. Read [ASYNC_QUICK_START.md](ASYNC_QUICK_START.md) - Background jobs
+9. Read [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) - Docker deployment
+10. Read [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md) - Performance
 
 ### Advanced
 
-10. Read [PERFORMANCE_ANALYSIS.md](PERFORMANCE_ANALYSIS.md) - Optimization
-11. Read [DOCKER_CACHING_GUIDE.md](DOCKER_CACHING_GUIDE.md) - Caching strategies
-12. Read [ASYNC_GUIDE.md](ASYNC_GUIDE.md) - Advanced async patterns
-13. Read [SECURITY_AUDIT.md](../SECURITY_AUDIT.md) - Security audit report
+11. Read [PERFORMANCE_ANALYSIS.md](PERFORMANCE_ANALYSIS.md) - Optimization
+12. Read [DOCKER_CACHING_GUIDE.md](DOCKER_CACHING_GUIDE.md) - Caching strategies
+13. Read [ASYNC_GUIDE.md](ASYNC_GUIDE.md) - Advanced async patterns
+14. Read [SECURITY_AUDIT.md](../SECURITY_AUDIT.md) - Security audit report
 
 ---
 
