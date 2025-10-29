@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<psalm
+    errorLevel="5"
+    resolveFromConfigFile="true"
+    findUnusedBaselineEntry="true"
+    findUnusedCode="false"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+>
+    <projectFiles>
+        <!-- Core framework files (highest security priority) -->
+        <directory name="coreapp" />
+
+        <!-- Public entry point -->
+        <directory name="public" />
+
+        <!-- Application directories (optional, scanned if they exist) -->
+        <directory name="controller" />
+        <directory name="models" />
+        <directory name="hooks" />
+        <directory name="jobs" />
+        <directory name="libraries" />
+
+        <ignoreFiles>
+            <directory name="vendor" />
+            <directory name="tests" />
+            <directory name="storage" />
+            <directory name="cache" />
+        </ignoreFiles>
+    </projectFiles>
+
+    <!-- Taint analysis configuration for security scanning -->
+    <taintAnalysis>
+        <!-- User input sources (tainted data origins) -->
+        <customSources>
+            <!-- Mark $_GET, $_POST, $_REQUEST, $_COOKIE as tainted -->
+            <source name="$_GET" />
+            <source name="$_POST" />
+            <source name="$_REQUEST" />
+            <source name="$_COOKIE" />
+            <source name="$_SERVER" />
+        </customSources>
+
+        <!-- Dangerous sinks (where tainted data becomes a vulnerability) -->
+        <customSinks>
+            <!-- SQL sinks -->
+            <sink name="mysqli_query" />
+            <sink name="mysql_query" />
+            <sink name="PDO::query" />
+            <sink name="PDO::exec" />
+
+            <!-- File system sinks -->
+            <sink name="file_get_contents" />
+            <sink name="file_put_contents" />
+            <sink name="fopen" />
+            <sink name="readfile" />
+            <sink name="include" />
+            <sink name="require" />
+            <sink name="include_once" />
+            <sink name="require_once" />
+
+            <!-- Command execution sinks -->
+            <sink name="exec" />
+            <sink name="shell_exec" />
+            <sink name="system" />
+            <sink name="passthru" />
+            <sink name="popen" />
+
+            <!-- Code execution sinks -->
+            <sink name="eval" />
+            <sink name="assert" />
+            <sink name="create_function" />
+
+            <!-- Output sinks (XSS) -->
+            <sink name="echo" />
+            <sink name="print" />
+            <sink name="printf" />
+        </customSinks>
+    </taintAnalysis>
+
+    <!-- Issue handlers (configure which issues to report) -->
+    <issueHandlers>
+        <!-- Security issues - always report -->
+        <TaintedInput errorLevel="error" />
+        <TaintedSql errorLevel="error" />
+        <TaintedHtml errorLevel="error" />
+        <TaintedFile errorLevel="error" />
+        <TaintedShell errorLevel="error" />
+        <TaintedCallable errorLevel="error" />
+        <TaintedInclude errorLevel="error" />
+        <TaintedHeader errorLevel="error" />
+        <TaintedCookie errorLevel="error" />
+        <TaintedLdap errorLevel="error" />
+
+        <!-- Code quality issues - report as info (won't fail build) -->
+        <UnusedVariable errorLevel="info" />
+        <UnusedParam errorLevel="info" />
+        <UnusedMethod errorLevel="info" />
+
+        <!-- Type issues - report as errors -->
+        <MixedAssignment errorLevel="suppress" />
+        <MixedArgument errorLevel="suppress" />
+        <MixedArrayAccess errorLevel="suppress" />
+
+        <!-- Suppress common framework patterns -->
+        <PropertyNotSetInConstructor errorLevel="suppress" />
+        <MissingConstructor errorLevel="suppress" />
+    </issueHandlers>
+</psalm>

@@ -142,6 +142,96 @@ jobs:
     - name: Run PHPStan
       run: vendor/bin/phpstan analyse --no-progress --error-format=table
 
+  psalm-security:
+    name: Psalm Security Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: pdo, pdo_mysql, simplexml
+        coverage: none
+
+    - name: Cache Composer dependencies
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-psalm-${{ hashFiles('**/composer.lock') }}
+        restore-keys: ${{ runner.os }}-psalm-
+
+    - name: Install Psalm
+      run: |
+        if [ ! -f "composer.json" ]; then
+          echo "Creating composer.json for Psalm"
+          cat > composer.json <<EOF
+        {
+          "require-dev": {
+            "vimeo/psalm": "^5.0"
+          }
+        }
+        EOF
+        fi
+
+        # Check if psalm is already in composer.json
+        if ! grep -q "vimeo/psalm" composer.json 2>/dev/null; then
+          composer require --dev vimeo/psalm:^5.0 --no-interaction
+        else
+          composer install --no-interaction --prefer-dist --no-progress
+        fi
+
+    - name: Create Psalm config
+      run: |
+        if [ ! -f "psalm.xml" ]; then
+          cat > psalm.xml <<'EOF'
+        <?xml version="1.0"?>
+        <psalm
+            errorLevel="5"
+            resolveFromConfigFile="true"
+            findUnusedBaselineEntry="true"
+            findUnusedCode="false"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="https://getpsalm.org/schema/config"
+            xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+        >
+            <projectFiles>
+                <directory name="coreapp" />
+                <directory name="public" />
+                <ignoreFiles>
+                    <directory name="vendor" />
+                </ignoreFiles>
+            </projectFiles>
+        </psalm>
+        EOF
+          echo "✓ Created psalm.xml"
+        else
+          echo "✓ Using existing psalm.xml"
+        fi
+
+    - name: Run Psalm Taint Analysis
+      run: |
+        echo "Running Psalm security taint analysis..."
+        vendor/bin/psalm --taint-analysis --no-progress --no-cache || {
+          echo ""
+          echo "⚠️  Psalm found potential security vulnerabilities"
+          echo "These are taint analysis warnings - please review carefully"
+          exit 1
+        }
+
+    - name: Run Psalm Standard Analysis
+      run: |
+        echo "Running Psalm standard analysis..."
+        vendor/bin/psalm --no-progress --no-cache --show-info=false || {
+          echo ""
+          echo "⚠️  Psalm found code quality issues"
+          echo "Review the output above for details"
+          exit 0
+        }
+
   security-check:
     name: Security Checks
     runs-on: ubuntu-latest
