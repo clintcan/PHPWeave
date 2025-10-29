@@ -220,6 +220,8 @@ class ErrorClass {
         // Sanitize HTTP_HOST to prevent header injection
         $host = isset($_SERVER['HTTP_HOST']) ? preg_replace('/[^a-zA-Z0-9.-]/', '', $_SERVER['HTTP_HOST']) : 'unknown';
         $subject = "Critical Error on " . $host;
+
+        /** @psalm-suppress TaintedHtml - Plain text email body, not HTML output. Safe for admin notification. */
         $message = "A critical error occurred:\n\n" . print_r($error, true);
         $headers = 'From: webmaster@yourdomain.com' . "\r\n" .
                 'X-Mailer: PHP/' . phpversion();
