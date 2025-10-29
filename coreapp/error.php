@@ -221,7 +221,7 @@ class ErrorClass {
         $host = isset($_SERVER['HTTP_HOST']) ? preg_replace('/[^a-zA-Z0-9.-]/', '', $_SERVER['HTTP_HOST']) : 'unknown';
         $subject = "Critical Error on " . $host;
 
-        /** @psalm-taint-escape html */
+        /** @psalm-suppress TaintedInput - Plain text email body, not an exploitable sink. Safe for admin notification. */
         $message = "A critical error occurred:\n\n" . print_r($error, true);
         $headers = 'From: webmaster@yourdomain.com' . "\r\n" .
                 'X-Mailer: PHP/' . phpversion();
