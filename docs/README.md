@@ -538,7 +538,18 @@ composer check
 
 ## 📝 Contributing
 
-When adding documentation:
+We welcome contributions to PHPWeave! Whether you're fixing bugs, adding features, or improving documentation, your help is appreciated.
+
+**Read our [Contributing Guide](../CONTRIBUTING.md)** for:
+- Development workflow and branching strategy
+- Coding standards and style guide
+- Testing requirements (PHPStan, Psalm, unit tests)
+- Pull request process and review guidelines
+- Security best practices
+
+### Contributing to Documentation
+
+When adding or updating documentation:
 
 1. Place in appropriate category in `docs/`
 2. Update this README's table of contents
@@ -546,6 +557,7 @@ When adding documentation:
 4. Cross-reference related docs
 5. Include code examples
 6. Test all code snippets
+7. Follow [markdown best practices](../CONTRIBUTING.md#documentation)
 
 ---
 

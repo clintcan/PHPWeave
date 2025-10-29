@@ -1050,16 +1050,39 @@ See `.github/workflows/README.md` for detailed workflow documentation.
 
 ## Contributing
 
-PHPWeave was born as a private framework but has evolved with contributions from its users. If you're using PHPWeave and have improvements, feel free to share them!
+We welcome contributions from the community! PHPWeave was born as a private framework but has evolved with contributions from its users.
 
-**Development Process:**
+### How to Contribute
+
+- 🐛 **Report bugs** - Open an issue with detailed steps to reproduce
+- 💡 **Suggest features** - Share your ideas for improvements
+- 📝 **Improve docs** - Help make documentation clearer
+- 🔧 **Submit PRs** - Fix bugs or add features
+
+**Read our [Contributing Guide](CONTRIBUTING.md)** for:
+- Development workflow
+- Coding standards
+- Testing requirements
+- Pull request process
+- Security guidelines
+
+### Quick Start for Contributors
+
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Ensure all tests pass (`php tests/*.php`)
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Make your changes following our [coding standards](CONTRIBUTING.md#coding-standards)
+4. Run tests: `composer check`
+5. Submit a pull request to the `develop` branch
+
+### Areas We Need Help
+
+- 🚀 New router features (middleware, route groups)
+- 📚 More documentation and examples
+- 🧪 Increased test coverage
+- 🔒 Security audits and improvements
+- 🌍 Translations and internationalization
+
+Check out [open issues](https://github.com/clintcan/PHPWeave/issues) labeled `good first issue` for beginner-friendly tasks!
 
 All pull requests are automatically tested via GitHub Actions.
 
