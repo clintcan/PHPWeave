@@ -110,7 +110,7 @@ composer check
 
 ```bash
 # Install Psalm
-composer require --dev vimeo/psalm:^5.0
+composer require --dev vimeo/psalm:^6.0
 
 # Security taint analysis (recommended)
 vendor/bin/psalm --taint-analysis
@@ -333,7 +333,7 @@ search($_GET['q']); // Vulnerable!
 ### Issue: "Psalm not found"
 ```bash
 # Install Psalm
-composer require --dev vimeo/psalm:^5.0
+composer require --dev vimeo/psalm:^6.0
 ```
 
 ### Issue: "Cannot find psalm.xml"

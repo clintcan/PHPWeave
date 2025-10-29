@@ -14,24 +14,14 @@
     },
     "require-dev": {
         "phpstan/phpstan": "^2.1",
-        "vimeo/psalm": "^5.0"
+        "vimeo/psalm": "^6.0"
     },
     "suggest": {
         "opis/closure": "Required for Async::run() with closures (background task serialization)"
     },
     "autoload": {
-        "files": [
-            "coreapp/dbconnection.php",
-            "coreapp/hooks.php",
-            "coreapp/models.php",
-            "coreapp/libraries.php",
-            "coreapp/controller.php",
-            "coreapp/router.php",
-            "coreapp/async.php",
-            "coreapp/error.php",
-            "coreapp/migration.php",
-            "coreapp/migrationrunner.php",
-            "coreapp/connectionpool.php"
+        "classmap": [
+            "coreapp/"
         ]
     },
     "scripts": {
