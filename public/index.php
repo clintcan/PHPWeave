@@ -38,22 +38,46 @@ Hook::trigger('framework_start');
 $hooksDir = dirname(__FILE__, 2) . '/hooks';
 Hook::loadHookFiles($hooksDir);
 
-// Before database connection
-Hook::trigger('before_db_connection');
+// Check if database is enabled (ENABLE_DATABASE=1 or DBNAME is set)
+$databaseEnabled = true;
+if (isset($GLOBALS['configs']['ENABLE_DATABASE']) && $GLOBALS['configs']['ENABLE_DATABASE'] == 0) {
+	$databaseEnabled = false;
+} elseif (empty($GLOBALS['configs']['DBNAME'])) {
+	// Auto-detect: if DBNAME is not configured, assume database-free mode
+	$databaseEnabled = false;
+}
 
-require_once "../coreapp/dbconnection.php";
+// Only load database and models if database is enabled
+if ($databaseEnabled) {
+	// Before database connection
+	Hook::trigger('before_db_connection');
 
-// After database connection
-Hook::trigger('after_db_connection');
+	require_once "../coreapp/dbconnection.php";
 
-// Before models load
-Hook::trigger('before_models_load');
+	// After database connection
+	Hook::trigger('after_db_connection');
 
-// We will load all the models here
-require_once "../coreapp/models.php";
+	// Before models load
+	Hook::trigger('before_models_load');
 
-// After models load
-Hook::trigger('after_models_load');
+	// We will load all the models here
+	require_once "../coreapp/models.php";
+
+	// After models load
+	Hook::trigger('after_models_load');
+} else {
+	// Database-free mode: Skip database and models entirely
+	// Set empty models array for backward compatibility
+	$GLOBALS['models'] = [];
+	if (!isset($GLOBALS['PW'])) {
+		$GLOBALS['PW'] = new stdClass();
+	}
+	$GLOBALS['PW']->models = new class {
+		public function __get($name) {
+			throw new Exception("Database is disabled. Cannot access model: $name");
+		}
+	};
+}
 
 // Before router init
 Hook::trigger('before_router_init');
