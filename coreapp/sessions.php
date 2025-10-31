@@ -80,6 +80,7 @@ class Session {
 
         // Register custom session handler only if using database
         if ($this->driver === 'database' && $this->db !== null) {
+            // @phpstan-ignore-next-line argument.type (PHPStan expects string but PHP passes int to gc handler)
             session_set_save_handler(
                 array($this, "_open"),
                 array($this, "_close"),
