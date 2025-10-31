@@ -88,8 +88,8 @@ class Session {
                 array($this, "_destroy"),
                 array($this, "_gc")
             );
+            // @phpstan-ignore-next-line argument.type (PHPStan expects string but PHP passes int to gc handler)
         }
-        // @phpstan-ignore-next-line argument.type (PHPStan expects string but PHP passes int to gc handler)
         // Otherwise use default PHP file-based sessions
 
         // Start session if not already started
