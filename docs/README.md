@@ -49,6 +49,10 @@ Complete documentation for the PHPWeave framework.
 
 - [**MODELS.md**](MODELS.md) - Complete models documentation with database operations
 
+#### Session Management
+
+- [**SESSIONS.md**](SESSIONS.md) - Complete session management guide (file and database sessions) ⭐ NEW!
+
 #### Async/Jobs System
 
 - [**ASYNC_GUIDE.md**](ASYNC_GUIDE.md) - Complete async job processing guide (Updated v2.1.1)
@@ -132,6 +136,7 @@ Complete documentation for the PHPWeave framework.
 | Define routes               | [ROUTING_GUIDE.md](ROUTING_GUIDE.md)                       |
 | Add hooks                   | [HOOKS.md](HOOKS.md)                                       |
 | Work with models            | [MODELS.md](MODELS.md)                                     |
+| Manage sessions             | [SESSIONS.md](SESSIONS.md)                                 |
 | Create utility libraries    | [LIBRARIES.md](LIBRARIES.md)                               |
 | Process background jobs     | [ASYNC_QUICK_START.md](ASYNC_QUICK_START.md)               |
 | Deploy to Docker            | [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md)               |

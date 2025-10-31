@@ -71,7 +71,7 @@ class DBConnection
 
 	/**
 	 * PDO instance
-	 * @var PDO
+	 * @var PDO|null
 	 */
 	public $pdo;
 
@@ -88,24 +88,30 @@ class DBConnection
 	public $port;
 
 	/**
+	 * Connection status flag
+	 * @var bool
+	 */
+	private $connected = false;
+
+	/**
 	 * Constructor
 	 *
-	 * Initializes database connection using configuration from .env file.
-	 * Automatically sets up PDO with secure defaults:
+	 * Initializes database configuration from .env file without connecting.
+	 * Connection is deferred until first query (lazy loading) for better performance.
+	 * Automatically sets up PDO with secure defaults when connection is made:
 	 * - Exception mode for errors
 	 * - Associative array fetch mode
 	 * - Real prepared statements (no emulation)
 	 * - Connection pooling for improved performance
 	 *
 	 * @return void
-	 * @throws Exception If connection fails
 	 */
 	function __construct()
 	{
-		$this->host = $GLOBALS['configs']['DBHOST'];
-		$this->db = $GLOBALS['configs']['DBNAME'];
-		$this->user = $GLOBALS['configs']['DBUSER'];
-		$this->password = $GLOBALS['configs']['DBPASSWORD'];
+		$this->host = $GLOBALS['configs']['DBHOST'] ?? '';
+		$this->db = $GLOBALS['configs']['DBNAME'] ?? '';
+		$this->user = $GLOBALS['configs']['DBUSER'] ?? '';
+		$this->password = $GLOBALS['configs']['DBPASSWORD'] ?? '';
 		$this->charset = $GLOBALS['configs']['DBCHARSET'] ?? 'utf8mb4';
 
 		// Set default driver and port for backward compatibility
@@ -124,6 +130,18 @@ class DBConnection
 		    PDO::ATTR_EMULATE_PREPARES   => false,
 		];
 
+		// Build DSN string but don't connect yet (lazy loading)
+		$this->buildDSN();
+	}
+
+	/**
+	 * Build DSN string based on driver configuration
+	 *
+	 * @return void
+	 * @throws Exception If driver is unsupported or configuration is invalid
+	 */
+	private function buildDSN()
+	{
 		switch ($this->driver) {
 			case 'pdo_mysql':
 				$this->dsn = "mysql:host=$this->host;dbname=$this->db;charset=$this->charset;port=$this->port";
@@ -169,6 +187,22 @@ class DBConnection
 			default:
 				throw new Exception("Unsupported database driver: " . $this->driver);
 		}
+	}
+
+	/**
+	 * Establish database connection (lazy loading)
+	 *
+	 * Connects to database on first query instead of during instantiation.
+	 * This improves performance for routes that don't need database access.
+	 *
+	 * @return void
+	 * @throws Exception If connection fails
+	 */
+	private function connect()
+	{
+		if ($this->connected) {
+			return; // Already connected
+		}
 
 		try {
 			// Use connection pooling if enabled, otherwise create direct connection
@@ -185,6 +219,8 @@ class DBConnection
 				// Direct PDO connection (legacy mode)
 				$this->pdo = new PDO($this->dsn, $this->user, $this->password, $this->options);
 			}
+
+			$this->connected = true;
 		} catch (Exception $e) {
 			// Log the error securely without exposing sensitive information
 			error_log("Database Connection Error: " . $e->getMessage());
@@ -203,6 +239,7 @@ class DBConnection
 	 *
 	 * Prepares and executes an SQL statement with optional parameter binding.
 	 * Provides protection against SQL injection through parameter binding.
+	 * Automatically establishes database connection on first call (lazy loading).
 	 *
 	 * @param string $sql    SQL query with :parameter placeholders
 	 * @param array  $params Associative array of parameters (default: empty)
@@ -221,6 +258,7 @@ class DBConnection
 	 */
 	function executePreparedSQL($sql, $params = [])
 	{
+		$this->connect(); // Lazy connection: connect on first query
 		$stmt = $this->pdo->prepare($sql);
 		if(empty($params))
 			$stmt->execute();
