@@ -14,4 +14,9 @@ parameters:
       message: '#If condition is always false#'
       path: coreapp/hooks.php
       count: 1
+    # PHPStan false positive: session_set_save_handler gc parameter expects int, not string
+    # PHP actually passes int to gc handler (maxlifetime in seconds)
+    -
+      message: '#Parameter \#6 \$gc of function session_set_save_handler expects callable\(string\): bool, array\{\$this\(Session\), \'_gc\'\} given#'
+      path: coreapp/sessions.php
   treatPhpDocTypesAsCertain: false
