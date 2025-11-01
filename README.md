@@ -30,7 +30,7 @@ This migration represents PHPWeave's commitment to staying relevant while honori
 - **Lazy-Loaded Libraries**: Reusable utility classes with automatic discovery (v2.1.1+)
 - **Event-Driven Hooks System**: 18 lifecycle hook points for extending functionality
 - **MVC Architecture**: Clean separation of concerns
-- **Zero Dependencies**: Pure PHP, no Composer required
+- **Zero Dependencies**: Pure PHP, no Composer required (optional Composer support v2.2.2+)
 - **Lightweight**: Minimal footprint, maximum performance
 
 ### Database (v2.2.0+)
@@ -101,7 +101,86 @@ mysql -u root -p -e "CREATE DATABASE your_database"
 php migrate.php migrate
 ```
 
-5. Start building!
+5. **(Optional)** Install Composer packages if needed:
+
+```bash
+# Optional: Install composer packages for additional functionality
+composer require phpmailer/phpmailer  # Example: Email sending
+composer require nesbot/carbon        # Example: Date/time manipulation
+```
+
+**Note:** Composer is **optional**. The framework works perfectly without it. Only install if you need third-party packages. See [Using Composer Packages](#using-composer-packages-optional) section below.
+
+6. Start building!
+
+### Using Composer Packages (Optional)
+
+**PHPWeave v2.2.2+ includes automatic Composer support:**
+
+The framework automatically loads `vendor/autoload.php` if it exists, making third-party packages available throughout your application.
+
+**When to use Composer:**
+- ✅ Need third-party packages (PHPMailer, Carbon, Guzzle, etc.)
+- ✅ Using `Async::run()` with closures (requires `opis/closure`)
+- ✅ Development tools (PHPStan, Psalm)
+- ❌ Not needed for core framework features
+
+**Example - Email with PHPMailer:**
+
+```php
+<?php
+// 1. Install package
+// composer require phpmailer/phpmailer
+
+// 2. Use in controller
+class Email extends Controller
+{
+    function send()
+    {
+        use PHPMailer\PHPMailer\PHPMailer;
+
+        $mail = new PHPMailer(true);
+        $mail->setFrom('noreply@example.com');
+        $mail->addAddress('user@example.com');
+        $mail->Subject = 'Hello from PHPWeave!';
+        $mail->Body = 'This is a test email.';
+        $mail->send();
+
+        echo "Email sent!";
+    }
+}
+```
+
+**Example - Date formatting with Carbon:**
+
+```php
+<?php
+// 1. Install package
+// composer require nesbot/carbon
+
+// 2. Use in library
+class date_helper
+{
+    public function humanize($date)
+    {
+        use Carbon\Carbon;
+        return Carbon::parse($date)->diffForHumans();
+    }
+}
+
+// 3. Use in controller
+global $PW;
+echo $PW->libraries->date_helper->humanize('2024-01-01');
+// Output: "11 months ago"
+```
+
+**Key Points:**
+- Framework works without Composer (zero dependencies)
+- Packages auto-loaded if `vendor/autoload.php` exists
+- No code changes needed - just install packages
+- Use `composer install --no-dev` in production
+
+See `CLAUDE.md` section "Using Composer Packages" for complete documentation.
 
 ### Your First Route
 
