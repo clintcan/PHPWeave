@@ -1,7 +1,7 @@
 # PHPWeave Security Audit Report
 
-**Audit Date:** October 29, 2025
-**Framework Version:** PHPWeave v2.2.0
+**Audit Date:** November 1, 2025
+**Framework Version:** PHPWeave v2.2.2
 **Audit Standard:** OWASP Top 10 (2021)
 **Auditor:** Comprehensive automated + manual code review
 **Status:** ✅ **PASSED** - Production Ready
@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-PHPWeave v2.2.0 has undergone a comprehensive security audit against the OWASP Top 10 (2021) standard, including all new features: database migrations, connection pooling, and multi-database support. The framework demonstrates **strong security practices** with all identified vulnerabilities successfully resolved.
+PHPWeave v2.2.2 has undergone a comprehensive security audit against the OWASP Top 10 (2021) standard, including all features: database migrations, connection pooling, multi-database support, and the new http_async library. The framework demonstrates **strong security practices** with all identified vulnerabilities successfully resolved.
 
 ### Final Security Rating: **A+** (Excellent)
 
@@ -35,11 +35,12 @@ PHPWeave v2.2.0 has undergone a comprehensive security audit against the OWASP T
 - `public/index.php` - Application entry point
 - `.gitignore` - Sensitive file protection
 
-### Files Audited (v2.2.0 New Features):
-- `coreapp/connectionpool.php` - Connection pooling system (NEW)
-- `coreapp/migration.php` - Migration base class (NEW)
-- `coreapp/migrationrunner.php` - Migration execution engine (NEW)
-- `migrate.php` - CLI migration tool (NEW)
+### Files Audited (v2.2.0-2.2.2 New Features):
+- `coreapp/connectionpool.php` - Connection pooling system (NEW v2.2.0)
+- `coreapp/migration.php` - Migration base class (NEW v2.2.0)
+- `coreapp/migrationrunner.php` - Migration execution engine (NEW v2.2.0)
+- `migrate.php` - CLI migration tool (NEW v2.2.0)
+- `libraries/http_async.php` - Production-ready HTTP client library (NEW v2.2.2)
 - `.env.sample` - Configuration template (UPDATED)
 
 ### Testing Methodology:
@@ -54,6 +55,9 @@ PHPWeave v2.2.0 has undergone a comprehensive security audit against the OWASP T
 9. **NEW:** Connection pool credential isolation testing
 10. **NEW:** CLI command injection testing
 11. **NEW:** Multi-database configuration security review
+12. **NEW:** SSRF vulnerability testing (http_async library)
+13. **NEW:** SSL/TLS verification testing
+14. **NEW:** HTTP header injection testing
 
 ---
 
@@ -358,16 +362,98 @@ function globalErrorHandler($errno, $errstr, $errfile, $errline) {
 
 ---
 
-### A10:2021 - Server-Side Request Forgery (SSRF) ✅ SECURE
+### A10:2021 - Server-Side Request Forgery (SSRF) ✅ SECURE (v2.2.2+)
 
 **Status:** PASS
 
 **Findings:**
-- ✅ No HTTP client functionality in framework
-- ✅ No file_get_contents() with user-supplied URLs
-- ✅ No cURL usage in core
+- ✅ HTTP client functionality added in v2.2.2 (`libraries/http_async.php`) with comprehensive SSRF protection
+- ✅ Production mode enabled by default with all security features ON
+- ✅ URL validation blocks private IP ranges, cloud metadata IPs, and non-HTTP(S) protocols
+- ✅ Domain allowlist support for strict control
+- ✅ No file_get_contents() with user-supplied URLs in core framework
+- ✅ cURL usage restricted to http_async library with security controls
 
-**Recommendation:** ✅ No action required.
+**http_async Library Security Features:**
+
+1. **Protocol Restrictions** ✅
+   - Only HTTP and HTTPS protocols allowed
+   - Blocks file://, ftp://, gopher://, and other dangerous protocols
+   - Redirect protocols restricted to HTTP/HTTPS only
+
+2. **Private IP Blocking** ✅
+   - Blocks 192.168.x.x (private network)
+   - Blocks 10.x.x.x (private network)
+   - Blocks 172.16.x.x - 172.31.x.x (private network)
+   - Blocks 127.x.x.x (loopback)
+   - Blocks 169.254.x.x (link-local)
+
+3. **Cloud Metadata Protection** ✅
+   - Blocks 169.254.169.254 (AWS/Azure/GCP metadata)
+   - Blocks 100.100.100.200 (Alibaba Cloud metadata)
+
+4. **Domain Allowlist** ✅
+   - Optional allowlist for strict domain control
+   - Blocks all non-allowlisted domains when configured
+   - Production deployments should configure allowlist
+
+5. **Additional Security** ✅
+   - SSL/TLS verification enabled by default in production mode
+   - Header injection protection (CRLF sanitization)
+   - Redirect limits (max 3 redirects)
+   - Concurrent request limits (DoS protection)
+   - Comprehensive security event logging
+
+**Evidence:**
+```php
+// libraries/http_async.php:300-361: validateUrl() method
+private function validateUrl($url) {
+    // Protocol validation
+    if (!in_array(strtolower($parsed['scheme']), ['http', 'https'])) {
+        throw new Exception('Only HTTP and HTTPS protocols are allowed');
+    }
+
+    // Domain allowlist check
+    if (!empty($this->allowedDomains)) {
+        if (!in_array($parsed['host'], $this->allowedDomains)) {
+            throw new Exception('Domain not in allowlist: ' . $parsed['host']);
+        }
+    }
+
+    // Private IP blocking
+    if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+        throw new Exception('Access to private/internal IP addresses is not allowed');
+    }
+
+    // Cloud metadata IP blocking
+    $blockedIPs = ['169.254.169.254', '100.100.100.200'];
+    if (in_array($ip, $blockedIPs)) {
+        throw new Exception('Access to cloud metadata services is not allowed');
+    }
+}
+```
+
+**Production Configuration:**
+```php
+// Secure by default
+$http = new http_async(); // Production mode ON, all security enabled
+
+// Configure domain allowlist (recommended)
+$http->setAllowedDomains([
+    'api.github.com',
+    'api.stripe.com',
+    'api.trusted-service.com'
+]);
+```
+
+**Development Override:**
+```php
+// Disable security for local testing
+$http = new http_async(['production_mode' => false]);
+$http->setUrlValidation(false);
+```
+
+**Recommendation:** ✅ Production-ready. Developers should always configure domain allowlist in production deployments. See `docs/HTTP_ASYNC_SECURITY.md` for complete security guide.
 
 ---
 
@@ -529,25 +615,30 @@ DEBUG=1  # Only for local development
 
 ## Conclusion
 
-PHPWeave v2.2.0 has successfully passed a comprehensive security audit against the OWASP Top 10 (2021) standard. All identified vulnerabilities have been resolved, and the framework demonstrates strong security practices across all features including the new connection pooling, database migrations, and multi-database support.
+PHPWeave v2.2.2 has successfully passed a comprehensive security audit against the OWASP Top 10 (2021) standard. All identified vulnerabilities have been resolved, and the framework demonstrates strong security practices across all features including connection pooling, database migrations, multi-database support, and the new production-ready HTTP async library.
 
 ### Final Status: ✅ **PRODUCTION READY**
 
-The framework is suitable for production deployment with confidence in its security posture. No critical, high, or medium vulnerabilities remain. The new v2.2.0 features have been thoroughly audited and found to be secure.
+The framework is suitable for production deployment with confidence in its security posture. No critical, high, or medium vulnerabilities remain. All features (v2.2.0 and v2.2.2) have been thoroughly audited and found to be secure.
 
 ### Security Rating: **A+** (Excellent)
 
 - ✅ Secure by default configuration
-- ✅ Protection against common vulnerabilities (SQL injection, path traversal, deserialization, etc.)
+- ✅ Protection against common vulnerabilities (SQL injection, path traversal, deserialization, SSRF, etc.)
 - ✅ Comprehensive error logging without credential exposure
 - ✅ No external dependencies to manage (zero-dependency core)
 - ✅ Clear security guidance for developers
-- ✅ **NEW:** Secure connection pooling with credential isolation
-- ✅ **NEW:** Migration system with transaction safety
-- ✅ **NEW:** Multi-database support with DSN validation
-- ✅ **NEW:** CLI tools with command injection protection
+- ✅ **v2.2.0:** Secure connection pooling with credential isolation
+- ✅ **v2.2.0:** Migration system with transaction safety
+- ✅ **v2.2.0:** Multi-database support with DSN validation
+- ✅ **v2.2.0:** CLI tools with command injection protection
+- ✅ **v2.2.2:** Production-ready HTTP client with comprehensive SSRF protection
+- ✅ **v2.2.2:** SSL/TLS verification enabled by default
+- ✅ **v2.2.2:** Header injection protection with automatic sanitization
+- ✅ **v2.2.2:** Domain allowlist support for strict API access control
+- ✅ **v2.2.2:** Security event logging for monitoring and compliance
 
-### v2.2.0 Security Highlights
+### v2.2.0-2.2.2 Security Highlights
 
 **Connection Pooling:**
 - Credential isolation via hashed pool keys
@@ -568,9 +659,24 @@ The framework is suitable for production deployment with confidence in its secur
 - ODBC DSN validation (no insecure defaults)
 - Environment variable precedence for containerized deployments
 
+**HTTP Async Library (v2.2.2):**
+- Production mode enabled by default (secure-by-default)
+- SSL/TLS certificate verification ON by default
+- Comprehensive SSRF protection:
+  - Private IP blocking (192.168.x.x, 10.x.x.x, 172.16.x.x, 127.x.x.x)
+  - Cloud metadata IP blocking (169.254.169.254, 100.100.100.200)
+  - Protocol filtering (HTTP/HTTPS only)
+  - Domain allowlist support
+- Header injection protection (CRLF sanitization)
+- Redirect limits (max 3 redirects)
+- Concurrent request limits (max 50, configurable)
+- Security event logging with hook integration
+- Development mode override for testing
+- 53/53 tests passing (36 functional + 17 security)
+
 ---
 
-## v2.2.0 New Features Security Assessment
+## v2.2.0-2.2.2 New Features Security Assessment
 
 ### Connection Pooling System
 
@@ -844,6 +950,228 @@ The framework is suitable for production deployment with confidence in its secur
 
 ---
 
+### HTTP Async Library (v2.2.2)
+
+**File:** `libraries/http_async.php`
+
+#### ✅ Security Analysis: PASS
+
+**Initial Vulnerabilities Found and Fixed:**
+
+From initial OWASP audit (rating: C+), the following HIGH and MEDIUM risks were identified and fixed:
+
+1. **SSL Verification Disabled (A02:2021)** - HIGH RISK → ✅ FIXED
+   - **Issue:** SSL verification was `false` by default
+   - **Attack:** Man-in-the-middle attacks, credential interception
+   - **Fix:** Production mode enables SSL verification by default
+   - **Location:** `libraries/http_async.php:479-484`
+
+   ```php
+   // Production mode: SSL ON (default)
+   $sslVerify = $options['ssl_verify'] ?? $this->productionMode;
+   $sslVerifyHost = $options['ssl_verify_host'] ?? ($this->productionMode ? 2 : 0);
+   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $sslVerify);
+   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $sslVerifyHost);
+   ```
+
+2. **SSRF Vulnerability - No URL Validation (A04/A10:2021)** - HIGH RISK → ✅ FIXED
+   - **Issue:** No validation of target URLs, allowing attacks on internal services
+   - **Attack Vectors:**
+     - Private IP access (192.168.x.x, 10.x.x.x, 127.0.0.1)
+     - Cloud metadata access (169.254.169.254)
+     - Non-HTTP protocols (file://, ftp://, gopher://)
+   - **Fix:** Comprehensive URL validation with configurable allowlist
+   - **Location:** `libraries/http_async.php:300-361`
+
+   ```php
+   private function validateUrl($url) {
+       // Protocol validation
+       if (!in_array(strtolower($parsed['scheme']), ['http', 'https'])) {
+           throw new Exception('Only HTTP and HTTPS protocols are allowed');
+       }
+
+       // Domain allowlist
+       if (!empty($this->allowedDomains)) {
+           if (!in_array($parsed['host'], $this->allowedDomains)) {
+               throw new Exception('Domain not in allowlist: ' . $parsed['host']);
+           }
+       }
+
+       // Private IP ranges
+       if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+           throw new Exception('Access to private/internal IP addresses is not allowed');
+       }
+
+       // Cloud metadata IPs
+       $blockedIPs = ['169.254.169.254', '100.100.100.200'];
+       if (in_array($ip, $blockedIPs)) {
+           throw new Exception('Access to cloud metadata services is not allowed');
+       }
+   }
+   ```
+
+3. **Header Injection (A03:2021)** - MEDIUM RISK → ✅ FIXED
+   - **Issue:** No sanitization of HTTP headers
+   - **Attack:** CRLF injection to inject malicious headers
+   - **Fix:** Automatic header sanitization removes `\r`, `\n`, `\0`
+   - **Location:** `libraries/http_async.php:369-384`
+
+   ```php
+   private function sanitizeHeaders($headers) {
+       $sanitized = [];
+       foreach ($headers as $header) {
+           $clean = str_replace(["\r", "\n", "\0"], '', $header);
+           if (!empty($clean)) {
+               $sanitized[] = $clean;
+           }
+       }
+       return $sanitized;
+   }
+   ```
+
+4. **Unlimited Redirects (A04:2021)** - MEDIUM RISK → ✅ FIXED
+   - **Issue:** No limit on redirect chains
+   - **Attack:** Infinite redirect loops, resource exhaustion
+   - **Fix:** Maximum 3 redirects enforced
+   - **Location:** `libraries/http_async.php:465, 470-477`
+
+   ```php
+   curl_setopt($ch, CURLOPT_MAXREDIRS, $this->maxRedirects);  // Max 3
+
+   // Protocol restrictions for redirects
+   if (defined('CURLOPT_REDIR_PROTOCOLS_STR')) {
+       curl_setopt($ch, CURLOPT_REDIR_PROTOCOLS_STR, 'http,https');
+   }
+   ```
+
+5. **No Security Logging (A09:2021)** - MEDIUM RISK → ✅ FIXED
+   - **Issue:** No logging of security events
+   - **Impact:** Cannot detect attacks or security policy violations
+   - **Fix:** Comprehensive security event logging
+   - **Location:** `libraries/http_async.php:386-407`
+
+   ```php
+   private function logSecurityEvent($event, $context) {
+       if (!$this->enableSecurityLogging) {
+           return;
+       }
+
+       $logData = [
+           'timestamp' => date('Y-m-d H:i:s'),
+           'event' => $event,
+           'context' => $context
+       ];
+
+       error_log('[HTTP_ASYNC_SECURITY] ' . $event . ': ' . json_encode($context));
+
+       // Trigger hook for custom logging
+       if (class_exists('Hook')) {
+           Hook::trigger('http_async_security_event', $logData);
+       }
+   }
+   ```
+
+**Security Configuration System:**
+
+The library implements a production-mode pattern for secure-by-default behavior:
+
+```php
+// Constructor defaults - all security ON
+private $productionMode = true;              // Secure by default
+private $enableUrlValidation = true;        // SSRF protection
+private $enableSecurityLogging = true;      // Event logging
+private $maxRedirects = 3;                   // Redirect limit
+private $maxConcurrentRequests = 50;        // DoS protection
+private $allowedDomains = [];                // Domain allowlist
+
+// Configuration methods
+public function setProductionMode($enabled) { ... }
+public function setUrlValidation($enabled) { ... }
+public function setAllowedDomains($domains) { ... }
+public function setTimeout($seconds) { ... }
+public function setConnectTimeout($seconds) { ... }
+```
+
+**Security Features Summary:**
+
+| Feature | Default | Override | OWASP Category |
+|---------|---------|----------|----------------|
+| SSL Verification | ON (production) | `production_mode => false` | A02:2021 |
+| URL Validation | ON | `setUrlValidation(false)` | A04/A10:2021 |
+| Protocol Filtering | HTTP/HTTPS only | Cannot override | A04/A10:2021 |
+| Private IP Blocking | ON | `setUrlValidation(false)` | A04/A10:2021 |
+| Cloud Metadata Blocking | ON | `setUrlValidation(false)` | A04/A10:2021 |
+| Domain Allowlist | Optional | `setAllowedDomains([])` | A04/A10:2021 |
+| Header Sanitization | ON (always) | Cannot override | A03:2021 |
+| Redirect Limits | 3 max | Cannot override | A04:2021 |
+| Security Logging | ON | Can disable | A09:2021 |
+| Concurrent Limits | 50 max | `max_concurrent_requests` | DoS Protection |
+
+**Security Testing:**
+
+The library has been tested with 2 comprehensive test suites:
+
+1. **Functional Tests** (`tests/test_http_async.php`)
+   - 36/36 tests passing
+   - Tests all HTTP methods, concurrency, JSON handling, errors
+   - Performance verified: 3-10x speedup over sequential requests
+
+2. **Security Tests** (`tests/test_security_features.php`)
+   - 17/17 tests passing
+   - Tests all OWASP Top 10 protections
+   - Verifies production mode defaults
+   - Tests development mode overrides
+
+**Test Results:**
+```
+✅ SSL Verification Enabled by Default (A02)
+✅ SSRF Protection - Private IP Blocking (A04/A10)
+✅ SSRF Protection - Cloud Metadata Blocking (A04/A10)
+✅ SSRF Protection - Domain Allowlist (A04/A10)
+✅ SSRF Protection - Protocol Restrictions (A04)
+✅ Header Injection Protection (A03)
+✅ Redirect Limits (A04)
+✅ Protocol Restrictions (A05)
+✅ Concurrent Request Limits - DoS Protection
+✅ Security Logging (A09)
+✅ Production Mode Secure Defaults
+✅ Development Mode Override
+
+Total: 17/17 PASSED
+Security Rating: A (Excellent)
+```
+
+**Attack Vector Testing:**
+
+All attack vectors successfully blocked:
+
+| Attack Type | Test URL | Result |
+|-------------|----------|--------|
+| Private IP | `http://192.168.1.1/admin` | ✅ BLOCKED |
+| Private IP | `http://10.0.0.1/` | ✅ BLOCKED |
+| Private IP | `http://172.16.0.1/` | ✅ BLOCKED |
+| Loopback | `http://127.0.0.1/` | ✅ BLOCKED |
+| Cloud Metadata | `http://169.254.169.254/latest/meta-data/` | ✅ BLOCKED |
+| File Protocol | `file:///etc/passwd` | ✅ BLOCKED |
+| FTP Protocol | `ftp://example.com/file` | ✅ BLOCKED |
+| Gopher Protocol | `gopher://example.com/` | ✅ BLOCKED |
+| Non-Allowlisted Domain | `https://evil.com/data` | ✅ BLOCKED |
+| Header Injection | `X-Custom: value\r\nX-Injected: attack` | ✅ SANITIZED |
+
+**Documentation:**
+
+Comprehensive security documentation provided:
+
+- `SECURITY_AUDIT_HTTP_ASYNC.md` - Complete OWASP Top 10 audit (500+ lines)
+- `SECURITY_AUDIT_VERIFICATION.md` - Verification report with test results (400+ lines)
+- `docs/HTTP_ASYNC_SECURITY.md` - Security best practices guide
+- `docs/HTTP_ASYNC_PRODUCTION.md` - Production configuration guide (400+ lines)
+- `docs/HTTP_ASYNC_GUIDE.md` - Complete usage documentation
+
+**Recommendation:** ✅ Production-ready. The library has been upgraded from security rating C+ (initial) to A (after fixes). All OWASP Top 10 vulnerabilities have been addressed. Developers should configure domain allowlist in production deployments for maximum security.
+
+---
+
 ## Additional Security Enhancements in v2.2.0
 
 ### 1. Improved Error Handling
@@ -882,6 +1210,7 @@ The framework is suitable for production deployment with confidence in its secur
 |------|---------|----------|--------|
 | 2025-10-28 | OWASP Top 10 Review | 2 medium issues | ✅ RESOLVED |
 | 2025-10-29 | v2.2.0 Features Audit | 0 issues found | ✅ PASSED |
+| 2025-11-01 | v2.2.2 HTTP Async Library Audit | 5 issues found (2 HIGH, 3 MEDIUM) | ✅ RESOLVED |
 
 ---
 
@@ -895,5 +1224,5 @@ For security concerns or to report vulnerabilities, please contact:
 
 ---
 
-**Report Generated:** October 29, 2025
-**Next Audit Recommended:** October 2026 or after major version release
+**Report Generated:** November 1, 2025
+**Next Audit Recommended:** November 2026 or after major version release
