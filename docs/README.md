@@ -16,10 +16,12 @@ Complete documentation for the PHPWeave framework.
 
 - **Optional Composer Support** - Automatic third-party package loading (zero-dependency core maintained)
 - **Production-Ready HTTP Async Library** - Concurrent HTTP client with OWASP security (3-10x performance)
-- [**COMPOSER_USAGE.md**](COMPOSER_USAGE.md) - Complete Composer integration guide ⭐ NEW!
-- [**HTTP_ASYNC_GUIDE.md**](HTTP_ASYNC_GUIDE.md) - HTTP async library documentation ⭐ NEW!
-- [**HTTP_ASYNC_SECURITY.md**](HTTP_ASYNC_SECURITY.md) - Security best practices ⭐ NEW!
-- [**HTTP_ASYNC_PRODUCTION.md**](HTTP_ASYNC_PRODUCTION.md) - Production configuration guide ⭐ NEW!
+- **Output Buffering & Streaming** - Prevents "headers already sent" errors with streaming support ⭐ NEW!
+- [**COMPOSER_USAGE.md**](COMPOSER_USAGE.md) - Complete Composer integration guide
+- [**HTTP_ASYNC_GUIDE.md**](HTTP_ASYNC_GUIDE.md) - HTTP async library documentation
+- [**HTTP_ASYNC_SECURITY.md**](HTTP_ASYNC_SECURITY.md) - Security best practices
+- [**HTTP_ASYNC_PRODUCTION.md**](HTTP_ASYNC_PRODUCTION.md) - Production configuration guide
+- [**OUTPUT_BUFFERING.md**](OUTPUT_BUFFERING.md) - Output buffering & streaming guide ⭐ NEW!
 
 #### Version 2.2.0 Features
 

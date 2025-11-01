@@ -150,10 +150,11 @@ class ErrorClass {
             E_USER_ERROR => 'User Error',
             E_USER_WARNING => 'User Warning',
             E_USER_NOTICE => 'User Notice',
-            E_STRICT => 'Strict Standards',
             E_RECOVERABLE_ERROR => 'Recoverable Error',
             E_DEPRECATED => 'Deprecated',
-            E_USER_DEPRECATED => 'User Deprecated'
+            E_USER_DEPRECATED => 'User Deprecated',
+            // E_STRICT removed - deprecated in PHP 8.4+ (was 2048)
+            2048 => 'Strict Standards'  // Hardcode for backward compatibility
         ];
 
         return $errorTypes[$errno] ?? 'Unknown Error';
@@ -241,6 +242,12 @@ class ErrorClass {
      * @return void
      */
     function displayErrorPage() {
+        // Clear output buffer to prevent "headers already sent" errors
+        // This allows us to send proper HTTP headers even if output started
+        if (ob_get_level() > 0) {
+            ob_clean(); // Clear the buffer without sending it
+        }
+
         // Check if we're in development mode (from .env DEBUG setting)
         $isDevelopment = isset($GLOBALS['configs']['DEBUG']) && $GLOBALS['configs']['DEBUG'] == 1;
 

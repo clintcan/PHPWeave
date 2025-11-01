@@ -1,10 +1,11 @@
 # PHPWeave Production Dockerfile
 # Optimized for performance with APCu caching
+# Security: Multi-stage build with vulnerability patching
 
 FROM php:8.4-apache
 
-# Install system dependencies for multiple database drivers
-RUN apt-get update && apt-get install -y \
+# Security: Update package lists and upgrade all packages to patch vulnerabilities
+RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     libzip-dev \
     zip \
     unzip \
@@ -15,7 +16,11 @@ RUN apt-get update && apt-get install -y \
     unixodbc-dev \
     freetds-dev \
     freetds-bin \
-    && rm -rf /var/lib/apt/lists/*
+    # Security tools
+    ca-certificates \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 # Install PHP extensions for multiple database support
 # Core PDO
@@ -49,11 +54,30 @@ RUN pecl install apcu && \
 # Enable Apache mod_rewrite for clean URLs
 RUN a2enmod rewrite
 
+# Security: Configure Apache security headers
+RUN a2enmod headers && \
+    echo "ServerTokens Prod" >> /etc/apache2/conf-available/security.conf && \
+    echo "ServerSignature Off" >> /etc/apache2/conf-available/security.conf && \
+    echo "TraceEnable Off" >> /etc/apache2/conf-available/security.conf && \
+    echo "<IfModule mod_headers.c>" >> /etc/apache2/conf-available/security-headers.conf && \
+    echo "    Header always set X-Frame-Options \"DENY\"" >> /etc/apache2/conf-available/security-headers.conf && \
+    echo "    Header always set X-Content-Type-Options \"nosniff\"" >> /etc/apache2/conf-available/security-headers.conf && \
+    echo "    Header always set X-XSS-Protection \"1; mode=block\"" >> /etc/apache2/conf-available/security-headers.conf && \
+    echo "    Header always set Referrer-Policy \"strict-origin-when-cross-origin\"" >> /etc/apache2/conf-available/security-headers.conf && \
+    echo "    Header always set Permissions-Policy \"geolocation=(), microphone=(), camera=()\"" >> /etc/apache2/conf-available/security-headers.conf && \
+    echo "</IfModule>" >> /etc/apache2/conf-available/security-headers.conf && \
+    a2enconf security-headers
+
 # Set working directory
 WORKDIR /var/www/html
 
 # Copy application files
 COPY . /var/www/html/
+
+# Configure Apache document root to public directory
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf && \
+    sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 # Create cache and storage directories with proper permissions
 RUN mkdir -p cache storage storage/queue && \
@@ -63,11 +87,6 @@ RUN mkdir -p cache storage storage/queue && \
 # Set proper permissions for the application
 RUN chown -R www-data:www-data /var/www/html && \
     chmod -R 755 /var/www/html
-
-# Configure Apache document root to public directory
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 # Set environment variables
 ENV DOCKER_ENV=production
