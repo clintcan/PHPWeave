@@ -186,5 +186,5 @@ jobs:
         php tests/test_docker_caching.php
         php tests/benchmark_optimizations.php
         php tests/test_sessions.php
-        php tests/async_params_simple.php
+        php tests/test_async_params_simple.php
         php tests/test_path_traversal.php
