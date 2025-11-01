@@ -12,7 +12,16 @@ Complete documentation for the PHPWeave framework.
 
 ### Core Features
 
-#### Version 2.2.0 Features (LATEST!)
+#### Version 2.2.2 Features (LATEST!)
+
+- **Optional Composer Support** - Automatic third-party package loading (zero-dependency core maintained)
+- **Production-Ready HTTP Async Library** - Concurrent HTTP client with OWASP security (3-10x performance)
+- [**COMPOSER_USAGE.md**](COMPOSER_USAGE.md) - Complete Composer integration guide ⭐ NEW!
+- [**HTTP_ASYNC_GUIDE.md**](HTTP_ASYNC_GUIDE.md) - HTTP async library documentation ⭐ NEW!
+- [**HTTP_ASYNC_SECURITY.md**](HTTP_ASYNC_SECURITY.md) - Security best practices ⭐ NEW!
+- [**HTTP_ASYNC_PRODUCTION.md**](HTTP_ASYNC_PRODUCTION.md) - Production configuration guide ⭐ NEW!
+
+#### Version 2.2.0 Features
 
 - **Built-in Migrations** - Database schema version control with rollback support
 - **Connection Pooling** - 6-30% performance improvement with automatic connection reuse

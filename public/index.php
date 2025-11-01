@@ -87,6 +87,11 @@ require_once "../coreapp/router.php";
 // This should be the last to load for the controller class
 require_once "../coreapp/controller.php";
 
+// Load composer autoload if available (optional - only if using composer packages)
+if (file_exists('../vendor/autoload.php')) {
+    require_once '../vendor/autoload.php';
+}
+
 // Smart caching configuration (Docker-aware)
 if (!isset($GLOBALS['configs']['DEBUG']) || !$GLOBALS['configs']['DEBUG']) {
     // Detect Docker/container environment
