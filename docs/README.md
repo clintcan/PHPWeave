@@ -12,16 +12,23 @@ Complete documentation for the PHPWeave framework.
 
 ### Core Features
 
-#### Version 2.2.2 Features (LATEST!)
+#### Version 2.2.2-1 Features (LATEST!)
+
+- **Docker Security Hardening** - CVE patches, Alpine image, security headers (70% smaller, fewer vulnerabilities) ⭐ NEW!
+- **Output Buffering & Streaming** - Prevents "headers already sent" errors with streaming support ⭐ NEW!
+- **Path Resolution Improvements** - Absolute paths for cross-platform consistency (Docker, Windows, Linux, macOS) ⭐ NEW!
+- **Critical Bug Fixes** - Libraries system loading, view templates, PHP 8.4 compatibility ⭐ NEW!
+- [**OUTPUT_BUFFERING.md**](OUTPUT_BUFFERING.md) - Output buffering & streaming guide ⭐ NEW!
+- [**DOCKER_SECURITY.md**](DOCKER_SECURITY.md) - Docker security hardening guide ⭐ NEW!
+
+#### Version 2.2.2 Features
 
 - **Optional Composer Support** - Automatic third-party package loading (zero-dependency core maintained)
 - **Production-Ready HTTP Async Library** - Concurrent HTTP client with OWASP security (3-10x performance)
-- **Output Buffering & Streaming** - Prevents "headers already sent" errors with streaming support ⭐ NEW!
 - [**COMPOSER_USAGE.md**](COMPOSER_USAGE.md) - Complete Composer integration guide
 - [**HTTP_ASYNC_GUIDE.md**](HTTP_ASYNC_GUIDE.md) - HTTP async library documentation
 - [**HTTP_ASYNC_SECURITY.md**](HTTP_ASYNC_SECURITY.md) - Security best practices
 - [**HTTP_ASYNC_PRODUCTION.md**](HTTP_ASYNC_PRODUCTION.md) - Production configuration guide
-- [**OUTPUT_BUFFERING.md**](OUTPUT_BUFFERING.md) - Output buffering & streaming guide ⭐ NEW!
 
 #### Version 2.2.0 Features
 
@@ -150,7 +157,9 @@ Complete documentation for the PHPWeave framework.
 | Manage sessions             | [SESSIONS.md](SESSIONS.md)                                 |
 | Create utility libraries    | [LIBRARIES.md](LIBRARIES.md)                               |
 | Process background jobs     | [ASYNC_QUICK_START.md](ASYNC_QUICK_START.md)               |
+| Use output buffering        | [OUTPUT_BUFFERING.md](OUTPUT_BUFFERING.md)                 |
 | Deploy to Docker            | [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md)               |
+| Harden Docker security      | [DOCKER_SECURITY.md](DOCKER_SECURITY.md)                   |
 | Optimize performance        | [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md)       |
 | Migrate from legacy routing | [MIGRATION_TO_NEW_ROUTING.md](MIGRATION_TO_NEW_ROUTING.md) |
 | Secure my application       | [SECURITY_BEST_PRACTICES.md](SECURITY_BEST_PRACTICES.md)   |
@@ -245,10 +254,13 @@ PHPWeave/
 │   ├── V2.1_FEATURES.md               # v2.1 features
 │   ├── MIGRATIONS.md                  # Migration system (v2.2.0)
 │   ├── CONNECTION_POOLING.md          # Connection pooling (v2.2.0)
+│   ├── OUTPUT_BUFFERING.md            # Output buffering & streaming (v2.2.2-1) ⭐ NEW!
+│   ├── COMPOSER_USAGE.md              # Optional Composer usage (v2.2.2)
 │   ├── ROUTING_GUIDE.md              # Routing system
 │   ├── MIGRATION_TO_NEW_ROUTING.md   # Migration guide
 │   ├── HOOKS.md                       # Hooks system (18 points)
 │   ├── MODELS.md                      # Models system
+│   ├── SESSIONS.md                    # Session management
 │   ├── LIBRARIES.md                   # Libraries system
 │   ├── ASYNC_GUIDE.md                 # Async jobs (detailed)
 │   ├── ASYNC_QUICK_START.md           # Async jobs (quick)
@@ -266,8 +278,10 @@ PHPWeave/
 │   │
 │   └── # Docker
 │       ├── DOCKER_DEPLOYMENT.md       # Deployment guide
+│       ├── DOCKER_SECURITY.md         # Security hardening (v2.2.2-1) ⭐ NEW!
 │       ├── DOCKER_CACHING_GUIDE.md    # Caching strategies
-│       └── DOCKER_CACHING_APPLIED.md  # Implementation
+│       ├── DOCKER_CACHING_APPLIED.md  # Implementation
+│       └── DOCKER_DATABASE_SUPPORT.md # Multi-database support
 │
 ├── tests/                             # Test scripts
 │   ├── README.md                      # Testing guide
@@ -436,6 +450,29 @@ $this->show('profile', [
 // View - direct variable access
 <h1><?php echo $username; ?></h1>
 <p><?php echo $email; ?></p>
+```
+
+**Output Buffering (v2.2.2-1):**
+
+```php
+// Default: Buffering enabled (prevents header errors)
+// Framework automatically starts ob_start()
+
+// For streaming routes - disable buffering
+class Stream extends Controller {
+    function sse() {
+        $_SERVER['DISABLE_OUTPUT_BUFFER'] = true;
+        while (ob_get_level() > 0) ob_end_clean();
+
+        header('Content-Type: text/event-stream');
+        for ($i = 1; $i <= 10; $i++) {
+            echo "data: Update #$i\n\n";
+            flush(); // Sent immediately
+            sleep(1);
+        }
+        exit;
+    }
+}
 ```
 
 ---
