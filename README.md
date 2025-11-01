@@ -25,6 +25,7 @@ This migration represents PHPWeave's commitment to staying relevant while honori
 ### Core Framework
 - **Modern Routing System**: Express-style route definitions with dynamic parameters
 - **Full HTTP Verb Support**: GET, POST, PUT, DELETE, PATCH methods
+- **Output Buffering & Streaming**: Prevents "headers already sent" errors with streaming support (v2.2.2+)
 - **Global Framework Object**: Clean `$PW->models->model_name` syntax (v2.1+)
 - **Auto-Extracted View Variables**: Pass arrays to views, access as individual variables
 - **Lazy-Loaded Libraries**: Reusable utility classes with automatic discovery (v2.1.1+)
@@ -53,7 +54,8 @@ This migration represents PHPWeave's commitment to staying relevant while honori
 ### Developer Tools (v2.2.0+)
 - **Migration CLI**: Create, run, rollback database migrations
 - **Async Task System**: Background job processing without external dependencies
-- **Error Handling**: Comprehensive error logging and monitoring
+- **Error Handling**: Comprehensive error logging with clean error pages (v2.2.2+)
+- **Streaming Support**: SSE, progress bars, large file downloads with buffer control (v2.2.2+)
 
 ### Deployment
 - **Docker Ready**: APCu in-memory caching, multi-container support

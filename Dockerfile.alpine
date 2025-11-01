@@ -1,0 +1,228 @@
+# PHPWeave Hardened Alpine Dockerfile
+# Security-focused with minimal attack surface using Alpine Linux
+# Alpine is smaller and has fewer vulnerabilities than Debian-based images
+
+FROM php:8.4-fpm-alpine
+
+# Security: Install only essential packages and upgrade all
+RUN apk update && apk upgrade && apk add --no-cache \
+    # Web server
+    nginx \
+    supervisor \
+    # Database drivers
+    postgresql-dev \
+    sqlite-dev \
+    unixodbc \
+    freetds \
+    # Build dependencies
+    $PHPIZE_DEPS \
+    libzip-dev \
+    # Security tools
+    ca-certificates \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+# Install PHP extensions for multiple database support
+RUN docker-php-ext-install \
+    pdo \
+    pdo_mysql \
+    pdo_pgsql \
+    pdo_sqlite \
+    zip
+
+# Install PDO_ODBC
+RUN docker-php-ext-configure pdo_odbc --with-pdo-odbc=unixODBC,/usr && \
+    docker-php-ext-install pdo_odbc
+
+# Install and configure APCu for route caching
+RUN pecl install apcu && \
+    docker-php-ext-enable apcu && \
+    echo "apc.enabled=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini && \
+    echo "apc.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-apcu.ini
+
+# Clean up build dependencies to reduce attack surface
+RUN apk del $PHPIZE_DEPS && \
+    rm -rf /tmp/* /var/tmp/*
+
+# Create application user (non-root)
+RUN addgroup -g 1000 phpweave && \
+    adduser -D -u 1000 -G phpweave phpweave
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy application files
+COPY --chown=phpweave:phpweave . /var/www/html/
+
+# Create necessary directories
+RUN mkdir -p \
+    cache \
+    storage \
+    storage/queue \
+    /var/log/nginx \
+    /var/log/php-fpm \
+    /run/nginx && \
+    chown -R phpweave:phpweave cache storage && \
+    chmod 755 cache storage storage/queue
+
+# Configure Nginx
+COPY <<'EOF' /etc/nginx/nginx.conf
+user phpweave;
+worker_processes auto;
+error_log /var/log/nginx/error.log warn;
+pid /run/nginx/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    # Security headers
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+
+    # Hide Nginx version
+    server_tokens off;
+
+    # Logging
+    access_log /var/log/nginx/access.log;
+
+    # Performance
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 65;
+    types_hash_max_size 2048;
+
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+    server {
+        listen 80;
+        server_name _;
+        root /var/www/html/public;
+        index index.php index.html;
+
+        # Security: Disable directory listing
+        autoindex off;
+
+        # Security: Deny access to hidden files
+        location ~ /\. {
+            deny all;
+            access_log off;
+            log_not_found off;
+        }
+
+        # Security: Deny access to sensitive files
+        location ~ ^/(\.env|composer\.json|composer\.lock|\.git) {
+            deny all;
+            access_log off;
+            log_not_found off;
+        }
+
+        # Main location
+        location / {
+            try_files $uri $uri/ /index.php?$query_string;
+        }
+
+        # PHP-FPM
+        location ~ \.php$ {
+            fastcgi_pass 127.0.0.1:9000;
+            fastcgi_index index.php;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            include fastcgi_params;
+
+            # Security: Prevent PHP execution in uploads
+            fastcgi_param PHP_ADMIN_VALUE "open_basedir=/var/www/html";
+        }
+
+        # Health check endpoint
+        location /health {
+            access_log off;
+            return 200 "OK\n";
+            add_header Content-Type text/plain;
+        }
+    }
+}
+EOF
+
+# Configure PHP-FPM
+RUN echo "[global]" > /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "error_log = /var/log/php-fpm/error.log" >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "[www]" >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "user = phpweave" >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "group = phpweave" >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "listen = 127.0.0.1:9000" >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "pm = dynamic" >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "pm.max_children = 50" >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "pm.start_servers = 5" >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "pm.min_spare_servers = 5" >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "pm.max_spare_servers = 35" >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo "catch_workers_output = yes" >> /usr/local/etc/php-fpm.d/zz-docker.conf
+
+# Configure Supervisor to manage Nginx and PHP-FPM
+COPY <<'EOF' /etc/supervisor/conf.d/supervisord.conf
+[supervisord]
+nodaemon=true
+user=root
+logfile=/var/log/supervisor/supervisord.log
+pidfile=/run/supervisord.pid
+
+[program:php-fpm]
+command=/usr/local/sbin/php-fpm --nodaemonize --fpm-config /usr/local/etc/php-fpm.conf
+autostart=true
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+
+[program:nginx]
+command=/usr/sbin/nginx -g 'daemon off;'
+autostart=true
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+EOF
+
+# Security: PHP configuration
+RUN echo "expose_php = Off" >> /usr/local/etc/php/conf.d/security.ini && \
+    echo "display_errors = Off" >> /usr/local/etc/php/conf.d/security.ini && \
+    echo "log_errors = On" >> /usr/local/etc/php/conf.d/security.ini && \
+    echo "error_log = /var/log/php-fpm/error.log" >> /usr/local/etc/php/conf.d/security.ini && \
+    echo "allow_url_fopen = Off" >> /usr/local/etc/php/conf.d/security.ini && \
+    echo "allow_url_include = Off" >> /usr/local/etc/php/conf.d/security.ini && \
+    echo "session.cookie_httponly = 1" >> /usr/local/etc/php/conf.d/security.ini && \
+    echo "session.cookie_secure = 1" >> /usr/local/etc/php/conf.d/security.ini && \
+    echo "session.use_strict_mode = 1" >> /usr/local/etc/php/conf.d/security.ini
+
+# Create log directories
+RUN mkdir -p /var/log/supervisor /var/log/php-fpm && \
+    chown -R phpweave:phpweave /var/log/php-fpm
+
+# Set environment variables
+ENV DOCKER_ENV=production
+ENV PHPWEAVE_ENV=production
+
+# Expose port 80
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost/health || exit 1
+
+# Run as root for supervisor (which manages nginx and php-fpm as phpweave user)
+USER root
+
+# Start supervisor
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

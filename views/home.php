@@ -4,6 +4,7 @@
 	<title>Hello World</title>
 </head>
 <body>
-	<?php echo htmlspecialchars($data, ENT_QUOTES, 'UTF-8'); ?>
+	<h1>Welcome to PHPWeave!</h1>
+	<p>Your lightweight MVC framework is running successfully.</p>
 </body>
 </html>

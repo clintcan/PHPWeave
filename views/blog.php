@@ -39,7 +39,7 @@
 </head>
 <body>
 	<div class="container">
-		<?php if (is_array($data)): ?>
+		<?php if (isset($original_text) || isset($title) || isset($message) || isset($test)): ?>
 			<!-- Display structured data from array -->
 			<h1><?php echo htmlspecialchars($title ?? 'Blog', ENT_QUOTES, 'UTF-8'); ?></h1>
 
@@ -116,9 +116,14 @@
 					<p style="margin: 0;"><code style="background: white; padding: 8px; border-radius: 4px; display: inline-block;">/blog/slugify/Your-Text-Here</code></p>
 				</div>
 			<?php endif; ?>
+		<?php elseif (isset($data) && is_string($data)): ?>
+			<!-- Fallback for simple string data (legacy format) -->
+			<h1>PHPWeave Blog</h1>
+			<p class="message"><?php echo htmlspecialchars($data, ENT_QUOTES, 'UTF-8'); ?></p>
 		<?php else: ?>
-			<!-- Fallback for simple string data -->
-			<p><?php echo htmlspecialchars($data, ENT_QUOTES, 'UTF-8'); ?></p>
+			<!-- Default content when no data passed -->
+			<h1>PHPWeave Blog</h1>
+			<p class="message">Welcome to the PHPWeave blog!</p>
 		<?php endif; ?>
 	</div>
 </body>
