@@ -6,6 +6,11 @@ The PHPWeave hooks system provides an event-driven architecture that allows you 
 
 - [Overview](#overview)
 - [Basic Usage](#basic-usage)
+- [Middleware-Style Hooks](#middleware-style-hooks)
+  - [Class-Based Hooks](#class-based-hooks)
+  - [Route-Specific Hooks](#route-specific-hooks)
+  - [Route Groups](#route-groups)
+  - [Built-in Hook Classes](#built-in-hook-classes)
 - [Available Hook Points](#available-hook-points)
 - [Hook Priority](#hook-priority)
 - [Modifying Data](#modifying-data)
@@ -52,6 +57,274 @@ Hook::register($hookName, $callback, $priority);
 - `$hookName` (string): Name of the hook point
 - `$callback` (callable): Function to execute
 - `$priority` (int, optional): Execution priority (default: 10, lower runs first)
+
+## Middleware-Style Hooks
+
+PHPWeave 2.1+ includes middleware-like functionality, allowing you to attach hooks to specific routes or route groups. This provides a cleaner, more structured approach to cross-cutting concerns like authentication, logging, and rate limiting.
+
+### Class-Based Hooks
+
+Class-based hooks are reusable, testable, and more maintainable than callback-based hooks. They work like middleware in Laravel, Express, and other frameworks.
+
+#### Creating a Hook Class
+
+```php
+<?php
+// hooks/classes/AuthHook.php
+
+class AuthHook
+{
+    /**
+     * Handle the hook execution
+     *
+     * @param array $data Route data (controller, method, instance, params)
+     * @return array Modified data
+     */
+    public function handle($data)
+    {
+        // Start session if needed
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        // Check authentication
+        if (!isset($_SESSION['user'])) {
+            // Redirect to login
+            header('Location: /login');
+            Hook::halt();
+            exit;
+        }
+
+        // Add user data to params
+        $data['params']['authenticated_user'] = $_SESSION['user'];
+
+        return $data;
+    }
+}
+```
+
+#### Registering Hook Classes
+
+```php
+<?php
+// hooks/example_class_based_hooks.php
+
+// Load hook class
+require_once __DIR__ . '/classes/AuthHook.php';
+
+// Register hook with alias
+Hook::registerClass('auth', AuthHook::class);
+
+// Register with custom priority
+Hook::registerClass('auth', AuthHook::class, 'before_action_execute', 5);
+
+// Register with parameters
+Hook::registerClass('rate-limit', RateLimitHook::class, 'before_action_execute', 5, [
+    'max' => 100,
+    'window' => 60
+]);
+```
+
+**Parameters:**
+- `$alias` (string): Unique name for the hook (e.g., 'auth', 'admin', 'log')
+- `$className` (string): Fully qualified class name
+- `$hookPoint` (string, optional): Hook point to attach to (default: 'before_action_execute')
+- `$priority` (int, optional): Execution priority (default: 10)
+- `$params` (array, optional): Parameters to pass to handle() method
+
+### Route-Specific Hooks
+
+Attach hooks to specific routes using the `->hook()` method:
+
+```php
+<?php
+// routes.php
+
+// Single hook
+Route::get('/profile', 'User@profile')->hook('auth');
+
+// Multiple hooks (executed in order)
+Route::get('/admin/dashboard', 'Admin@dashboard')->hook(['auth', 'admin', 'log']);
+
+// POST route with rate limiting
+Route::post('/api/users', 'Api@createUser')->hook(['auth', 'rate-limit']);
+
+// DELETE route with multiple protections
+Route::delete('/blog/:id:', 'Blog@destroy')->hook(['auth', 'owner', 'log']);
+```
+
+**Benefits:**
+- Hooks only execute for specific routes
+- No performance impact on other routes
+- Cleaner, more explicit routing definitions
+- Easy to see which protections apply to each route
+
+### Route Groups
+
+Apply hooks to multiple routes at once using `Route::group()`:
+
+```php
+<?php
+// routes.php
+
+// Group with shared hooks
+Route::group(['hooks' => ['auth']], function() {
+    Route::get('/profile', 'User@profile');
+    Route::get('/settings', 'User@settings');
+    Route::post('/update-profile', 'User@updateProfile');
+});
+
+// Group with prefix and hooks
+Route::group(['prefix' => '/admin', 'hooks' => ['auth', 'admin', 'log']], function() {
+    Route::get('/dashboard', 'Admin@dashboard');
+    Route::get('/users', 'Admin@users');
+    Route::post('/users/:id:/delete', 'Admin@deleteUser');
+});
+
+// Nested groups (hooks are cumulative)
+Route::group(['prefix' => '/api', 'hooks' => ['cors', 'rate-limit']], function() {
+    // Public API endpoints (cors + rate-limit)
+    Route::get('/products', 'Api@products');
+
+    // Protected endpoints (cors + rate-limit + auth)
+    Route::group(['hooks' => ['auth']], function() {
+        Route::get('/orders', 'Api@orders');
+        Route::post('/orders', 'Api@createOrder');
+    });
+});
+```
+
+**Features:**
+- **Shared hooks**: Apply hooks to all routes in group
+- **URL prefixes**: Group routes by URL prefix
+- **Nested groups**: Groups can be nested, hooks are cumulative
+- **Clean organization**: Group related routes together
+
+### Built-in Hook Classes
+
+PHPWeave includes several ready-to-use hook classes in `hooks/classes/`:
+
+#### AuthHook
+Checks if user is authenticated. Redirects to `/login` if not.
+
+```php
+Hook::registerClass('auth', AuthHook::class);
+
+// Usage
+Route::get('/profile', 'User@profile')->hook('auth');
+```
+
+#### AdminHook
+Checks if user has admin privileges. Returns 403 if not authorized.
+
+```php
+Hook::registerClass('admin', AdminHook::class);
+
+// Usage (combine with auth)
+Route::get('/admin/users', 'Admin@users')->hook(['auth', 'admin']);
+```
+
+#### LogHook
+Logs request details (timestamp, user, IP, route, params).
+
+```php
+Hook::registerClass('log', LogHook::class);
+
+// Usage
+Route::get('/api/users', 'Api@users')->hook('log');
+```
+
+#### RateLimitHook
+Limits requests per time window to prevent abuse.
+
+```php
+// Default: 100 requests per 60 seconds
+Hook::registerClass('rate-limit', RateLimitHook::class, 'before_action_execute', 5, [
+    'max' => 100,
+    'window' => 60
+]);
+
+// Strict: 10 requests per 60 seconds (for login, etc.)
+Hook::registerClass('rate-limit-strict', RateLimitHook::class, 'before_action_execute', 5, [
+    'max' => 10,
+    'window' => 60
+]);
+
+// Usage
+Route::post('/login', 'Auth@login')->hook('rate-limit-strict');
+```
+
+#### CorsHook
+Handles CORS headers for cross-origin API requests.
+
+```php
+// Allow all origins
+Hook::registerClass('cors', CorsHook::class);
+
+// Restrict to specific origins
+Hook::registerClass('cors-api', CorsHook::class, 'before_action_execute', 1, [
+    'origins' => ['https://example.com', 'https://app.example.com'],
+    'methods' => ['GET', 'POST', 'PUT', 'DELETE'],
+    'headers' => ['Content-Type', 'Authorization', 'X-API-Key'],
+    'credentials' => true,
+    'max_age' => 3600
+]);
+
+// Usage
+Route::group(['prefix' => '/api', 'hooks' => ['cors']], function() {
+    Route::get('/users', 'Api@users');
+});
+```
+
+### Creating Custom Hook Classes
+
+```php
+<?php
+// hooks/classes/MyCustomHook.php
+
+class MyCustomHook
+{
+    /**
+     * Handle hook execution
+     *
+     * @param array $data Route data
+     * @param mixed ...$params Custom parameters from registration
+     * @return array Modified data
+     */
+    public function handle($data, ...$params)
+    {
+        // Access route information
+        $controller = $data['controller'];  // Controller name
+        $method = $data['method'];          // Method name
+        $instance = $data['instance'];      // Controller instance
+        $routeParams = $data['params'];     // Route parameters
+
+        // Your custom logic here
+        // ...
+
+        // Modify data if needed
+        $data['params']['custom_value'] = 'something';
+
+        // Halt execution if needed
+        if ($shouldHalt) {
+            Hook::halt();
+            exit;
+        }
+
+        // Always return $data
+        return $data;
+    }
+}
+
+// Register
+Hook::registerClass('my-hook', MyCustomHook::class, 'before_action_execute', 10, [
+    'config1' => 'value1',
+    'config2' => 'value2'
+]);
+
+// Use
+Route::get('/custom', 'Custom@action')->hook('my-hook');
+```
 
 ## Available Hook Points
 
@@ -568,16 +841,101 @@ Hook::register('framework_shutdown', function($data) {
 
 ## API Reference
 
-### Hook::register($hookName, $callback, $priority = 10)
-Register a callback for a hook point.
+### Callback-Based Hooks
 
-### Hook::trigger($hookName, $data = null)
+#### Hook::register($hookName, $callback, $priority = 10)
+Register a callback function for a hook point.
+
+```php
+Hook::register('before_action_execute', function($data) {
+    // Your logic here
+    return $data;
+}, 10);
+```
+
+#### Hook::trigger($hookName, $data = null)
 Trigger all callbacks for a hook point. Returns modified data.
 
-### Hook::halt()
+```php
+$data = Hook::trigger('before_action_execute', $data);
+```
+
+#### Hook::halt()
 Stop executing remaining hooks for the current hook point.
 
-### Hook::has($hookName)
+```php
+Hook::halt();
+```
+
+### Class-Based Hooks (Middleware-Style)
+
+#### Hook::registerClass($alias, $className, $hookPoint = 'before_action_execute', $priority = 10, $params = [])
+Register a class-based hook with an alias name.
+
+```php
+// Basic registration
+Hook::registerClass('auth', AuthHook::class);
+
+// With custom priority
+Hook::registerClass('auth', AuthHook::class, 'before_action_execute', 5);
+
+// With parameters
+Hook::registerClass('rate-limit', RateLimitHook::class, 'before_action_execute', 5, [
+    'max' => 100,
+    'window' => 60
+]);
+```
+
+**Parameters:**
+- `$alias` - Unique name for the hook (used in routes)
+- `$className` - Fully qualified class name
+- `$hookPoint` - Hook point to attach to (default: 'before_action_execute')
+- `$priority` - Execution priority (default: 10, lower runs first)
+- `$params` - Array of parameters passed to handle() method
+
+#### Hook::attachToRoute($method, $pattern, $hooks)
+Attach named hooks to a specific route (called automatically by Router).
+
+```php
+Hook::attachToRoute('GET', '/admin', 'auth');
+Hook::attachToRoute('POST', '/api/users', ['auth', 'rate-limit']);
+```
+
+#### Hook::triggerRouteHooks($method, $pattern, $data = null)
+Trigger hooks attached to a specific route (called automatically by Router).
+
+```php
+$data = Hook::triggerRouteHooks('GET', '/admin', $data);
+```
+
+#### Hook::hasNamed($alias)
+Check if a named hook is registered.
+
+```php
+if (Hook::hasNamed('auth')) {
+    echo "Auth hook is registered";
+}
+```
+
+#### Hook::getNamedHooks()
+Get all registered named hooks.
+
+```php
+$namedHooks = Hook::getNamedHooks();
+print_r($namedHooks);
+```
+
+#### Hook::getRouteHooks($method, $pattern)
+Get hooks attached to a specific route.
+
+```php
+$hooks = Hook::getRouteHooks('GET', '/admin');
+print_r($hooks); // ['auth', 'admin']
+```
+
+### Utility Methods
+
+#### Hook::has($hookName)
 Check if a hook has any registered callbacks.
 
 ```php
@@ -616,7 +974,7 @@ $hooks = Hook::getAll();
 print_r($hooks);
 ```
 
-### Hook::getAvailableHooks()
+#### Hook::getAvailableHooks()
 Get list of all available hook points with descriptions.
 
 ```php
@@ -626,7 +984,7 @@ foreach ($available as $name => $description) {
 }
 ```
 
-### Hook::getExecutionLog()
+#### Hook::getExecutionLog()
 Get execution log (only when DEBUG is enabled).
 
 ```php
@@ -634,6 +992,57 @@ if ($_GET['debug']) {
     print_r(Hook::getExecutionLog());
 }
 ```
+
+### Route API (for Hooks)
+
+#### Route::group($attributes, $callback)
+Define a route group with shared attributes.
+
+```php
+// Group with hooks
+Route::group(['hooks' => ['auth']], function() {
+    Route::get('/profile', 'User@profile');
+    Route::get('/settings', 'User@settings');
+});
+
+// Group with prefix and hooks
+Route::group(['prefix' => '/admin', 'hooks' => ['auth', 'admin']], function() {
+    Route::get('/dashboard', 'Admin@dashboard');
+    Route::get('/users', 'Admin@users');
+});
+
+// Nested groups (cumulative)
+Route::group(['hooks' => ['cors']], function() {
+    Route::group(['prefix' => '/api', 'hooks' => ['rate-limit']], function() {
+        Route::get('/users', 'Api@users'); // Has cors + rate-limit hooks
+    });
+});
+```
+
+**Attributes:**
+- `hooks` - Array of hook aliases to apply to all routes in group
+- `prefix` - URL prefix to prepend to all route patterns
+
+#### RouteRegistration::hook($hooks)
+Attach hooks to a specific route (method chaining).
+
+```php
+// Single hook
+Route::get('/profile', 'User@profile')->hook('auth');
+
+// Multiple hooks
+Route::get('/admin/users', 'Admin@users')->hook(['auth', 'admin', 'log']);
+
+// Chaining with other methods
+Route::post('/api/users', 'Api@create')
+    ->hook(['auth', 'rate-limit'])
+    ->hook('log'); // Additional hooks can be chained
+```
+
+**Parameters:**
+- `$hooks` - String or array of hook aliases
+
+**Returns:** `RouteRegistration` for further chaining
 
 ## Disabling Hooks
 

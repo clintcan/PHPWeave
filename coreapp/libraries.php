@@ -161,15 +161,21 @@ class LazyLibraryLoader implements ArrayAccess {
 
     /**
      * Magic get for object property access
+     *
+     * @param string $libraryName
+     * @return object
      */
-    public function __get($libraryName) {
+    public function __get(string $libraryName): object {
         return library($libraryName);
     }
 
     /**
      * Magic isset for object property access
+     *
+     * @param string $libraryName
+     * @return bool
      */
-    public function __isset($libraryName) {
+    public function __isset(string $libraryName): bool {
         return isset($GLOBALS['_library_files'][$libraryName]);
     }
 }
@@ -181,7 +187,10 @@ class LazyLibraryLoader implements ArrayAccess {
  * Supports new syntax: $PW->libraries->library->test()
  */
 class PHPWeaveLibraries {
-    public $libraries;
+    /**
+     * @var LazyLibraryLoader
+     */
+    public LazyLibraryLoader $libraries;
 
     public function __construct() {
         $this->libraries = new LazyLibraryLoader();

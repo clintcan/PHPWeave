@@ -161,15 +161,21 @@ class LazyModelLoader implements ArrayAccess {
 
     /**
      * Magic get for object property access
+     *
+     * @param string $modelName
+     * @return object
      */
-    public function __get($modelName) {
+    public function __get(string $modelName): object {
         return model($modelName);
     }
 
     /**
      * Magic isset for object property access
+     *
+     * @param string $modelName
+     * @return bool
      */
-    public function __isset($modelName) {
+    public function __isset(string $modelName): bool {
         return isset($GLOBALS['_model_files'][$modelName]);
     }
 }
@@ -181,7 +187,10 @@ class LazyModelLoader implements ArrayAccess {
  * Supports new syntax: $PW->models->user_model->test()
  */
 class PHPWeave {
-    public $models;
+    /**
+     * @var LazyModelLoader
+     */
+    public LazyModelLoader $models;
 
     public function __construct() {
         $this->models = new LazyModelLoader();

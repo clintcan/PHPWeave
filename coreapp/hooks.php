@@ -66,6 +66,53 @@ class Hook
     private static $hooksSorted = [];
 
     /**
+     * Cached debug mode flag (performance optimization)
+     *
+     * @var bool|null
+     */
+    private static $debugMode = null;
+
+    /**
+     * Named hook classes (middleware-like)
+     *
+     * Format: [
+     *     'hook_alias' => [
+     *         'class' => 'ClassName',
+     *         'hook_point' => 'before_action_execute',
+     *         'priority' => 10,
+     *         'params' => []
+     *     ]
+     * ]
+     *
+     * @var array
+     */
+    private static $namedHooks = [];
+
+    /**
+     * Route-specific hooks storage
+     *
+     * Format: [
+     *     'GET:/admin' => ['auth', 'admin'],
+     *     'POST:/api/users' => ['api-auth', 'rate-limit']
+     * ]
+     *
+     * @var array
+     */
+    private static $routeHooks = [];
+
+    /**
+     * Cached resolved hook instances (performance optimization)
+     *
+     * Format: [
+     *     'auth' => ['instance' => AuthHook, 'params' => []],
+     *     'admin' => ['instance' => AdminHook, 'params' => []]
+     * ]
+     *
+     * @var array
+     */
+    private static $resolvedHooks = [];
+
+    /**
      * Register a hook callback
      *
      * Registers a callback function to be executed when a specific hook is triggered.
@@ -104,6 +151,194 @@ class Hook
     }
 
     /**
+     * Register a named hook class (middleware-like)
+     *
+     * Registers a hook class that can be attached to specific routes.
+     * This allows for reusable, testable, class-based hooks.
+     *
+     * @param string $alias       Unique name for this hook (e.g., 'auth', 'admin')
+     * @param string $className   Fully qualified class name
+     * @param string $hookPoint   Which hook point to attach to (default: 'before_action_execute')
+     * @param int    $priority    Execution priority (default: 10)
+     * @param array  $params      Optional parameters to pass to the hook
+     * @return void
+     *
+     * @example
+     * Hook::registerClass('auth', AuthHook::class, 'before_action_execute', 5);
+     * // Then use in routes: Route::get('/admin', 'Admin@dashboard')->hook('auth');
+     *
+     * @example
+     * // With parameters
+     * Hook::registerClass('rate-limit', RateLimitHook::class, 'before_action_execute', 5, [
+     *     'max' => 100,
+     *     'window' => 60
+     * ]);
+     */
+    public static function registerClass($alias, $className, $hookPoint = 'before_action_execute', $priority = 10, $params = [])
+    {
+        if (!class_exists($className)) {
+            trigger_error("Hook class '{$className}' does not exist", E_USER_WARNING);
+            return;
+        }
+
+        self::$namedHooks[$alias] = [
+            'class' => $className,
+            'hook_point' => $hookPoint,
+            'priority' => $priority,
+            'params' => $params
+        ];
+    }
+
+    /**
+     * Attach named hooks to a specific route
+     *
+     * Associates one or more named hooks with a route pattern.
+     * These hooks will only execute for the specified route.
+     *
+     * @param string       $method HTTP method (GET, POST, etc.)
+     * @param string       $pattern Route pattern (e.g., '/admin')
+     * @param string|array $hooks   Hook alias(es) to attach
+     * @return void
+     *
+     * @example
+     * Hook::attachToRoute('GET', '/admin', 'auth');
+     * Hook::attachToRoute('POST', '/api/users', ['api-auth', 'rate-limit']);
+     */
+    public static function attachToRoute($method, $pattern, $hooks)
+    {
+        $routeKey = self::makeRouteKey($method, $pattern);
+
+        if (!is_array($hooks)) {
+            $hooks = [$hooks];
+        }
+
+        if (!isset(self::$routeHooks[$routeKey])) {
+            self::$routeHooks[$routeKey] = [];
+        }
+
+        self::$routeHooks[$routeKey] = array_merge(self::$routeHooks[$routeKey], $hooks);
+    }
+
+    /**
+     * Trigger route-specific hooks
+     *
+     * Executes hooks that are attached to the current route.
+     * This is called by the Router during request dispatch.
+     * Uses cached hook instances for better performance.
+     *
+     * @param string $method  HTTP method
+     * @param string $pattern Route pattern
+     * @param mixed  $data    Data to pass to hooks
+     * @return mixed Modified data
+     */
+    public static function triggerRouteHooks($method, $pattern, $data = null)
+    {
+        $routeKey = self::makeRouteKey($method, $pattern);
+
+        if (!isset(self::$routeHooks[$routeKey])) {
+            return $data;
+        }
+
+        foreach (self::$routeHooks[$routeKey] as $hookAlias) {
+            if (!isset(self::$namedHooks[$hookAlias])) {
+                continue;
+            }
+
+            try {
+                // Use cached resolved hook instance for performance
+                if (!isset(self::$resolvedHooks[$hookAlias])) {
+                    $hookInfo = self::$namedHooks[$hookAlias];
+                    $className = $hookInfo['class'];
+                    $hookInstance = new $className();
+
+                    self::$resolvedHooks[$hookAlias] = [
+                        'instance' => $hookInstance,
+                        'params' => $hookInfo['params']
+                    ];
+                }
+
+                $resolved = self::$resolvedHooks[$hookAlias];
+                $hookInstance = $resolved['instance'];
+                $params = $resolved['params'];
+
+                // Call handle() method with data and optional parameters
+                if (method_exists($hookInstance, 'handle')) {
+                    if (!empty($params)) {
+                        $result = call_user_func_array(
+                            [$hookInstance, 'handle'],
+                            array_merge([$data], $params)
+                        );
+                    } else {
+                        $result = $hookInstance->handle($data);
+                    }
+
+                    if ($result !== null) {
+                        $data = $result;
+                    }
+                }
+
+                // Check if execution should be halted
+                if (self::$halted) {
+                    break;
+                }
+            } catch (Exception $e) {
+                trigger_error(
+                    "Error in route hook '{$hookAlias}': " . $e->getMessage(),
+                    E_USER_WARNING
+                );
+            }
+        }
+
+        return $data;
+    }
+
+    /**
+     * Create a unique key for route hook storage
+     *
+     * @param string $method  HTTP method
+     * @param string $pattern Route pattern
+     * @return string Route key (e.g., 'GET:/admin')
+     */
+    private static function makeRouteKey($method, $pattern)
+    {
+        return strtoupper($method) . ':' . $pattern;
+    }
+
+    /**
+     * Get hooks attached to a specific route
+     *
+     * @param string $method  HTTP method
+     * @param string $pattern Route pattern
+     * @return array Array of hook aliases
+     */
+    public static function getRouteHooks($method, $pattern)
+    {
+        $routeKey = self::makeRouteKey($method, $pattern);
+        return self::$routeHooks[$routeKey] ?? [];
+    }
+
+    /**
+     * Check if a named hook is registered
+     *
+     * @param string $alias Hook alias
+     * @return bool True if hook is registered
+     */
+    public static function hasNamed($alias)
+    {
+        return isset(self::$namedHooks[$alias]);
+    }
+
+    /**
+     * Get all registered named hooks
+     *
+     * @return array All named hooks
+     */
+    public static function getNamedHooks()
+    {
+        return self::$namedHooks;
+    }
+
+    /**
      * Trigger a hook
      *
      * Executes all callbacks registered for the specified hook in priority order.
@@ -135,8 +370,12 @@ class Hook
             self::$hooksSorted[$hookName] = true;
         }
 
-        // Log hook execution
-        if (self::isDebugEnabled()) {
+        // Log hook execution (use cached debug flag for performance)
+        if (self::$debugMode === null) {
+            self::$debugMode = self::isDebugEnabled();
+        }
+
+        if (self::$debugMode) {
             self::$executionLog[] = [
                 'hook' => $hookName,
                 'time' => microtime(true),
@@ -252,12 +491,20 @@ class Hook
     /**
      * Remove all registered hooks
      *
+     * Clears all callback-based hooks, named hooks, and route hooks.
+     * Useful for testing.
+     *
      * @return void
      */
     public static function clearAll()
     {
         self::$hooks = [];
+        self::$namedHooks = [];
+        self::$routeHooks = [];
         self::$executionLog = [];
+        self::$hooksSorted = [];
+        self::$debugMode = null; // Reset cached debug flag
+        self::$resolvedHooks = []; // Clear resolved hook cache
     }
 
     /**

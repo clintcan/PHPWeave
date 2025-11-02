@@ -87,21 +87,29 @@ class Async
                 );
             }
             // Static method - can be serialized safely
-            $serialized = base64_encode(json_encode([
+            $json = json_encode([
                 'type' => 'static',
                 'class' => $task[0],
                 'method' => $task[1],
                 'args' => $args
-            ]));
+            ]);
+            if ($json === false) {
+                throw new \Exception('Failed to JSON encode task data');
+            }
+            $serialized = base64_encode($json);
             $code = self::generateStaticMethodCode($serialized);
 
         } elseif (is_string($task)) {
             // Global function - can be serialized safely
-            $serialized = base64_encode(json_encode([
+            $json = json_encode([
                 'type' => 'function',
                 'name' => $task,
                 'args' => $args
-            ]));
+            ]);
+            if ($json === false) {
+                throw new \Exception('Failed to JSON encode task data');
+            }
+            $serialized = base64_encode($json);
             $code = self::generateFunctionCode($serialized);
 
         } elseif ($task instanceof \Closure) {
@@ -178,6 +186,10 @@ unlink(__FILE__);
     {
         $vendorPath = str_replace("'", "\\'", dirname(__DIR__) . '/vendor/autoload.php');
         $argsJson = json_encode($args);
+        if ($argsJson === false) {
+            throw new \Exception('Failed to JSON encode args');
+        }
+        $escapedArgs = addslashes($argsJson);
         return '<?php
 // Security: Only allow SerializableClosure objects
 if (file_exists(\'' . $vendorPath . '\')) {
@@ -186,7 +198,7 @@ if (file_exists(\'' . $vendorPath . '\')) {
 $wrapper = unserialize(base64_decode(\'' . $serialized . '\'), [\'allowed_classes\' => [\'Opis\\\\Closure\\\\SerializableClosure\', \'Closure\']]);
 if ($wrapper instanceof \\Opis\\Closure\\SerializableClosure) {
     $task = $wrapper->getClosure();
-    $args = json_decode(\'' . addslashes($argsJson) . '\', true);
+    $args = json_decode(\'' . $escapedArgs . '\', true);
     call_user_func_array($task, $args);
 }
 unlink(__FILE__);
@@ -226,7 +238,11 @@ unlink(__FILE__);
         ];
 
         $filename = self::$queueDir . '/' . $priority . '_' . $jobId . '.json';
-        file_put_contents($filename, json_encode($job, JSON_PRETTY_PRINT));
+        $json = json_encode($job, JSON_PRETTY_PRINT);
+        if ($json === false) {
+            throw new \Exception('Failed to JSON encode job data');
+        }
+        file_put_contents($filename, $json);
 
         return $jobId;
     }
@@ -262,7 +278,12 @@ unlink(__FILE__);
                 break;
             }
 
-            $job = json_decode(file_get_contents($file), true);
+            $contents = file_get_contents($file);
+            if ($contents === false) {
+                error_log("Async: Failed to read job file: $file");
+                continue;
+            }
+            $job = json_decode($contents, true);
 
             try {
                 // Load job class
@@ -289,7 +310,10 @@ unlink(__FILE__);
                 }
 
                 $failedFile = $failedDir . '/' . basename($file);
-                file_put_contents($failedFile, json_encode($job, JSON_PRETTY_PRINT));
+                $json = json_encode($job, JSON_PRETTY_PRINT);
+                if ($json !== false) {
+                    file_put_contents($failedFile, $json);
+                }
                 unlink($file);
             }
         }
@@ -333,7 +357,10 @@ unlink(__FILE__);
 
         if (stripos(PHP_OS, 'WIN') === 0) {
             // Windows
-            pclose(popen('start /B ' . escapeshellarg($phpBinary) . ' ' . escapeshellarg($command), 'r'));
+            $handle = popen('start /B ' . escapeshellarg($phpBinary) . ' ' . escapeshellarg($command), 'r');
+            if ($handle !== false) {
+                pclose($handle);
+            }
         } else {
             // Unix/Linux/Mac
             exec(escapeshellarg($phpBinary) . ' ' . escapeshellarg($command) . ' > /dev/null 2>&1 &');
@@ -402,12 +429,15 @@ unlink(__FILE__);
         self::ensureQueueDirectory();
 
         $pending = glob(self::$queueDir . '/*.json');
+        $pendingCount = ($pending !== false) ? count($pending) : 0;
+
         $failedDir = self::$queueDir . '/failed';
         $failed = is_dir($failedDir) ? glob($failedDir . '/*.json') : [];
+        $failedCount = ($failed !== false) ? count($failed) : 0;
 
         return [
-            'pending' => count($pending),
-            'failed' => count($failed),
+            'pending' => $pendingCount,
+            'failed' => $failedCount,
             'queue_path' => self::$queueDir
         ];
     }
@@ -453,6 +483,10 @@ unlink(__FILE__);
         }
 
         $files = glob($failedDir . '/*.json');
+        if ($files === false) {
+            return 0;
+        }
+
         $count = 0;
 
         foreach ($files as $file) {
@@ -460,17 +494,23 @@ unlink(__FILE__);
                 break;
             }
 
-            $job = json_decode(file_get_contents($file), true);
+            $contents = file_get_contents($file);
+            if ($contents === false) {
+                continue;
+            }
+            $job = json_decode($contents, true);
             $job['status'] = 'pending';
             unset($job['error']);
             unset($job['failed_at']);
 
             // Move back to queue
             $newFile = self::$queueDir . '/' . $job['priority'] . '_' . $job['id'] . '.json';
-            file_put_contents($newFile, json_encode($job, JSON_PRETTY_PRINT));
-            unlink($file);
-
-            $count++;
+            $json = json_encode($job, JSON_PRETTY_PRINT);
+            if ($json !== false) {
+                file_put_contents($newFile, $json);
+                unlink($file);
+                $count++;
+            }
         }
 
         return $count;

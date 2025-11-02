@@ -43,6 +43,6 @@ Route::get('/blog/slugify/:text:', 'Blog@slugify');
 // Route::post('/api/login', 'Api@login');
 
 // Catch-all fallback (optional): Use legacy routing for undefined routes
-// Comment the line below if you want strict route matching only
+// Comment the lines below if you want strict route matching only (proper 404 errors)
 Route::any('/:controller:', 'LegacyRouter@dispatch');
 Route::any('/:controller:/:action:', 'LegacyRouter@dispatch');
