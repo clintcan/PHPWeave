@@ -90,7 +90,12 @@ if ($databaseEnabled) {
 		$GLOBALS['PW'] = new stdClass();
 	}
 	$GLOBALS['PW']->models = new class {
-		public function __get($name) {
+		/**
+		 * @param string $name
+		 * @return never
+		 * @throws Exception
+		 */
+		public function __get(string $name) {
 			throw new Exception("Database is disabled. Cannot access model: $name");
 		}
 	};
