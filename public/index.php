@@ -137,7 +137,7 @@ if (!isset($GLOBALS['configs']['DEBUG']) || !$GLOBALS['configs']['DEBUG']) {
 
 // Load routes (from cache if available, otherwise from routes.php)
 if (!Router::loadFromCache()) {
-    require_once PHPWEAVE_ROOT . "/routes.php";
+    require_once PHPWEAVE_ROOT . "/routes/routes.php";
     Router::saveToCache(); // Fails gracefully if cache not writable
 }
 

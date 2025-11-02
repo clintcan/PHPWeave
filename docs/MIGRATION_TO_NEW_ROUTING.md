@@ -14,7 +14,7 @@ Automatic dispatch to: Blog::show(123)
 
 ### After (Modern Routing)
 ```php
-// Define in routes.php
+// Define in routes/routes.php
 Route::get('/blog/:id:', 'Blog@show');
 
 // Controller receives parameter
@@ -26,7 +26,7 @@ function show($id) {
 ## New Files Created
 
 1. **`coreapp/router.php`** - Router class with route matching and dispatching
-2. **`routes.php`** - Central route definitions file
+2. **`routes/routes.php`** - Central route definitions file
 3. **`ROUTING_GUIDE.md`** - Comprehensive routing documentation
 4. **`MIGRATION_TO_NEW_ROUTING.md`** - This file
 
@@ -94,7 +94,7 @@ Route::delete('/api/users/:id:', 'Api@deleteUser');
 ## How to Use
 
 ### Step 1: Define Routes
-Edit `routes.php`:
+Edit `routes/routes.php`:
 
 ```php
 Route::get('/home', 'Home@index');
@@ -142,7 +142,7 @@ Submit POST to `/blog` → `Blog@store()`
 
 The legacy routing system is still available if needed. To enable:
 
-1. Add catch-all routes at the end of `routes.php`:
+1. Add catch-all routes at the end of `routes/routes.php`:
 ```php
 Route::any('/:controller:', 'LegacyRouter@dispatch');
 Route::any('/:controller:/:action:', 'LegacyRouter@dispatch');
@@ -165,7 +165,7 @@ However, we recommend migrating to the new system for better control and clarity
 
 ### Blog Application
 ```php
-// routes.php
+// routes/routes.php
 Route::get('/', 'Home@index');
 Route::get('/blog', 'Blog@index');
 Route::get('/blog/create', 'Blog@create');
@@ -178,7 +178,7 @@ Route::delete('/blog/:id:', 'Blog@destroy');
 
 ### API Endpoints
 ```php
-// routes.php
+// routes/routes.php
 Route::post('/api/auth/login', 'Api@login');
 Route::post('/api/auth/register', 'Api@register');
 Route::get('/api/users', 'Api@listUsers');
@@ -190,7 +190,7 @@ Route::delete('/api/users/:id:', 'Api@deleteUser');
 
 ### E-commerce
 ```php
-// routes.php
+// routes/routes.php
 Route::get('/shop', 'Shop@index');
 Route::get('/products', 'Product@list');
 Route::get('/product/:id:', 'Product@show');
@@ -272,12 +272,12 @@ function store() {
 ## Support
 
 - See `ROUTING_GUIDE.md` for comprehensive documentation
-- Check `routes.php` for example route definitions
+- Check `routes/routes.php` for example route definitions
 
 ## Next Steps
 
 1. Review existing controllers and identify routes needed
-2. Define routes in `routes.php`
+2. Define routes in `routes/routes.php`
 3. Test each route
 4. Remove legacy routing catch-all if not needed
 5. Enjoy cleaner, more maintainable code!

@@ -64,6 +64,16 @@ This migration represents PHPWeave's commitment to staying relevant while honori
 
 ## Quick Start
 
+### 🎓 New to PHPWeave?
+
+**Start with our step-by-step tutorial:** [Build a Guestbook App](docs/GETTING_STARTED_TUTORIAL.md)
+
+This hands-on tutorial will teach you PHPWeave's core concepts by building a real application with:
+- Database migrations
+- Models, controllers, and views
+- Form handling and validation
+- Routing and the MVC pattern
+
 ### Installation
 
 1. Clone or download PHPWeave to your web server
@@ -186,7 +196,7 @@ See `CLAUDE.md` section "Using Composer Packages" for complete documentation.
 
 ### Your First Route
 
-**1. Define a route** in `routes.php`:
+**1. Define a route** in `routes/routes.php`:
 ```php
 Route::get('/hello/:name:', 'Welcome@greet');
 ```
@@ -844,6 +854,7 @@ PHPWeave/
 ├── cache/              # Route cache (auto-created)
 ├── docs/               # Complete documentation
 │   ├── README.md       # Documentation index
+│   ├── GETTING_STARTED_TUTORIAL.md  # 🎓 START HERE - Guestbook tutorial
 │   ├── ROUTING_GUIDE.md
 │   ├── HOOKS.md        # Complete hooks guide
 │   ├── LIBRARIES.md    # Libraries guide (NEW!)
@@ -861,7 +872,8 @@ PHPWeave/
 │   ├── test_controllers.php
 │   ├── test_docker_caching.php
 │   └── benchmark_optimizations.php
-├── routes.php          # Route definitions
+├── routes/             # Route definitions
+│   └── routes.php      # Main routes file
 ├── worker.php          # Queue worker script
 ├── Dockerfile          # Docker image with APCu
 ├── docker-compose.yml  # Standard deployment (.env file)
@@ -890,7 +902,7 @@ CREATE TABLE blogs (
 );
 ```
 
-**2. Define routes** in `routes.php`:
+**2. Define routes** in `routes/routes.php`:
 ```php
 Route::get('/blog', 'Blog@index');
 Route::get('/blog/create', 'Blog@create');
@@ -1024,7 +1036,7 @@ class Blog extends Controller
 
 PHPWeave maintains backward compatibility with its original CodeIgniter-inspired automatic routing. The old pattern `/{controller}/{action}/{params}` still works if you enable it.
 
-To enable legacy routing, add these catch-all routes at the end of `routes.php`:
+To enable legacy routing, add these catch-all routes at the end of `routes/routes.php`:
 
 ```php
 Route::any('/:controller:', 'LegacyRouter@dispatch');
@@ -1038,7 +1050,7 @@ Route::any('/:controller:/:action:', 'LegacyRouter@dispatch');
 PHPWeave is perfect for building REST APIs:
 
 ```php
-// routes.php
+// routes/routes.php
 Route::get('/api/users', 'Api@listUsers');
 Route::post('/api/users', 'Api@createUser');
 Route::get('/api/users/:id:', 'Api@getUser');
@@ -1096,6 +1108,10 @@ Customize error pages by modifying `coreapp/router.php`:
 - `handle500()` - 500 Internal Server Error page
 
 ## Documentation
+
+### 🎯 Getting Started
+- **docs/GETTING_STARTED_TUTORIAL.md** 🎓 - **START HERE!** Build your first app (guestbook tutorial)
+- **docs/README.md** - Complete documentation index with learning path
 
 ### Core Features
 - **docs/ROUTING_GUIDE.md** - Comprehensive routing documentation with examples
