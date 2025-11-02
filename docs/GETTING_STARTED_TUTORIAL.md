@@ -4,7 +4,7 @@ Welcome to PHPWeave! This tutorial will guide you through building your first ap
 
 ## What You'll Build
 
-https://github.com/user-attachments/assets/9d47889b-af17-40af-b969-03bf49621c1f
+https://github.com/user-attachments/assets/d539a871-2a32-407d-ba3b-d382e53cc6b6
 
 By the end of this tutorial, you'll have:
 - A form for visitors to submit comments
