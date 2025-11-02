@@ -594,20 +594,14 @@ class Router
 
         // Remove query string
         if (($pos = strpos($uri, '?')) !== false) {
-            $uriWithoutQuery = substr($uri, 0, $pos);
-            if ($uriWithoutQuery !== false) {
-                $uri = $uriWithoutQuery;
-            }
+            $uri = substr($uri, 0, $pos);
         }
 
         // Remove base URL if set
         if (isset($GLOBALS['baseurl']) && $GLOBALS['baseurl'] !== '/') {
             $baseurl = rtrim($GLOBALS['baseurl'], '/');
             if (strpos($uri, $baseurl) === 0) {
-                $uriWithoutBase = substr($uri, strlen($baseurl));
-                if ($uriWithoutBase !== false) {
-                    $uri = $uriWithoutBase;
-                }
+                $uri = substr($uri, strlen($baseurl));
             }
         }
 
