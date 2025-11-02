@@ -170,7 +170,7 @@ class ErrorClass {
      * @return void
      */
     function logError($error) {
-        $logFile = __DIR__ . '/error.log';
+        $logFile = __DIR__ . '/../logs/error.log';
         $logMessage = "[{$error['timestamp']}] {$error['type']}: {$error['message']} in {$error['file']} on line {$error['line']}\n";
 
         if (isset($error['trace'])) {

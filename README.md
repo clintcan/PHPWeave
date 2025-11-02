@@ -23,13 +23,14 @@ This migration represents PHPWeave's commitment to staying relevant while honori
 ## Features
 
 ### Core Framework
+- **Middleware-Style Hooks**: Route-specific, class-based hooks with route groups (v2.3.0+)
 - **Modern Routing System**: Express-style route definitions with dynamic parameters
 - **Full HTTP Verb Support**: GET, POST, PUT, DELETE, PATCH methods
 - **Output Buffering & Streaming**: Prevents "headers already sent" errors with streaming support (v2.2.2+)
 - **Global Framework Object**: Clean `$PW->models->model_name` syntax (v2.1+)
 - **Auto-Extracted View Variables**: Pass arrays to views, access as individual variables
 - **Lazy-Loaded Libraries**: Reusable utility classes with automatic discovery (v2.1.1+)
-- **Event-Driven Hooks System**: 18 lifecycle hook points for extending functionality
+- **Event-Driven Hooks System**: 18 lifecycle hook points + middleware-style (v2.3.0+)
 - **MVC Architecture**: Clean separation of concerns
 - **Zero Dependencies**: Pure PHP, no Composer required (optional Composer support v2.2.2+)
 - **Lightweight**: Minimal footprint, maximum performance
@@ -298,6 +299,108 @@ For PUT, DELETE, and PATCH requests from HTML forms, use method override:
     <!-- form fields -->
 </form>
 ```
+
+### Middleware-Style Hooks (v2.3.0+)
+
+PHPWeave v2.3.0 introduces middleware-like functionality for cleaner, more maintainable code.
+
+#### Route-Specific Hooks
+
+Attach hooks to individual routes:
+
+```php
+// Single hook
+Route::get('/profile', 'User@profile')->hook('auth');
+
+// Multiple hooks
+Route::get('/admin/dashboard', 'Admin@dashboard')->hook(['auth', 'admin', 'log']);
+
+// API with rate limiting
+Route::post('/api/users', 'Api@createUser')->hook(['auth', 'rate-limit']);
+```
+
+#### Route Groups
+
+Apply hooks to multiple routes at once:
+
+```php
+// Protected user routes
+Route::group(['hooks' => ['auth']], function() {
+    Route::get('/profile', 'User@profile');
+    Route::get('/settings', 'User@settings');
+    Route::post('/update-profile', 'User@updateProfile');
+});
+
+// Admin routes with prefix
+Route::group(['prefix' => '/admin', 'hooks' => ['auth', 'admin', 'log']], function() {
+    Route::get('/dashboard', 'Admin@dashboard');     // /admin/dashboard
+    Route::get('/users', 'Admin@users');             // /admin/users
+    Route::post('/users/:id:/delete', 'Admin@deleteUser'); // /admin/users/123/delete
+});
+
+// API routes with CORS and rate limiting
+Route::group(['prefix' => '/api', 'hooks' => ['cors', 'rate-limit']], function() {
+    Route::get('/users', 'Api@users');
+    Route::post('/users', 'Api@createUser');
+    Route::get('/posts', 'Api@posts');
+});
+```
+
+#### Built-in Hook Classes
+
+Five production-ready hooks included:
+
+```php
+// Register hooks (in hooks/example_class_based_hooks.php)
+Hook::registerClass('auth', AuthHook::class);           // Authentication
+Hook::registerClass('admin', AdminHook::class);         // Admin authorization
+Hook::registerClass('log', LogHook::class);             // Request logging
+Hook::registerClass('rate-limit', RateLimitHook::class, 'before_action_execute', 5, [
+    'max' => 100,   // Max requests
+    'window' => 60  // Time window (seconds)
+]);
+Hook::registerClass('cors', CorsHook::class);           // CORS headers
+```
+
+#### Custom Hook Classes
+
+Create your own reusable hooks:
+
+```php
+// hooks/classes/MyHook.php
+class MyHook {
+    public function handle($data) {
+        // Your middleware logic
+        // Access: $data['controller'], $data['method'], $data['params']
+
+        // Modify data if needed
+        $data['params']['custom'] = 'value';
+
+        // Halt execution if needed
+        if ($shouldHalt) {
+            Hook::halt();
+            exit;
+        }
+
+        return $data;
+    }
+}
+
+// Register
+Hook::registerClass('my-hook', MyHook::class);
+
+// Use
+Route::get('/custom', 'Custom@action')->hook('my-hook');
+```
+
+**Benefits:**
+- ✅ Route-specific - hooks only run when needed (performance++)
+- ✅ Reusable - use same hook across multiple routes
+- ✅ Testable - class-based hooks are easy to unit test
+- ✅ Clean code - explicit route protection
+- ✅ 100% backward compatible - existing hooks still work
+
+See [HOOKS.md](docs/HOOKS.md) for complete documentation.
 
 ## MVC Structure
 

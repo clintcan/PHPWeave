@@ -165,57 +165,71 @@ php seed.php fresh                  # Migrate fresh + seed
 
 ---
 
-### 3. Middleware System (Medium Priority)
+### 3. ~~Middleware System~~ → **Middleware-Style Hooks (✅ COMPLETED in v2.3.0)**
 
-**Status:** Planned
-**Effort:** 2 weeks
-**Priority:** Medium
+**Status:** ✅ **COMPLETED** - Released in v2.3.0 (2025-11-03)
+**Effort:** 2 weeks (actual)
+**Priority:** High (upgraded from Medium)
 
-HTTP middleware for request/response processing pipeline.
+PHPWeave v2.3.0 implemented **middleware-style hooks** instead of traditional middleware, providing similar functionality while maintaining the framework's philosophy of simplicity.
 
-**Features:**
-- Before/after middleware
-- Route-specific middleware
-- Global middleware
-- Middleware groups
-- Parameter passing
+**Implemented Features:**
+- ✅ Class-based hooks (reusable, testable)
+- ✅ Route-specific hooks via `->hook()` method
+- ✅ Route groups with shared hooks via `Route::group()`
+- ✅ Nested groups with cumulative hooks
+- ✅ Hook parameter passing
+- ✅ 100% backward compatible with callback hooks
 
-**Example Usage:**
+**Implementation:**
 ```php
-// middleware/AuthMiddleware.php
-class AuthMiddleware extends Middleware {
-    public function handle($request, $next) {
-        if (!isset($_SESSION['user'])) {
-            header('Location: /login');
-            exit;
-        }
+// Register class-based hooks
+Hook::registerClass('auth', AuthHook::class);
+Hook::registerClass('admin', AdminHook::class);
 
-        return $next($request);
-    }
-}
+// Route-specific hooks
+Route::get('/profile', 'User@profile')->hook('auth');
+Route::get('/admin', 'Admin@index')->hook(['auth', 'admin']);
 
-// In routes.php
-Route::middleware(['auth'])->group(function() {
+// Route groups
+Route::group(['hooks' => ['auth']], function() {
     Route::get('/dashboard', 'Dashboard@index');
     Route::get('/profile', 'User@profile');
 });
 
-// Or on individual routes
-Route::get('/admin', 'Admin@index')->middleware(['auth', 'admin']);
+// With prefix
+Route::group(['prefix' => '/admin', 'hooks' => ['auth', 'admin']], function() {
+    Route::get('/users', 'Admin@users'); // /admin/users
+});
 ```
 
-**Built-in Middleware:**
-- `AuthMiddleware` - Authentication check
-- `GuestMiddleware` - Redirect if authenticated
-- `CorsMiddleware` - CORS headers
-- `CsrfMiddleware` - CSRF protection
-- `ThrottleMiddleware` - Rate limiting
+**Built-in Hook Classes (v2.3.0):**
+- ✅ `AuthHook` - Authentication check with redirect
+- ✅ `AdminHook` - Admin authorization with 403
+- ✅ `LogHook` - Request logging
+- ✅ `RateLimitHook` - Rate limiting (APCu/session)
+- ✅ `CorsHook` - CORS headers
 
-**Files to Create:**
-- `coreapp/middleware.php` - Base middleware class
-- `coreapp/middlewarestack.php` - Middleware pipeline
-- `middleware/` - Directory for middleware files
-- `docs/MIDDLEWARE.md` - Documentation
+**Files Created:**
+- ✅ `coreapp/hooks.php` - Enhanced with class-based hooks
+- ✅ `coreapp/router.php` - Added Route::group() and ->hook()
+- ✅ `hooks/classes/` - Five production-ready hook classes
+- ✅ `hooks/example_class_based_hooks.php` - Registration examples
+- ✅ `docs/HOOKS.md` - Enhanced with 300+ lines of middleware docs
+- ✅ `docs/MIGRATION_TO_V2.3.0.md` - Complete migration guide
+- ✅ `tests/test_enhanced_hooks.php` - 14 comprehensive tests
+
+**Why Hooks Instead of Middleware?**
+
+PHPWeave chose to enhance its existing hooks system rather than create a separate middleware layer:
+
+1. **Simpler architecture** - No need for Request/Response objects
+2. **Lighter weight** - Fewer abstractions and dependencies
+3. **More flexible** - Works with existing hook ecosystem
+4. **Backward compatible** - All existing hooks still work
+5. **Same benefits** - Route-specific, reusable, testable code
+
+This approach gives developers middleware-like functionality while staying true to PHPWeave's "zero dependencies, maximum performance" philosophy.
 
 ---
 

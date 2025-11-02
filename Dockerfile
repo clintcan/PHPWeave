@@ -79,10 +79,10 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf && \
     sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Create cache and storage directories with proper permissions
-RUN mkdir -p cache storage storage/queue && \
-    chown -R www-data:www-data cache storage && \
-    chmod 755 cache storage storage/queue
+# Create cache, storage, and logs directories with proper permissions
+RUN mkdir -p cache storage storage/queue logs && \
+    chown -R www-data:www-data cache storage logs && \
+    chmod 755 cache storage storage/queue logs
 
 # Set proper permissions for the application
 RUN chown -R www-data:www-data /var/www/html && \

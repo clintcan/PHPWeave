@@ -1,5 +1,77 @@
 <?php
 /**
+ * Route Registration Helper Class
+ *
+ * Allows method chaining for route configuration.
+ * Enables attaching hooks and other metadata to routes.
+ *
+ * @package    PHPWeave
+ * @subpackage Core
+ * @category   Routing
+ */
+class RouteRegistration
+{
+    /**
+     * Reference to the route data
+     *
+     * @var array
+     */
+    private $routeData;
+
+    /**
+     * Constructor
+     *
+     * @param array $routeData Reference to route data in Router::$routes
+     */
+    public function __construct(&$routeData)
+    {
+        $this->routeData = &$routeData;
+    }
+
+    /**
+     * Attach one or more named hooks to this route
+     *
+     * @param string|array $hooks Hook alias(es) to attach
+     * @return self For method chaining
+     *
+     * @example
+     * Route::get('/admin', 'Admin@dashboard')->hook('auth');
+     * Route::get('/admin/users', 'Admin@users')->hook(['auth', 'admin']);
+     */
+    public function hook($hooks)
+    {
+        if (!is_array($hooks)) {
+            $hooks = [$hooks];
+        }
+
+        if (!isset($this->routeData['hooks'])) {
+            $this->routeData['hooks'] = [];
+        }
+
+        $this->routeData['hooks'] = array_merge($this->routeData['hooks'], $hooks);
+
+        // Also register with Hook class for execution
+        Hook::attachToRoute(
+            $this->routeData['method'],
+            $this->routeData['pattern'],
+            $hooks
+        );
+
+        return $this;
+    }
+
+    /**
+     * Get the route data
+     *
+     * @return array Route data
+     */
+    public function getRouteData()
+    {
+        return $this->routeData;
+    }
+}
+
+/**
  * Router Class
  *
  * Modern routing system for PHPWeave framework with support for:
@@ -39,6 +111,27 @@ class Router
     private static $matchedRoute = null;
 
     /**
+     * Index of the last registered route
+     *
+     * @var int|null
+     */
+    private static $lastRouteIndex = null;
+
+    /**
+     * Stack of group contexts for nested groups
+     *
+     * @var array
+     */
+    private static $groupStack = [];
+
+    /**
+     * Cached merged group attributes (performance optimization)
+     *
+     * @var array|null
+     */
+    private static $cachedGroupAttributes = null;
+
+    /**
      * Route cache file path
      *
      * @var string|null
@@ -74,6 +167,20 @@ class Router
     private static $apcuTTL = 3600;
 
     /**
+     * Cached request method (performance optimization)
+     *
+     * @var string|null
+     */
+    private static $cachedRequestMethod = null;
+
+    /**
+     * Cached request URI (performance optimization)
+     *
+     * @var string|null
+     */
+    private static $cachedRequestUri = null;
+
+    /**
      * Register a GET route
      *
      * Creates a route that responds to HTTP GET requests.
@@ -81,14 +188,15 @@ class Router
      *
      * @param string $pattern Route pattern (e.g., '/home/:id:')
      * @param string $handler Controller@method format (e.g., 'Home@index')
-     * @return void
+     * @return RouteRegistration For method chaining (e.g., ->hook())
      *
      * @example Route::get('/blog/:id:', 'Blog@show');
      * @example Route::get('/user/:username:/posts', 'User@posts');
+     * @example Route::get('/admin', 'Admin@dashboard')->hook('auth');
      */
     public static function get($pattern, $handler)
     {
-        self::register('GET', $pattern, $handler);
+        return self::register('GET', $pattern, $handler);
     }
 
     /**
@@ -99,14 +207,14 @@ class Router
      *
      * @param string $pattern Route pattern (e.g., '/user/:id:')
      * @param string $handler Controller@method format (e.g., 'User@store')
-     * @return void
+     * @return RouteRegistration For method chaining (e.g., ->hook())
      *
      * @example Route::post('/blog', 'Blog@store');
-     * @example Route::post('/login', 'Auth@login');
+     * @example Route::post('/login', 'Auth@login')->hook('rate-limit');
      */
     public static function post($pattern, $handler)
     {
-        self::register('POST', $pattern, $handler);
+        return self::register('POST', $pattern, $handler);
     }
 
     /**
@@ -118,13 +226,14 @@ class Router
      *
      * @param string $pattern Route pattern
      * @param string $handler Controller@method format
-     * @return void
+     * @return RouteRegistration For method chaining (e.g., ->hook())
      *
      * @example Route::put('/blog/:id:', 'Blog@update');
+     * @example Route::put('/blog/:id:', 'Blog@update')->hook(['auth', 'owner']);
      */
     public static function put($pattern, $handler)
     {
-        self::register('PUT', $pattern, $handler);
+        return self::register('PUT', $pattern, $handler);
     }
 
     /**
@@ -136,13 +245,14 @@ class Router
      *
      * @param string $pattern Route pattern
      * @param string $handler Controller@method format
-     * @return void
+     * @return RouteRegistration For method chaining (e.g., ->hook())
      *
      * @example Route::delete('/blog/:id:', 'Blog@destroy');
+     * @example Route::delete('/blog/:id:', 'Blog@destroy')->hook(['auth', 'owner']);
      */
     public static function delete($pattern, $handler)
     {
-        self::register('DELETE', $pattern, $handler);
+        return self::register('DELETE', $pattern, $handler);
     }
 
     /**
@@ -154,13 +264,14 @@ class Router
      *
      * @param string $pattern Route pattern
      * @param string $handler Controller@method format
-     * @return void
+     * @return RouteRegistration For method chaining (e.g., ->hook())
      *
      * @example Route::patch('/blog/:id:', 'Blog@partialUpdate');
+     * @example Route::patch('/blog/:id:', 'Blog@partialUpdate')->hook('auth');
      */
     public static function patch($pattern, $handler)
     {
-        self::register('PATCH', $pattern, $handler);
+        return self::register('PATCH', $pattern, $handler);
     }
 
     /**
@@ -171,13 +282,98 @@ class Router
      *
      * @param string $pattern Route pattern
      * @param string $handler Controller@method format
-     * @return void
+     * @return RouteRegistration For method chaining (e.g., ->hook())
      *
      * @example Route::any('/webhook', 'Webhook@handle');
+     * @example Route::any('/:controller:', 'LegacyRouter@dispatch');
      */
     public static function any($pattern, $handler)
     {
-        self::register('ANY', $pattern, $handler);
+        return self::register('ANY', $pattern, $handler);
+    }
+
+    /**
+     * Define a route group with shared attributes
+     *
+     * Groups routes together and applies common hooks, prefixes, or other attributes.
+     * Supports nested groups for hierarchical route organization.
+     *
+     * @param array $attributes Group attributes (e.g., ['hooks' => ['auth'], 'prefix' => '/admin'])
+     * @param callable $callback Closure that defines routes within the group
+     * @return void
+     *
+     * @example
+     * Route::group(['hooks' => ['auth']], function() {
+     *     Route::get('/profile', 'User@profile');
+     *     Route::get('/settings', 'User@settings');
+     * });
+     *
+     * @example
+     * // Nested groups
+     * Route::group(['prefix' => '/admin', 'hooks' => ['auth']], function() {
+     *     Route::group(['hooks' => ['admin']], function() {
+     *         Route::get('/users', 'Admin@users'); // /admin/users with auth + admin hooks
+     *     });
+     * });
+     */
+    public static function group($attributes, $callback)
+    {
+        // Push current group context onto stack
+        self::$groupStack[] = $attributes;
+
+        // Invalidate cached attributes when stack changes
+        self::$cachedGroupAttributes = null;
+
+        // Execute the callback (which will register routes)
+        call_user_func($callback);
+
+        // Pop the group context
+        array_pop(self::$groupStack);
+
+        // Invalidate cached attributes after popping
+        self::$cachedGroupAttributes = null;
+    }
+
+    /**
+     * Get current group attributes by merging all groups in stack
+     *
+     * @return array Merged attributes from all active groups
+     */
+    private static function getGroupAttributes()
+    {
+        // Return cached result if available (performance optimization)
+        if (self::$cachedGroupAttributes !== null) {
+            return self::$cachedGroupAttributes;
+        }
+
+        $merged = [
+            'prefix' => '',
+            'hooks' => []
+        ];
+
+        foreach (self::$groupStack as $group) {
+            // Merge prefix
+            if (isset($group['prefix'])) {
+                $merged['prefix'] .= '/' . trim($group['prefix'], '/');
+            }
+
+            // Merge hooks
+            if (isset($group['hooks'])) {
+                $hooks = is_array($group['hooks']) ? $group['hooks'] : [$group['hooks']];
+                $merged['hooks'] = array_merge($merged['hooks'], $hooks);
+            }
+        }
+
+        // Clean up prefix
+        $merged['prefix'] = '/' . trim($merged['prefix'], '/');
+        if ($merged['prefix'] === '/') {
+            $merged['prefix'] = '';
+        }
+
+        // Cache the result
+        self::$cachedGroupAttributes = $merged;
+
+        return $merged;
     }
 
     /**
@@ -185,14 +381,24 @@ class Router
      *
      * Normalizes route patterns and stores them with compiled regex for matching.
      * Automatically prepends leading slash and removes trailing slashes.
+     * Applies group attributes (prefix, hooks) if within a group.
+     * Returns a RouteRegistration object for method chaining.
      *
      * @param string $method HTTP method (GET, POST, PUT, DELETE, PATCH, ANY)
      * @param string $pattern Route pattern with optional :param: placeholders
      * @param string $handler Controller@method format
-     * @return void
+     * @return RouteRegistration For method chaining
      */
     private static function register($method, $pattern, $handler)
     {
+        // Get group attributes
+        $groupAttrs = self::getGroupAttributes();
+
+        // Apply group prefix
+        if (!empty($groupAttrs['prefix'])) {
+            $pattern = $groupAttrs['prefix'] . $pattern;
+        }
+
         // Ensure pattern starts with /
         if (substr($pattern, 0, 1) !== '/') {
             $pattern = '/' . $pattern;
@@ -208,8 +414,20 @@ class Router
             'pattern' => $pattern,
             'handler' => $handler,
             'regex' => self::patternToRegex($pattern),
-            'params' => self::extractParamNames($pattern)
+            'params' => self::extractParamNames($pattern),
+            'hooks' => $groupAttrs['hooks'] // Apply group hooks automatically
         ];
+
+        // Track the index of this route
+        self::$lastRouteIndex = count(self::$routes) - 1;
+
+        // Attach group hooks to this route
+        if (!empty($groupAttrs['hooks'])) {
+            Hook::attachToRoute($method, $pattern, $groupAttrs['hooks']);
+        }
+
+        // Return RouteRegistration for chaining
+        return new RouteRegistration(self::$routes[self::$lastRouteIndex]);
     }
 
     /**
@@ -276,8 +494,16 @@ class Router
      */
     public static function match()
     {
-        $requestMethod = self::getRequestMethod();
-        $requestUri = self::getRequestUri();
+        // Use cached values for performance (avoid parsing multiple times)
+        if (self::$cachedRequestMethod === null) {
+            self::$cachedRequestMethod = self::getRequestMethod();
+        }
+        if (self::$cachedRequestUri === null) {
+            self::$cachedRequestUri = self::getRequestUri();
+        }
+
+        $requestMethod = self::$cachedRequestMethod;
+        $requestUri = self::$cachedRequestUri;
 
         // Trigger before route match hook
         Hook::trigger('before_route_match', [
@@ -308,7 +534,8 @@ class Router
                     'handler' => $route['handler'],
                     'params' => $params,
                     'method' => $requestMethod,
-                    'uri' => $requestUri
+                    'uri' => $requestUri,
+                    'pattern' => $route['pattern']
                 ];
 
                 // Trigger after route match hook
@@ -367,14 +594,20 @@ class Router
 
         // Remove query string
         if (($pos = strpos($uri, '?')) !== false) {
-            $uri = substr($uri, 0, $pos);
+            $uriWithoutQuery = substr($uri, 0, $pos);
+            if ($uriWithoutQuery !== false) {
+                $uri = $uriWithoutQuery;
+            }
         }
 
         // Remove base URL if set
         if (isset($GLOBALS['baseurl']) && $GLOBALS['baseurl'] !== '/') {
             $baseurl = rtrim($GLOBALS['baseurl'], '/');
             if (strpos($uri, $baseurl) === 0) {
-                $uri = substr($uri, strlen($baseurl));
+                $uriWithoutBase = substr($uri, strlen($baseurl));
+                if ($uriWithoutBase !== false) {
+                    $uri = $uriWithoutBase;
+                }
             }
         }
 
@@ -488,13 +721,27 @@ class Router
                 throw new Exception("Method {$methodName} not found in controller {$controllerName}");
             }
 
-            // Trigger before action execute hook
-            $actionData = Hook::trigger('before_action_execute', [
-                'controller' => $controllerName,
-                'method' => $methodName,
-                'instance' => $controller,
-                'params' => $match['params']
-            ]);
+            // Trigger route-specific hooks first (middleware-like)
+            $routeHookData = Hook::triggerRouteHooks(
+                $match['method'],
+                $match['pattern'],
+                [
+                    'controller' => $controllerName,
+                    'method' => $methodName,
+                    'instance' => $controller,
+                    'params' => $match['params']
+                ]
+            );
+
+            // Trigger before action execute hook (global)
+            $actionData = Hook::trigger('before_action_execute',
+                $routeHookData !== null ? $routeHookData : [
+                    'controller' => $controllerName,
+                    'method' => $methodName,
+                    'instance' => $controller,
+                    'params' => $match['params']
+                ]
+            );
 
             // Allow hooks to modify params
             $params = isset($actionData['params']) ? $actionData['params'] : $match['params'];
@@ -638,7 +885,12 @@ class Router
             return false;
         }
 
-        $cached = @json_decode(file_get_contents(self::$cacheFile), true);
+        $contents = @file_get_contents(self::$cacheFile);
+        if ($contents === false) {
+            return false;
+        }
+
+        $cached = @json_decode($contents, true);
 
         if ($cached === null || !is_array($cached)) {
             return false;
@@ -688,7 +940,12 @@ class Router
             return false;
         }
 
-        return @file_put_contents(self::$cacheFile, json_encode(self::$routes)) !== false;
+        $json = json_encode(self::$routes);
+        if ($json === false) {
+            return false;
+        }
+
+        return @file_put_contents(self::$cacheFile, $json) !== false;
     }
 
     /**

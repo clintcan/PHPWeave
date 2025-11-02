@@ -35,6 +35,12 @@ class ConnectionPool
 	private static $pools = [];
 
 	/**
+	 * Connection to pool key mapping (performance optimization for O(1) lookup)
+	 * @var array
+	 */
+	private static $connectionMap = [];
+
+	/**
 	 * Maximum connections per pool
 	 * @var int
 	 */
@@ -109,6 +115,11 @@ class ConnectionPool
 				self::$pools[$poolKey]['connections'][] = $conn;
 				self::$pools[$poolKey]['in_use']++;
 				self::$pools[$poolKey]['total_created']++;
+
+				// Store connection mapping for O(1) lookup (performance optimization)
+				$connId = spl_object_id($conn);
+				self::$connectionMap[$connId] = $poolKey;
+
 				return $conn;
 			} catch (PDOException $e) {
 				error_log("ConnectionPool: Failed to create new connection - " . $e->getMessage());
@@ -138,9 +149,10 @@ class ConnectionPool
 	 */
 	public static function releaseConnection($conn, $poolKey = null)
 	{
-		// If no pool key provided, try to find it
+		// If no pool key provided, use hash map for O(1) lookup (performance optimization)
 		if ($poolKey === null) {
-			$poolKey = self::findPoolKeyForConnection($conn);
+			$connId = spl_object_id($conn);
+			$poolKey = self::$connectionMap[$connId] ?? null;
 		}
 
 		if ($poolKey !== null && isset(self::$pools[$poolKey])) {
@@ -231,6 +243,7 @@ class ConnectionPool
 		}
 
 		self::$pools = [];
+		self::$connectionMap = []; // Clear connection map (performance optimization)
 	}
 
 	/**
@@ -304,6 +317,10 @@ class ConnectionPool
 				unset(self::$pools[$poolKey]['available'][$index]);
 				self::$pools[$poolKey]['available'] = array_values(self::$pools[$poolKey]['available']);
 			}
+
+			// Remove from connection map (performance optimization)
+			$connId = spl_object_id($conn);
+			unset(self::$connectionMap[$connId]);
 		}
 
 		// Close connection
@@ -313,13 +330,30 @@ class ConnectionPool
 	/**
 	 * Find pool key for a given connection
 	 *
+	 * Uses hash map for O(1) lookup instead of O(n) linear search.
+	 * Fallback to linear search for backward compatibility.
+	 *
+	 * Note: This method is preserved for potential future use or debugging.
+	 * Currently unused as releaseConnection() uses inline hash map lookup.
+	 *
 	 * @param PDO $conn PDO connection
 	 * @return string|null Pool key or null if not found
+	 *
+	 * @phpstan-ignore-next-line method.unused
 	 */
 	private static function findPoolKeyForConnection($conn)
 	{
+		// Try hash map first (O(1) lookup - performance optimization)
+		$connId = spl_object_id($conn);
+		if (isset(self::$connectionMap[$connId])) {
+			return self::$connectionMap[$connId];
+		}
+
+		// Fallback to linear search (for connections created before optimization)
 		foreach (self::$pools as $key => $pool) {
 			if (in_array($conn, $pool['connections'], true)) {
+				// Update connection map for future lookups
+				self::$connectionMap[$connId] = $key;
 				return $key;
 			}
 		}
