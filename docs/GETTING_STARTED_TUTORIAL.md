@@ -4,6 +4,8 @@ Welcome to PHPWeave! This tutorial will guide you through building your first ap
 
 ## What You'll Build
 
+https://github.com/user-attachments/assets/9d47889b-af17-40af-b969-03bf49621c1f
+
 By the end of this tutorial, you'll have:
 - A form for visitors to submit comments
 - A display showing the last 10 guestbook entries
