@@ -69,7 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `public/index.php` - All `require_once` statements now use `PHPWEAVE_ROOT . "/path"`
 - `.env` loading uses absolute path: `PHPWEAVE_ROOT . '/.env'`
 - Vendor autoload uses absolute path: `PHPWEAVE_ROOT . '/vendor/autoload.php'`
-- Routes file uses absolute path: `PHPWEAVE_ROOT . "/routes.php"`
+- Routes file uses absolute path: `PHPWEAVE_ROOT . "/routes/routes.php"`
 - Cache paths use absolute path: `PHPWEAVE_ROOT . '/cache/routes.cache'`
 
 **Error Handling**
@@ -184,7 +184,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Optional: Add Streaming Routes**
 ```php
-// routes.php
+// routes/routes.php
 Route::get('/stream/sse', 'Stream@sse');
 Route::get('/stream/progress', 'Stream@progress');
 Route::get('/stream/download/:filename:', 'Stream@download');
@@ -448,7 +448,7 @@ docker build -t phpweave:2.2.2-alpine -f Dockerfile.alpine .
 - Health check endpoints for containers
 
 ### Changed
-- Routing is now explicit (routes defined in `routes.php`)
+- Routing is now explicit (routes defined in `routes/routes.php`)
 - Legacy automatic routing moved to compatibility function
 - Framework bootstrap significantly faster (30-60% improvement)
 - Route compilation happens once and is cached
@@ -523,7 +523,7 @@ docker build -t phpweave:2.2.2-alpine -f Dockerfile.alpine .
 See `docs/MIGRATION_TO_NEW_ROUTING.md` for complete migration instructions.
 
 **Key Changes:**
-1. Define routes explicitly in `routes.php`
+1. Define routes explicitly in `routes/routes.php`
 2. Use `Route::get()`, `Route::post()`, etc. instead of automatic routing
 3. Legacy routing still available via `legacyRouting()` function
 4. No breaking changes to models, views, or controllers

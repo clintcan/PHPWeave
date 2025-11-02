@@ -8,7 +8,7 @@ PHPWeave now supports modern, explicit route definitions with dynamic parameters
 
 ### Basic Routes
 
-Define routes in `routes.php`:
+Define routes in `routes/routes.php`:
 
 ```php
 // Simple GET route
@@ -272,7 +272,7 @@ Automatically calls: Blog::show(123)
 ### New Way (Explicit)
 
 ```php
-// Define in routes.php
+// Define in routes/routes.php
 Route::get('/blog/%id%', 'Blog@show');
 
 // Clearer, more control, RESTful
@@ -280,7 +280,7 @@ Route::get('/blog/%id%', 'Blog@show');
 
 ### Enabling Legacy Support
 
-Add catch-all routes at the end of `routes.php`:
+Add catch-all routes at the end of `routes/routes.php`:
 
 ```php
 Route::any('/:controller:', 'LegacyRouter@dispatch');

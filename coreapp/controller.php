@@ -186,20 +186,58 @@ class Controller
 	}
 
 	/**
-	 * Safe HTML output helper
+	 * Redirect to a different URL
 	 *
-	 * Escapes HTML special characters to prevent XSS attacks.
-	 * Use this method when outputting user-generated content.
+	 * Sends an HTTP Location header and terminates script execution.
+	 * Use this method to redirect users to another page.
 	 *
-	 * @param string $string The string to escape
-	 * @return string The escaped string safe for HTML output
+	 * @param string $url The URL to redirect to (absolute or relative)
+	 * @return void This function does not return (terminates with die())
 	 *
 	 * @example
-	 * // In views:
-	 * <?php echo $this->safe($userInput); ?>
+	 * // Redirect to login page
+	 * $this->redirect('/login');
+	 *
+	 * @example
+	 * // Redirect to external URL
+	 * $this->redirect('https://example.com');
 	 */
-	function safe($string) {
-		return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
+	function redirect($url) {
+		header("Location: $url");
+		die();
+	}
+
+	/**
+	 * Safe HTML output helper (Controller Method)
+	 *
+	 * Escapes HTML special characters to prevent XSS attacks.
+	 * Use this method when outputting user-generated content from within controllers.
+	 * This is a convenience wrapper around htmlspecialchars().
+	 *
+	 * Note: In views, use the global safe() function instead:
+	 * <?php echo safe($userInput); ?>
+	 *
+	 * @param string $string        The string to escape
+	 * @param string $charset       Character set to use (default: 'UTF-8')
+	 * @param bool   $double_encode Whether to encode existing HTML entities (default: false)
+	 * @return string The escaped string safe for HTML output
+	 *
+	 * @see safe() Global helper function for use in views
+	 *
+	 * @example
+	 * // In controller (basic usage):
+	 * $safe = $this->safe($userInput);
+	 *
+	 * @example
+	 * // With custom charset:
+	 * $safe = $this->safe($text, 'ISO-8859-1');
+	 *
+	 * @example
+	 * // With double encoding:
+	 * $safe = $this->safe($content, 'UTF-8', true);
+	 */
+	function safe($string, $charset = 'UTF-8', $double_encode = false) {
+		return htmlspecialchars($string, ENT_QUOTES, $charset, $double_encode);
 	}
 }
 
@@ -292,6 +330,31 @@ function getControllerParams(){
 
 // Initialize error handling
 $statuserror = new ErrorClass();
+
+/**
+ * Safe HTML output helper (Global Function)
+ *
+ * Escapes HTML special characters to prevent XSS attacks.
+ * This is a global helper function that can be used in views.
+ * It's a convenience wrapper around htmlspecialchars().
+ *
+ * @param string $string        The string to escape
+ * @param string $charset       Character set to use (default: 'UTF-8')
+ * @param bool   $double_encode Whether to encode existing HTML entities (default: false)
+ * @return string The escaped string safe for HTML output
+ *
+ * @example
+ * // In views:
+ * <h1><?php echo safe($userInput); ?></h1>
+ * <p><?php echo safe($comment); ?></p>
+ *
+ * @example
+ * // With custom charset:
+ * <?php echo safe($text, 'ISO-8859-1'); ?>
+ */
+function safe($string, $charset = 'UTF-8', $double_encode = false) {
+	return htmlspecialchars($string, ENT_QUOTES, $charset, $double_encode);
+}
 
 /**
  * Legacy Routing Handler

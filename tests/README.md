@@ -2,6 +2,10 @@
 
 This directory contains test scripts and benchmarks for PHPWeave framework.
 
+## 🎓 New to PHPWeave?
+
+Before diving into tests, check out our **[Getting Started Tutorial](../docs/GETTING_STARTED_TUTORIAL.md)** which walks you through building a complete guestbook application. It's the best way to learn PHPWeave's core concepts!
+
 ## Test Files
 
 ### 1. `test_hooks.php`

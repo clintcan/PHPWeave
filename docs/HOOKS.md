@@ -164,7 +164,7 @@ Hook::register('before_router_init', function($data) {
 ---
 
 #### `after_routes_registered`
-After `routes.php` is loaded and all routes are registered.
+After `routes/routes.php` is loaded and all routes are registered.
 
 ```php
 Hook::register('after_routes_registered', function($data) {

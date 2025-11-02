@@ -8,6 +8,7 @@ Complete documentation for the PHPWeave framework.
 
 ### Getting Started
 
+- [**GETTING_STARTED_TUTORIAL.md**](GETTING_STARTED_TUTORIAL.md) - Step-by-step tutorial: Build a guestbook app 🎓 **START HERE!**
 - [**README.md**](../README.md) - Main project overview and quick start (in root)
 
 ### Core Features
@@ -147,6 +148,7 @@ Complete documentation for the PHPWeave framework.
 
 | Task                        | Documentation                                              |
 | --------------------------- | ---------------------------------------------------------- |
+| Build my first app          | [GETTING_STARTED_TUTORIAL.md](GETTING_STARTED_TUTORIAL.md) 🎓 |
 | Get started quickly         | [README.md](../README.md)                                  |
 | Learn v2.1 features         | [V2.1_FEATURES.md](V2.1_FEATURES.md)                       |
 | Use migrations              | [MIGRATIONS.md](MIGRATIONS.md)                             |
@@ -250,6 +252,9 @@ PHPWeave/
 ├── docs/                              # All documentation
 │   ├── README.md                      # This file
 │   │
+│   ├── # Getting Started
+│   ├── GETTING_STARTED_TUTORIAL.md    # Step-by-step tutorial 🎓
+│   │
 │   ├── # Core Features
 │   ├── V2.1_FEATURES.md               # v2.1 features
 │   ├── MIGRATIONS.md                  # Migration system (v2.2.0)
@@ -299,26 +304,27 @@ PHPWeave/
 
 ### Beginner
 
-1. Read [README.md](../README.md) - Overview
-2. Read [V2.1_FEATURES.md](V2.1_FEATURES.md) - v2.1 features (PHPWeave global object)
-3. Read [ROUTING_GUIDE.md](ROUTING_GUIDE.md) - Define routes
-4. Read [MODELS.md](MODELS.md) - Work with database models
-5. Read [LIBRARIES.md](LIBRARIES.md) - v2.1.1 lazy-loaded libraries
-6. Read [HOOKS.md](HOOKS.md) - Add custom logic
-7. Read [SECURITY_BEST_PRACTICES.md](SECURITY_BEST_PRACTICES.md) - Security basics (v2.1.1)
+1. 🎯 **Start here:** [GETTING_STARTED_TUTORIAL.md](GETTING_STARTED_TUTORIAL.md) - Build your first app (guestbook tutorial)
+2. Read [README.md](../README.md) - Framework overview
+3. Read [V2.1_FEATURES.md](V2.1_FEATURES.md) - v2.1 features (PHPWeave global object)
+4. Read [ROUTING_GUIDE.md](ROUTING_GUIDE.md) - Define routes
+5. Read [MODELS.md](MODELS.md) - Work with database models
+6. Read [LIBRARIES.md](LIBRARIES.md) - v2.1.1 lazy-loaded libraries
+7. Read [HOOKS.md](HOOKS.md) - Add custom logic
+8. Read [SECURITY_BEST_PRACTICES.md](SECURITY_BEST_PRACTICES.md) - Security basics (v2.1.1)
 
 ### Intermediate
 
-8. Read [ASYNC_QUICK_START.md](ASYNC_QUICK_START.md) - Background jobs
-9. Read [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) - Docker deployment
-10. Read [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md) - Performance
+9. Read [ASYNC_QUICK_START.md](ASYNC_QUICK_START.md) - Background jobs
+10. Read [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) - Docker deployment
+11. Read [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md) - Performance
 
 ### Advanced
 
-11. Read [PERFORMANCE_ANALYSIS.md](PERFORMANCE_ANALYSIS.md) - Optimization
-12. Read [DOCKER_CACHING_GUIDE.md](DOCKER_CACHING_GUIDE.md) - Caching strategies
-13. Read [ASYNC_GUIDE.md](ASYNC_GUIDE.md) - Advanced async patterns
-14. Read [SECURITY_AUDIT.md](../SECURITY_AUDIT.md) - Security audit report
+12. Read [PERFORMANCE_ANALYSIS.md](PERFORMANCE_ANALYSIS.md) - Optimization
+13. Read [DOCKER_CACHING_GUIDE.md](DOCKER_CACHING_GUIDE.md) - Caching strategies
+14. Read [ASYNC_GUIDE.md](ASYNC_GUIDE.md) - Advanced async patterns
+15. Read [SECURITY_AUDIT.md](../SECURITY_AUDIT.md) - Security audit report
 
 ---
 
