@@ -32,7 +32,7 @@ jobs:
 
     - name: Check PHP syntax - Root files
       run: |
-        php -l routes.php
+        php -l routes/routes.php
         php -l worker.php
 
     - name: Check PHP syntax - Controllers
