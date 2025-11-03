@@ -63,6 +63,7 @@ Complete documentation for the PHPWeave framework.
 #### Hooks System
 
 - [**HOOKS.md**](HOOKS.md) - Complete hooks documentation with all 18 hook points
+- [**HOOKS_LOADING_EXPLAINED.md**](HOOKS_LOADING_EXPLAINED.md) - How hook files are auto-loaded and executed ⭐ NEW!
 
 #### Models System
 
@@ -155,6 +156,7 @@ Complete documentation for the PHPWeave framework.
 | Enable connection pooling   | [CONNECTION_POOLING.md](CONNECTION_POOLING.md)             |
 | Define routes               | [ROUTING_GUIDE.md](ROUTING_GUIDE.md)                       |
 | Add hooks                   | [HOOKS.md](HOOKS.md)                                       |
+| Understand hook loading     | [HOOKS_LOADING_EXPLAINED.md](HOOKS_LOADING_EXPLAINED.md)   |
 | Work with models            | [MODELS.md](MODELS.md)                                     |
 | Manage sessions             | [SESSIONS.md](SESSIONS.md)                                 |
 | Create utility libraries    | [LIBRARIES.md](LIBRARIES.md)                               |
@@ -264,6 +266,7 @@ PHPWeave/
 │   ├── ROUTING_GUIDE.md              # Routing system
 │   ├── MIGRATION_TO_NEW_ROUTING.md   # Migration guide
 │   ├── HOOKS.md                       # Hooks system (18 points)
+│   ├── HOOKS_LOADING_EXPLAINED.md     # Hook auto-loading explained ⭐ NEW!
 │   ├── MODELS.md                      # Models system
 │   ├── SESSIONS.md                    # Session management
 │   ├── LIBRARIES.md                   # Libraries system
@@ -311,20 +314,21 @@ PHPWeave/
 5. Read [MODELS.md](MODELS.md) - Work with database models
 6. Read [LIBRARIES.md](LIBRARIES.md) - v2.1.1 lazy-loaded libraries
 7. Read [HOOKS.md](HOOKS.md) - Add custom logic
-8. Read [SECURITY_BEST_PRACTICES.md](SECURITY_BEST_PRACTICES.md) - Security basics (v2.1.1)
+8. Read [HOOKS_LOADING_EXPLAINED.md](HOOKS_LOADING_EXPLAINED.md) - Understand hook auto-loading
+9. Read [SECURITY_BEST_PRACTICES.md](SECURITY_BEST_PRACTICES.md) - Security basics (v2.1.1)
 
 ### Intermediate
 
-9. Read [ASYNC_QUICK_START.md](ASYNC_QUICK_START.md) - Background jobs
-10. Read [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) - Docker deployment
-11. Read [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md) - Performance
+10. Read [ASYNC_QUICK_START.md](ASYNC_QUICK_START.md) - Background jobs
+11. Read [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md) - Docker deployment
+12. Read [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md) - Performance
 
 ### Advanced
 
-12. Read [PERFORMANCE_ANALYSIS.md](PERFORMANCE_ANALYSIS.md) - Optimization
-13. Read [DOCKER_CACHING_GUIDE.md](DOCKER_CACHING_GUIDE.md) - Caching strategies
-14. Read [ASYNC_GUIDE.md](ASYNC_GUIDE.md) - Advanced async patterns
-15. Read [SECURITY_AUDIT.md](../SECURITY_AUDIT.md) - Security audit report
+13. Read [PERFORMANCE_ANALYSIS.md](PERFORMANCE_ANALYSIS.md) - Optimization
+14. Read [DOCKER_CACHING_GUIDE.md](DOCKER_CACHING_GUIDE.md) - Caching strategies
+15. Read [ASYNC_GUIDE.md](ASYNC_GUIDE.md) - Advanced async patterns
+16. Read [SECURITY_AUDIT.md](../SECURITY_AUDIT.md) - Security audit report
 
 ---
 

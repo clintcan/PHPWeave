@@ -26,6 +26,9 @@ Hooks allow you to:
 - Implement cross-cutting concerns (authentication, logging, etc.)
 - Extend framework functionality without modifying core files
 
+**📚 Related Documentation:**
+- [HOOKS_LOADING_EXPLAINED.md](HOOKS_LOADING_EXPLAINED.md) - How hook files are auto-loaded and executed
+
 ## Basic Usage
 
 ### Creating a Hook File
@@ -45,7 +48,7 @@ Hook::register('before_action_execute', function($data) {
 });
 ```
 
-Hook files are automatically loaded at framework startup.
+**Hook files are automatically loaded at framework startup.** See [HOOKS_LOADING_EXPLAINED.md](HOOKS_LOADING_EXPLAINED.md) for details on how auto-loading works.
 
 ### Registering a Hook
 
