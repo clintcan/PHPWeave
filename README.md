@@ -8,6 +8,8 @@
 
 A lightweight, homegrown PHP MVC framework born from simplicity and evolved with modern routing.
 
+[![PHPWeave Introduction](https://img.youtube.com/vi/I1MrryMDNy4/0.jpg)](https://www.youtube.com/watch?v=I1MrryMDNy4)
+
 ## History
 
 PHPWeave started as a private, in-house PHP framework created for rapid web application development. Initially inspired by **CodeIgniter's** elegant simplicity and straightforward MVC pattern, PHPWeave was designed to strip away complexity while maintaining the power needed for real-world applications.
