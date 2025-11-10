@@ -115,6 +115,18 @@ trait QueryBuilder
     protected $qb_distinct = false;
 
     /**
+     * Cache TTL in seconds (null = no caching)
+     * @var int|null
+     */
+    protected $qb_cacheTTL = null;
+
+    /**
+     * Cache tags for this query
+     * @var array
+     */
+    protected $qb_cacheTags = [];
+
+    /**
      * Set the table to query
      *
      * @param string $table Table name
@@ -621,15 +633,85 @@ trait QueryBuilder
     }
 
     /**
+     * Enable caching for this query
+     *
+     * @param int $ttl Time to live in seconds (default: 3600)
+     * @return self Chainable
+     *
+     * @example
+     * $users = $this->table('users')->where('active', 1)->cache(3600)->get();
+     * $posts = $this->table('posts')->cache()->get(); // Uses default TTL
+     */
+    public function cache($ttl = 3600)
+    {
+        $this->qb_cacheTTL = $ttl;
+        return $this;
+    }
+
+    /**
+     * Set cache tags for this query
+     *
+     * @param string|array $tags Tag name(s)
+     * @return self Chainable
+     *
+     * @example
+     * $this->table('users')->cacheTags(['users', 'active'])->cache(3600)->get();
+     * $this->table('posts')->cacheTags('posts')->cache()->get();
+     */
+    public function cacheTags($tags)
+    {
+        $this->qb_cacheTags = is_array($tags) ? $tags : [$tags];
+        return $this;
+    }
+
+    /**
+     * Generate cache key for current query
+     *
+     * @return string Cache key
+     */
+    protected function getCacheKey()
+    {
+        $sql = $this->buildSelectQuery();
+        $bindings = json_encode($this->qb_bindings);
+        return 'query:' . md5($sql . $bindings);
+    }
+
+    /**
      * Execute query and get all results
      *
      * @return array Array of rows
      *
      * @example
      * $users = $this->table('users')->where('active', 1)->get();
+     * $cached = $this->table('users')->where('active', 1)->cache(3600)->get();
      */
     public function get()
     {
+        // Check if caching is enabled
+        if ($this->qb_cacheTTL !== null) {
+            require_once __DIR__ . '/cache.php';
+            require_once __DIR__ . '/cachedriver.php';
+
+            $cacheKey = $this->getCacheKey();
+
+            // Apply tags if specified
+            if (!empty($this->qb_cacheTags)) {
+                return Cache::tags($this->qb_cacheTags)->remember($cacheKey, $this->qb_cacheTTL, function() {
+                    $sql = $this->buildSelectQuery();
+                    $stmt = $this->executePreparedSQL($sql, $this->qb_bindings);
+                    return $this->fetchAll($stmt);
+                });
+            }
+
+            // No tags - simple caching
+            return Cache::remember($cacheKey, $this->qb_cacheTTL, function() {
+                $sql = $this->buildSelectQuery();
+                $stmt = $this->executePreparedSQL($sql, $this->qb_bindings);
+                return $this->fetchAll($stmt);
+            });
+        }
+
+        // No caching - execute normally
         $sql = $this->buildSelectQuery();
         $stmt = $this->executePreparedSQL($sql, $this->qb_bindings);
         return $this->fetchAll($stmt);
@@ -642,10 +724,37 @@ trait QueryBuilder
      *
      * @example
      * $user = $this->table('users')->where('email', $email)->first();
+     * $cached = $this->table('users')->where('id', 1)->cache(3600)->first();
      */
     public function first()
     {
         $this->limit(1);
+
+        // Check if caching is enabled
+        if ($this->qb_cacheTTL !== null) {
+            require_once __DIR__ . '/cache.php';
+            require_once __DIR__ . '/cachedriver.php';
+
+            $cacheKey = $this->getCacheKey() . ':first';
+
+            // Apply tags if specified
+            if (!empty($this->qb_cacheTags)) {
+                return Cache::tags($this->qb_cacheTags)->remember($cacheKey, $this->qb_cacheTTL, function() {
+                    $sql = $this->buildSelectQuery();
+                    $stmt = $this->executePreparedSQL($sql, $this->qb_bindings);
+                    return $this->fetch($stmt);
+                });
+            }
+
+            // No tags - simple caching
+            return Cache::remember($cacheKey, $this->qb_cacheTTL, function() {
+                $sql = $this->buildSelectQuery();
+                $stmt = $this->executePreparedSQL($sql, $this->qb_bindings);
+                return $this->fetch($stmt);
+            });
+        }
+
+        // No caching - execute normally
         $sql = $this->buildSelectQuery();
         $stmt = $this->executePreparedSQL($sql, $this->qb_bindings);
         return $this->fetch($stmt);
@@ -1088,6 +1197,8 @@ trait QueryBuilder
         $this->qb_paramCounter = 0;
         $this->qb_unions = [];
         $this->qb_distinct = false;
+        $this->qb_cacheTTL = null;
+        $this->qb_cacheTags = [];
     }
 
     /**
