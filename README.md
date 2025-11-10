@@ -38,6 +38,8 @@ This migration represents PHPWeave's commitment to staying relevant while honori
 - **Lightweight**: Minimal footprint, maximum performance
 
 ### Database (v2.2.0+)
+- **Query Builder**: Fluent, database-agnostic query interface with chainable methods (v2.4.0+)
+- **Database Seeding**: Structured data population with seeders and factories (v2.4.0+)
 - **Database-Free Mode**: Run without database for stateless APIs and microservices (v2.2.1+)
 - **Lazy Connection**: Database connects only on first query, not during initialization (v2.2.1+)
 - **Built-in Migrations**: Version-controlled schema management with rollback support
@@ -56,6 +58,7 @@ This migration represents PHPWeave's commitment to staying relevant while honori
 
 ### Developer Tools (v2.2.0+)
 - **Migration CLI**: Create, run, rollback database migrations
+- **Seeding CLI**: Populate databases with test/demo data using seeders and factories (v2.4.0+)
 - **Async Task System**: Background job processing without external dependencies
 - **Error Handling**: Comprehensive error logging with clean error pages (v2.2.2+)
 - **Streaming Support**: SSE, progress bars, large file downloads with buffer control (v2.2.2+)
@@ -458,14 +461,25 @@ Models live in `models/` and extend `DBConnection` for database access:
 <?php
 class blog_model extends DBConnection
 {
+    use QueryBuilder; // Optional: Use Query Builder (v2.4.0+)
+
     public function __construct() {
         parent::__construct();
     }
 
+    // Traditional prepared statements
     public function getAll() {
         $sql = "SELECT * FROM blogs ORDER BY created_at DESC";
         $stmt = $this->executePreparedSQL($sql);
         return $this->fetchAll($stmt);
+    }
+
+    // Or use Query Builder (v2.4.0+)
+    public function getAllActive() {
+        return $this->table('blogs')
+            ->where('status', 'active')
+            ->orderBy('created_at', 'DESC')
+            ->get();
     }
 
     public function getById($id) {
@@ -600,6 +614,63 @@ php migrate.php rollback   # Rollback last batch
 
 See **docs/MIGRATIONS.md** for complete guide.
 
+### Database Seeding (v2.4.0+)
+
+**New in v2.4.0!** Structured database seeding with seeders and factories for test/demo data.
+
+**Create a Seeder:**
+```php
+// seeders/UserSeeder.php
+class UserSeeder extends Seeder {
+    public function run() {
+        $this->truncate('users');
+
+        // Manual data
+        $this->insert('users', [
+            ['name' => 'Admin', 'email' => 'admin@example.com'],
+            ['name' => 'User', 'email' => 'user@example.com']
+        ]);
+
+        // Use factory for bulk data
+        UserFactory::new()->create(50);
+    }
+}
+```
+
+**Create a Factory:**
+```php
+// factories/UserFactory.php
+class UserFactory extends Factory {
+    protected $table = 'users';
+
+    public function definition() {
+        return [
+            'name' => $this->faker->name(),
+            'email' => $this->faker->email(),
+            'password' => password_hash('password', PASSWORD_DEFAULT),
+            'created_at' => $this->now()
+        ];
+    }
+}
+```
+
+**Run Seeders:**
+```bash
+php seed.php run                    # Run all seeders
+php seed.php run UserSeeder         # Run specific seeder
+php seed.php fresh                  # Migrate fresh + seed
+php seed.php list                   # List available seeders
+```
+
+**Seeding Features:**
+- Structured, reusable seeders
+- Factory pattern with built-in faker
+- Transaction support
+- Environment-aware seeding
+- Query Builder integration
+
+See **docs/SEEDING.md** for complete guide.
+
 ### Views
 
 Views are plain PHP templates in `views/`. **As of v2.1+, array data is automatically extracted into individual variables:**
@@ -656,8 +727,36 @@ When database IS enabled, PHPWeave uses **lazy loading**:
 
 ### Working with Database
 
-PHPWeave uses PDO with prepared statements for security:
+PHPWeave supports two database approaches:
 
+**1. Query Builder (v2.4.0+)** - Fluent, database-agnostic:
+```php
+// Add to model: use QueryBuilder;
+
+// Select with conditions
+$users = $this->table('users')
+    ->where('status', 'active')
+    ->where('age', '>', 18)
+    ->orderBy('created_at', 'DESC')
+    ->get();
+
+// Joins
+$posts = $this->table('posts')
+    ->join('users', 'posts.user_id', '=', 'users.id')
+    ->select('posts.*', 'users.name')
+    ->get();
+
+// Insert/Update/Delete
+$id = $this->table('users')->insert(['name' => 'John', 'email' => 'john@example.com']);
+$this->table('users')->where('id', 1)->update(['name' => 'Jane']);
+$this->table('users')->where('id', 1)->delete();
+
+// Aggregates
+$count = $this->table('users')->where('active', 1)->count();
+$avg = $this->table('users')->avg('age');
+```
+
+**2. Traditional PDO** - Direct SQL with prepared statements:
 ```php
 // Execute prepared statement (auto-connects on first call)
 $sql = "SELECT * FROM users WHERE email = :email";
@@ -672,6 +771,8 @@ $users = $this->fetchAll($stmt);
 // Get row count
 $count = $this->rowCount($stmt);
 ```
+
+See **docs/QUERY_BUILDER.md** for complete Query Builder documentation.
 
 **Configuration Methods:**
 
@@ -936,6 +1037,13 @@ PHPWeave/
 ├── jobs/               # Background job classes
 │   ├── SendEmailJob.php
 │   └── ProcessImageJob.php
+├── seeders/            # Database seeders (v2.4.0+)
+│   ├── DatabaseSeeder.php
+│   └── UserSeeder.php
+├── factories/          # Data factories (v2.4.0+)
+│   └── UserFactory.php
+├── migrations/         # Database migrations
+│   └── YYYY_MM_DD_HHMMSS_migration_name.php
 ├── hooks/              # Hook implementations
 │   ├── example_authentication.php
 │   ├── example_logging.php
@@ -951,6 +1059,9 @@ PHPWeave/
 │   ├── models.php      # Lazy model loader
 │   ├── libraries.php   # Lazy library loader (v2.1.1+)
 │   ├── dbconnection.php # PDO database class
+│   ├── querybuilder.php # Fluent query builder (v2.4.0+)
+│   ├── seeder.php      # Base seeder class (v2.4.0+)
+│   ├── factory.php     # Factory pattern for seeders (v2.4.0+)
 │   ├── hooks.php       # Event-driven hooks system
 │   ├── async.php       # Async task system
 │   └── error.php       # Error handling
@@ -962,7 +1073,10 @@ PHPWeave/
 │   ├── GETTING_STARTED_TUTORIAL.md  # 🎓 START HERE - Guestbook tutorial
 │   ├── ROUTING_GUIDE.md
 │   ├── HOOKS.md        # Complete hooks guide
-│   ├── LIBRARIES.md    # Libraries guide (NEW!)
+│   ├── LIBRARIES.md    # Libraries guide
+│   ├── QUERY_BUILDER.md # Query Builder guide (v2.4.0+)
+│   ├── SEEDING.md      # Database seeding guide (v2.4.0+)
+│   ├── MIGRATIONS.md   # Database migrations guide
 │   ├── ASYNC_GUIDE.md
 │   ├── ASYNC_QUICK_START.md
 │   ├── DOCKER_DEPLOYMENT.md
@@ -979,6 +1093,8 @@ PHPWeave/
 │   └── benchmark_optimizations.php
 ├── routes/             # Route definitions
 │   └── routes.php      # Main routes file
+├── migrate.php         # Migration CLI tool
+├── seed.php            # Seeding CLI tool (v2.4.0+)
 ├── worker.php          # Queue worker script
 ├── Dockerfile          # Docker image with APCu
 ├── docker-compose.yml  # Standard deployment (.env file)
@@ -1225,6 +1341,15 @@ Customize error pages by modifying `coreapp/router.php`:
 - **docs/ASYNC_GUIDE.md** - Complete guide to background tasks and job queues
 - **docs/ASYNC_QUICK_START.md** - Quick start guide for async tasks
 - **docs/MIGRATION_TO_NEW_ROUTING.md** - Guide for migrating from legacy routing
+
+### Database (v2.4.0+)
+- **docs/QUERY_BUILDER.md** - Complete Query Builder guide with 30+ examples (NEW in v2.4.0!)
+- **docs/QUERY_BUILDER_IMPLEMENTATION.md** - Query Builder implementation and technical details (NEW in v2.4.0!)
+- **docs/SEEDING.md** - Database seeding guide with seeders and factories (NEW in v2.4.0!)
+- **docs/SEEDING_IMPLEMENTATION.md** - Seeding system implementation summary (NEW in v2.4.0!)
+- **docs/MIGRATIONS.md** - Database migrations guide
+- **docs/SESSIONS.md** - Session management (file and database drivers)
+- **docs/CONNECTION_POOLING.md** - Database connection pooling
 
 ### Performance & Optimization
 - **docs/PERFORMANCE_ANALYSIS.md** - Detailed performance analysis and bottlenecks
