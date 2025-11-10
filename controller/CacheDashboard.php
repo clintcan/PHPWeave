@@ -25,17 +25,34 @@
 class CacheDashboard extends Controller
 {
     /**
+     * Get configuration value from .env or environment
+     *
+     * @param string $key Configuration key
+     * @return string|false
+     */
+    private function getConfig($key)
+    {
+        // First, try to get from parsed .env file
+        if (isset($GLOBALS['configs'][$key])) {
+            return $GLOBALS['configs'][$key];
+        }
+
+        // Fallback to environment variable
+        return getenv($key);
+    }
+
+    /**
      * Check if dashboard is enabled
      *
      * @return bool
      */
     private function isDashboardEnabled()
     {
-        $enabled = getenv('CACHE_DASHBOARD_ENABLED');
+        $enabled = $this->getConfig('CACHE_DASHBOARD_ENABLED');
 
         // If not set, check DEBUG mode (enabled in DEBUG mode by default)
-        if ($enabled === false) {
-            return getenv('DEBUG') == '1';
+        if ($enabled === false || $enabled === '') {
+            return $this->getConfig('DEBUG') == '1';
         }
 
         return $enabled == '1' || $enabled === 'true';
@@ -48,7 +65,7 @@ class CacheDashboard extends Controller
      */
     private function isAuthRequired()
     {
-        $auth = getenv('CACHE_DASHBOARD_AUTH');
+        $auth = $this->getConfig('CACHE_DASHBOARD_AUTH');
         return $auth == '1' || $auth === 'true';
     }
 
@@ -59,7 +76,7 @@ class CacheDashboard extends Controller
      */
     private function getAllowedIPs()
     {
-        $ips = getenv('CACHE_DASHBOARD_IPS');
+        $ips = $this->getConfig('CACHE_DASHBOARD_IPS');
 
         if (!$ips) {
             return [];
@@ -99,8 +116,8 @@ class CacheDashboard extends Controller
         }
 
         // Check if credentials are provided
-        $username = getenv('CACHE_DASHBOARD_USER');
-        $password = getenv('CACHE_DASHBOARD_PASS');
+        $username = $this->getConfig('CACHE_DASHBOARD_USER');
+        $password = $this->getConfig('CACHE_DASHBOARD_PASS');
 
         if (!$username || !$password) {
             // Auth required but not configured = deny access
