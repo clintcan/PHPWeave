@@ -49,37 +49,93 @@ A complete, production-ready query builder providing a clean, chainable API for 
 **Files Added:**
 - `coreapp/querybuilder.php` - Complete query builder implementation (1,200+ lines)
 - `docs/QUERY_BUILDER.md` - Comprehensive guide with 30+ examples (1,500+ lines)
+- `docs/QUERY_BUILDER_IMPLEMENTATION.md` - Implementation summary and technical details
 - `tests/test_query_builder.php` - Full test suite covering all features (700+ lines)
+
+---
+
+**🌱 Database Seeding System**
+
+A structured way to populate databases with test/demo data, separate from migrations.
+
+**Core Features:**
+- **Seeder Classes**: Structured, reusable seeders extending base Seeder class
+- **Factory Pattern**: Generate fake data using factories with Faker integration
+- **CLI Tool**: `seed.php` for running seeders from command line
+- **Environment-Aware**: Different data for development, staging, production
+- **Transaction Support**: Seed multiple tables safely with rollback capability
+- **Built-in Faker**: Includes basic faker (external Faker optional for advanced features)
+
+**Seeder Methods:**
+- **Data**: `insert()`, `truncate()`, `delete()`, `execute()`
+- **Organization**: `call()`, `factory()`
+- **Transactions**: `beginTransaction()`, `commit()`, `rollback()`
+- **Utilities**: `now()`, `randomString()`, `randomEmail()`, `randomNumber()`, `environment()`
+
+**Factory Methods:**
+- **Creation**: `create()`, `make()`
+- **States**: `state()`, `admin()`, `inactive()` (custom states)
+- **Callbacks**: `afterCreating()`
+- **Utilities**: `sequence()`, `now()`, `faker`
+
+**Files Added:**
+- `coreapp/seeder.php` - Base seeder class with insert/truncate/call methods (400+ lines)
+- `coreapp/factory.php` - Factory pattern with built-in and Faker integration (500+ lines)
+- `seed.php` - CLI tool for running seeders (400+ lines)
+- `seeders/DatabaseSeeder.php` - Main seeder entry point
+- `seeders/UserSeeder.php` - Example user seeder
+- `factories/UserFactory.php` - Example user factory
+- `docs/SEEDING.md` - Complete seeding guide with examples (1,200+ lines)
+
+**CLI Commands:**
+```bash
+php seed.php run                    # Run all seeders
+php seed.php run UserSeeder         # Run specific seeder
+php seed.php fresh                  # Rollback, migrate, and seed
+php seed.php list                   # List available seeders
+```
 
 **Usage Example:**
 ```php
-// Add to any model
-class user_model extends DBConnection {
-    use QueryBuilder;
+// seeders/UserSeeder.php
+class UserSeeder extends Seeder {
+    public function run() {
+        $this->truncate('users');
 
-    public function getActiveUsers() {
-        return $this->table('users')
-            ->where('status', 'active')
-            ->where('age', '>', 18)
-            ->orderBy('created_at', 'DESC')
-            ->limit(10)
-            ->get();
+        $this->insert('users', [
+            ['name' => 'Admin', 'email' => 'admin@example.com'],
+            ['name' => 'User', 'email' => 'user@example.com']
+        ]);
+
+        // Use factory for bulk data
+        UserFactory::new()->create(50);
+    }
+}
+
+// factories/UserFactory.php
+class UserFactory extends Factory {
+    protected $table = 'users';
+
+    public function definition() {
+        return [
+            'name' => $this->faker->name(),
+            'email' => $this->faker->email(),
+            'password' => password_hash('password', PASSWORD_DEFAULT),
+            'created_at' => $this->now()
+        ];
     }
 
-    public function getUserWithPosts($userId) {
-        return $this->table('users')
-            ->join('posts', 'users.id', '=', 'posts.user_id')
-            ->where('users.id', $userId)
-            ->select('users.*', 'posts.title')
-            ->get();
+    public function admin() {
+        return $this->state(['role' => 'admin']);
     }
 }
 ```
 
 ### Changed
 - `models/user_model.php` - Updated documentation with Query Builder usage examples
-- `composer.json` - Increased PHPStan memory limit to 512M for analyzing complex code
+- `composer.json` - Increased PHPStan memory limit to 512M + added Faker as suggested dependency
 - `phpstan.neon` - Excluded test files and added ignore rule for opt-in trait
+- `docs/README.md` - Added Query Builder and Database Seeding to feature list
 
 ### Technical Details
 - **Implementation**: Trait-based for easy integration into any model

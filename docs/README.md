@@ -16,10 +16,12 @@ Complete documentation for the PHPWeave framework.
 #### Version 2.4.0 Features (LATEST!)
 
 - **Query Builder** - Fluent, database-agnostic query interface with chainable methods ⭐ NEW!
+- **Database Seeding** - Structured data population with seeders and factories ⭐ NEW!
 - **Automatic Parameter Binding** - SQL injection protection with prepared statements
 - **Transaction Support** - Database transactions with commit/rollback
 - [**QUERY_BUILDER.md**](QUERY_BUILDER.md) - Complete Query Builder guide with 30+ examples ⭐ NEW!
 - [**QUERY_BUILDER_IMPLEMENTATION.md**](QUERY_BUILDER_IMPLEMENTATION.md) - Implementation summary and technical details ⭐ NEW!
+- [**SEEDING.md**](SEEDING.md) - Database seeding guide with seeders and factories ⭐ NEW!
 
 #### Version 2.2.2-1 Features
 
