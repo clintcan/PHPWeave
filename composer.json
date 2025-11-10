@@ -26,7 +26,7 @@
     },
     "scripts": {
         "test": "echo 'Run: php tests/test_hooks.php'",
-        "phpstan": "phpstan analyse --no-progress",
+        "phpstan": "phpstan analyse --no-progress --memory-limit=512M",
         "psalm": "psalm --no-progress",
         "psalm-security": "psalm --taint-analysis --no-progress",
         "check": [

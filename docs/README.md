@@ -13,7 +13,15 @@ Complete documentation for the PHPWeave framework.
 
 ### Core Features
 
-#### Version 2.2.2-1 Features (LATEST!)
+#### Version 2.4.0 Features (LATEST!)
+
+- **Query Builder** - Fluent, database-agnostic query interface with chainable methods ⭐ NEW!
+- **Automatic Parameter Binding** - SQL injection protection with prepared statements
+- **Transaction Support** - Database transactions with commit/rollback
+- [**QUERY_BUILDER.md**](QUERY_BUILDER.md) - Complete Query Builder guide with 30+ examples ⭐ NEW!
+- [**QUERY_BUILDER_IMPLEMENTATION.md**](QUERY_BUILDER_IMPLEMENTATION.md) - Implementation summary and technical details ⭐ NEW!
+
+#### Version 2.2.2-1 Features
 
 - **Docker Security Hardening** - CVE patches, Alpine image, security headers (70% smaller, fewer vulnerabilities) ⭐ NEW!
 - **Output Buffering & Streaming** - Prevents "headers already sent" errors with streaming support ⭐ NEW!
@@ -87,6 +95,7 @@ Complete documentation for the PHPWeave framework.
 - [**PSALM_CONFIGURATION_SUMMARY.md**](PSALM_CONFIGURATION_SUMMARY.md) - Complete Psalm security configuration and current status ⭐ LATEST!
 - [**SECURITY_ANALYSIS.md**](SECURITY_ANALYSIS.md) - Psalm security analysis guide (SQL injection, XSS, path traversal detection)
 - [**PSALM_SETUP_COMPLETE.md**](PSALM_SETUP_COMPLETE.md) - Psalm setup summary and quick reference
+- [**PHPSTAN_FIX.md**](PHPSTAN_FIX.md) - PHPStan memory optimization for large codebases ⭐ NEW!
 - [**SECURITY_BEST_PRACTICES.md**](SECURITY_BEST_PRACTICES.md) - Comprehensive security guidelines for developers
 - [**SECURITY_AUDIT.md**](../SECURITY_AUDIT.md) - OWASP Top 10 security audit report (Rating: A)
 
