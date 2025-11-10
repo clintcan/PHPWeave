@@ -5,19 +5,32 @@
  * Handles user-related database operations.
  * Provides methods for user retrieval, creation, and management.
  *
+ * NEW in v2.4.0: Now supports Query Builder for cleaner, more expressive queries.
+ * Uncomment the QueryBuilder trait below to enable fluent query syntax.
+ *
  * @package    PHPWeave
  * @subpackage Models
  * @category   Models
  * @author     Clint Christopher Canada
- * @version    2.0.0
+ * @version    2.4.0
  *
  * @example
- * // In controller:
+ * // Traditional way (still works):
  * global $models;
  * $user = $models['user_model']->getUser(123);
+ *
+ * @example
+ * // With Query Builder (uncomment trait below):
+ * global $PW;
+ * $users = $PW->models->user_model->table('users')
+ *     ->where('status', 'active')
+ *     ->orderBy('created_at', 'DESC')
+ *     ->get();
  */
 class user_model extends DBConnection
 {
+    // Uncomment the line below to enable Query Builder
+    // use QueryBuilder;
     /**
      * Constructor
      *
