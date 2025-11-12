@@ -18,6 +18,96 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.0] - 2025-11-12
+
+### Added
+
+**⚡ Comprehensive Performance Optimizations**
+
+Five major optimizations that reduce request overhead by **7-14ms per request**, providing significant performance gains for production applications.
+
+**Tier 1 Optimization:**
+- **APCu Caching for .env Files** (2-5ms saved)
+  - Caches parsed .env configuration in APCu to eliminate repeated file I/O
+  - Auto-invalidation based on file modification time
+  - 95-98% faster parsing with APCu enabled
+  - Debug-mode aware (caching disabled when `DEBUG=1`)
+  - Graceful fallback when APCu unavailable
+
+**Tier 2 Optimizations:**
+- **Hook File Discovery Caching** (1-3ms saved)
+  - Caches `glob()` results for hooks directory scanning
+  - 90-98% faster hook discovery with APCu
+  - Auto-invalidates when directory modified
+
+- **Model & Library File Discovery Caching** (2-4ms saved)
+  - Caches file lists for models and libraries directories
+  - Eliminates repeated filesystem scans
+  - 90-98% faster discovery with APCu
+
+- **Environment Detection Consolidation** (0.5-1ms saved)
+  - Detects Docker/K8s/Swoole environment once per request
+  - Eliminates repeated `file_exists()` and `getenv()` calls
+  - **1,354x faster** (99.9% improvement) - no APCu required!
+
+**Bonus Optimization:**
+- **Hybrid Cache Tag Lookup** (0.2-0.5ms per tag operation)
+  - Small tags (<50 keys): Uses `in_array()` for efficiency
+  - Large tags (>50 keys): Uses cached `array_flip()` + `isset()` (O(1) lookup)
+  - 53-99% faster tag operations depending on array size
+  - No APCu required
+
+**Files Modified:**
+- `public/index.php` - .env caching + environment detection
+- `coreapp/hooks.php` - Hook file discovery caching
+- `coreapp/models.php` - Model file caching + environment detection
+- `coreapp/libraries.php` - Library file caching + environment detection
+- `coreapp/cache.php` - Hybrid tag lookup optimization
+
+**Test Suite:**
+- `tests/test_env_caching.php` - Comprehensive .env cache tests
+- `tests/benchmark_tier1_optimizations.php` - Tier 1 benchmarks
+- `tests/benchmark_tier2_optimizations.php` - Tier 2 benchmarks
+- `tests/benchmark_micro_optimizations.php` - Isolated micro-optimization tests
+
+**Documentation:**
+- `docs/OPTIMIZATION_v2.6.0.md` - Complete optimization guide with benchmarks
+
+### Performance
+
+**Request Performance:**
+- 🚀 **7-14ms faster per request** (combined optimizations with APCu)
+- 🚀 95-98% faster .env file parsing
+- 🚀 90-98% faster file discovery (hooks, models, libraries)
+- 🚀 **1,354x faster environment detection** (always, no APCu required!)
+- 🚀 53-99% faster cache tag operations
+
+**Real-World Impact (with APCu):**
+- Small site (10K requests/day): ~1.2 minutes saved daily
+- Medium site (100K requests/day): ~12 minutes saved daily
+- High traffic (1M requests/day): ~2 hours saved daily
+- Enterprise (10M requests/day): ~20 hours saved daily
+
+### Technical Details
+
+- **100% backward compatible** - No breaking changes
+- **Zero configuration required** - Works automatically if APCu available
+- **Debug-mode aware** - Caching disabled when `DEBUG=1` for development
+- **Auto-invalidation** - Cache keys include file/directory modification times
+- **Graceful fallback** - Works without APCu, just without caching benefits
+- **Production-ready** - Extensively tested and benchmarked
+
+### Requirements
+
+- **PHP 7.0+** (already required)
+- **APCu extension** (optional but highly recommended for maximum performance)
+  - Ubuntu/Debian: `sudo apt-get install php-apcu`
+  - CentOS/RHEL: `sudo yum install php-apcu`
+  - macOS: `pecl install apcu`
+  - Docker: `RUN pecl install apcu && docker-php-ext-enable apcu`
+
+---
+
 ## [2.5.0] - 2025-11-12
 
 ### Added

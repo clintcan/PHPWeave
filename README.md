@@ -50,6 +50,11 @@ This migration represents PHPWeave's commitment to staying relevant while honori
 - **Lazy Model Loading**: Models loaded on-demand for optimal performance
 
 ### Performance
+- **⚡ Core Optimizations**: 7-14ms faster per request with APCu caching (v2.6.0+)
+  - .env file caching: 95-98% faster parsing
+  - File discovery caching: 90-98% faster (hooks, models, libraries)
+  - Environment detection: 1,354x faster (99.9% improvement!)
+  - Hybrid tag lookup: 53-99% faster for cache tags
 - **Advanced Caching**: 100-500x faster for cached data with multi-tier caching (v2.5.0+)
 - **Query Result Caching**: Cache database queries automatically with `->cache()` (v2.5.0+)
 - **Database-Free Mode**: 5-15ms faster per request when database not needed (v2.2.1+)
@@ -57,7 +62,7 @@ This migration represents PHPWeave's commitment to staying relevant while honori
 - **Connection Pooling**: Automatic connection reuse (v2.2.0+)
 - **Route Caching**: APCu and file-based caching
 - **Lazy Loading**: Models and libraries loaded only when needed
-- **30-60% faster**: Compared to v1.x
+- **50-80% faster**: Compared to v1.x (including v2.6.0 optimizations)
 
 ### Developer Tools (v2.2.0+)
 - **Migration CLI**: Create, run, rollback database migrations

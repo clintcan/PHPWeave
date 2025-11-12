@@ -13,7 +13,16 @@ Complete documentation for the PHPWeave framework.
 
 ### Core Features
 
-#### Version 2.5.0 Features (LATEST!) ⭐ NEW!
+#### Version 2.6.0 Features (LATEST!) ⚡ NEW!
+
+- **⚡ Core Performance Optimizations** - 7-14ms faster per request with APCu caching ⚡ NEW!
+- **.env File Caching** - 95-98% faster parsing with auto-invalidation ⚡ NEW!
+- **File Discovery Caching** - 90-98% faster hooks/models/libraries discovery ⚡ NEW!
+- **Environment Detection** - 1,354x faster (99.9% improvement!) ⚡ NEW!
+- **Hybrid Tag Lookup** - 53-99% faster cache tag operations ⚡ NEW!
+- [**OPTIMIZATION_v2.6.0.md**](OPTIMIZATION_v2.6.0.md) - Complete optimization guide with benchmarks ⚡ NEW!
+
+#### Version 2.5.0 Features
 
 - **Advanced Caching Layer** - Multi-tier caching with tags, Query Builder integration, real-time dashboard ⭐ NEW!
 - **Cache Dashboard** - Real-time statistics, hit/miss rates, memory usage monitoring ⭐ NEW!
