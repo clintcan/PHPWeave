@@ -38,11 +38,11 @@
 $GLOBALS['_model_files'] = [];
 $modelsDir = "../models";
 $files = false;
+$cacheKey = 'phpweave_model_files_' . (is_dir($modelsDir) ? filemtime($modelsDir) : 0);
 
 // Try to load from cache (if APCu available and not in debug mode)
 if (function_exists('apcu_enabled') && apcu_enabled() &&
     (!isset($GLOBALS['configs']['DEBUG']) || !$GLOBALS['configs']['DEBUG'])) {
-    $cacheKey = 'phpweave_model_files_' . (is_dir($modelsDir) ? filemtime($modelsDir) : 0);
     $cachedData = @apcu_fetch($cacheKey);
 
     if ($cachedData !== false && is_array($cachedData)) {

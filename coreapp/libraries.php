@@ -38,11 +38,11 @@
 $GLOBALS['_library_files'] = [];
 $librariesDir = "../libraries";
 $files = false;
+$cacheKey = 'phpweave_library_files_' . (is_dir($librariesDir) ? filemtime($librariesDir) : 0);
 
 // Try to load from cache (if APCu available and not in debug mode)
 if (function_exists('apcu_enabled') && apcu_enabled() &&
     (!isset($GLOBALS['configs']['DEBUG']) || !$GLOBALS['configs']['DEBUG'])) {
-    $cacheKey = 'phpweave_library_files_' . (is_dir($librariesDir) ? filemtime($librariesDir) : 0);
     $cachedData = @apcu_fetch($cacheKey);
 
     if ($cachedData !== false && is_array($cachedData)) {

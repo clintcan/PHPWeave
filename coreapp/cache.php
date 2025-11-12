@@ -327,7 +327,7 @@ class Cache
     public static function tags($tags)
     {
         self::$tags = is_array($tags) ? $tags : [$tags];
-        return new static();
+        return new self();
     }
 
     /**

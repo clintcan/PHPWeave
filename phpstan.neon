@@ -16,6 +16,4 @@ parameters:
       message: '#If condition is always false#'
       path: coreapp/hooks.php
       count: 1
-    # Query Builder is an opt-in trait (used by adding to models as needed)
-    - '#Trait QueryBuilder is used zero times and is not analysed#'
   treatPhpDocTypesAsCertain: false

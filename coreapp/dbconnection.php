@@ -198,7 +198,7 @@ class DBConnection
 	 * @return void
 	 * @throws Exception If connection fails
 	 */
-	private function connect()
+	protected function connect()
 	{
 		if ($this->connected) {
 			return; // Already connected

@@ -151,7 +151,7 @@ class Seeder
     protected function truncate($table)
     {
         // Get database driver
-        $driver = $this->db->driver ?? 'pdo_mysql';
+        $driver = $this->db->driver;
 
         try {
             // Different drivers have different truncate syntax
@@ -187,7 +187,7 @@ class Seeder
      */
     protected function delete($table)
     {
-        if ($this->query && method_exists($this->query, 'table')) {
+        if (is_object($this->query) && method_exists($this->query, 'table')) {
             $count = $this->query->table($table)->count();
             $this->query->raw("DELETE FROM {$table}");
             $this->output("✓ Deleted {$count} records from {$table}");
