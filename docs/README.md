@@ -157,6 +157,7 @@ Complete documentation for the PHPWeave framework.
 - [**DOCKER_DATABASE_SUPPORT.md**](DOCKER_DATABASE_SUPPORT.md) - Multi-database support (MySQL, PostgreSQL, SQLite, SQL Server) ⭐ NEW!
 - [**DOCKER_CACHING_GUIDE.md**](DOCKER_CACHING_GUIDE.md) - Caching strategies for Docker
 - [**DOCKER_CACHING_APPLIED.md**](DOCKER_CACHING_APPLIED.md) - Docker caching implementation summary
+- [**ENVIRONMENT_COMPATIBILITY.md**](ENVIRONMENT_COMPATIBILITY.md) - Cross-platform guide (Linux/Windows/macOS/Docker) ⭐ NEW!
 
 ### Docker Features
 
@@ -194,6 +195,7 @@ Complete documentation for the PHPWeave framework.
 | Use output buffering        | [OUTPUT_BUFFERING.md](OUTPUT_BUFFERING.md)                 |
 | Deploy to Docker            | [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md)               |
 | Harden Docker security      | [DOCKER_SECURITY.md](DOCKER_SECURITY.md)                   |
+| Run on different OS         | [ENVIRONMENT_COMPATIBILITY.md](ENVIRONMENT_COMPATIBILITY.md) ⭐ NEW! |
 | Optimize performance        | [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md)       |
 | Migrate from legacy routing | [MIGRATION_TO_NEW_ROUTING.md](MIGRATION_TO_NEW_ROUTING.md) |
 | Secure my application       | [SECURITY_BEST_PRACTICES.md](SECURITY_BEST_PRACTICES.md)   |
