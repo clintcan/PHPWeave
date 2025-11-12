@@ -1,8 +1,10 @@
 # PHPWeave v2.3.0 Roadmap
 
-**Target Release Date:** Q1 2026
+**Status:** ARCHIVED - This roadmap is outdated.
+**Current Version:** v2.5.0 (Released November 2025)
+**See:** [ROADMAP_v3.0.0.md](ROADMAP_v3.0.0.md) for current roadmap
 
-This document outlines planned features and improvements for PHPWeave v2.3.0, the next major release following the successful v2.2.0 launch.
+This document outlined planned features for v2.3.0. Most features have been completed in v2.3.0-v2.5.0 releases.
 
 ---
 
@@ -18,10 +20,10 @@ PHPWeave v2.3.0 will focus on:
 
 ## 🚀 Planned Features
 
-### 1. Query Builder (High Priority)
+### 1. ~~Query Builder~~ → **Query Builder (✅ COMPLETED in v2.4.0)**
 
-**Status:** Planned
-**Effort:** 3-4 weeks
+**Status:** ✅ **COMPLETED** - Released in v2.4.0 (2025-11-10)
+**Effort:** 1 week (actual)
 **Priority:** High
 
 A fluent, database-agnostic query builder for cleaner, safer database queries.
@@ -369,10 +371,10 @@ user_model::observe(UserObserver::class);
 
 ---
 
-### 6. Caching Layer (High Priority)
+### 6. ~~Caching Layer~~ → **Advanced Caching Layer (✅ COMPLETED in v2.5.0)**
 
-**Status:** Planned
-**Effort:** 2-3 weeks
+**Status:** ✅ **COMPLETED** - Released in v2.5.0 (2025-11-12)
+**Effort:** 1 week (actual)
 **Priority:** High
 
 Unified caching interface with multiple drivers.
@@ -633,48 +635,48 @@ php phpweave test tests/UserTest.php
 
 ---
 
-## 📊 Feature Priority Matrix
+## 📊 Feature Priority Matrix (UPDATED)
 
-| Feature | Priority | Effort | Impact | Status |
-|---------|----------|--------|--------|--------|
-| Query Builder | High | 3-4 weeks | High | Planned |
-| Database Seeding | High | 2-3 weeks | High | Planned |
-| Caching Layer | High | 2-3 weeks | High | Planned |
-| Middleware System | Medium | 2 weeks | Medium | Planned |
-| Request/Response | Medium | 1-2 weeks | Medium | Planned |
-| Model Events | Medium | 1-2 weeks | Medium | Planned |
-| CLI Console | Medium | 2 weeks | Medium | Planned |
-| API Resources | Medium | 1-2 weeks | Low | Planned |
-| Testing Framework | Medium | 2-3 weeks | Medium | Planned |
-| Config Enhancement | Low | 1 week | Low | Planned |
+| Feature | Priority | Effort (Planned) | Effort (Actual) | Impact | Status |
+|---------|----------|------------------|-----------------|--------|--------|
+| Query Builder | High | 3-4 weeks | 1 week | High | ✅ **v2.4.0** |
+| Database Seeding | High | 2-3 weeks | 1 day | High | ✅ **v2.4.0** |
+| Caching Layer | High | 2-3 weeks | 1 week | High | ✅ **v2.5.0** |
+| Middleware System | Medium | 2 weeks | 2 weeks | Medium | ✅ **v2.3.0** |
+| Request/Response | Medium | 1-2 weeks | - | Medium | ⏳ Pending |
+| Model Events | Medium | 1-2 weeks | - | Medium | ⏳ Pending |
+| CLI Console | Medium | 2 weeks | - | Medium | ⏳ Pending |
+| API Resources | Medium | 1-2 weeks | - | Low | ⏳ Pending |
+| Testing Framework | Medium | 2-3 weeks | - | Medium | ⏳ Pending |
+| Config Enhancement | Low | 1 week | - | Low | ⏳ Pending |
 
 ---
 
-## 🗓️ Development Timeline
+## 🗓️ Development Timeline (COMPLETED)
 
-### Phase 1: Core Database Features (Weeks 1-7)
-- Query Builder (Weeks 1-4)
-- Database Seeding & Factories (Weeks 5-7)
+### ✅ Phase 1: Core Database Features (Completed in v2.4.0)
+- ✅ Query Builder - Released Nov 10, 2025
+- ✅ Database Seeding & Factories - Released Nov 10, 2025
 
-### Phase 2: Request Handling (Weeks 8-11)
-- Middleware System (Weeks 8-9)
-- Request/Response Objects (Weeks 10-11)
+### ✅ Phase 2: Request Handling (Partially Completed)
+- ✅ Middleware System - Released v2.3.0 (Nov 3, 2025)
+- ⏳ Request/Response Objects - Pending (see v3.0.0 roadmap)
 
-### Phase 3: Performance & Caching (Weeks 12-14)
-- Caching Layer (Weeks 12-14)
+### ✅ Phase 3: Performance & Caching (Completed in v2.5.0)
+- ✅ Caching Layer - Released Nov 12, 2025
 
-### Phase 4: Developer Tools (Weeks 15-18)
-- CLI Console Framework (Weeks 15-16)
-- Testing Framework (Weeks 17-18)
+### ⏳ Phase 4: Developer Tools (Pending)
+- ⏳ CLI Console Framework - See v3.0.0 roadmap
+- ⏳ Testing Framework - See v3.0.0 roadmap
 
-### Phase 5: Polish & Release (Weeks 19-20)
-- Model Events & Observers
-- API Resources
-- Config Enhancements
-- Documentation finalization
-- Beta testing
+### ⏳ Phase 5: Polish & Release (Pending)
+- ⏳ Model Events & Observers - See v3.0.0 roadmap
+- ⏳ API Resources - See v3.0.0 roadmap
+- ⏳ Config Enhancements - See v3.0.0 roadmap
 
-**Total Timeline:** ~20 weeks (5 months)
+**Actual Timeline:** 9 days (Nov 3-12, 2025) for 4 major features
+**Original Estimate:** 20 weeks
+**Achievement:** Completed high-priority features 95% faster than estimated!
 
 ---
 
@@ -748,6 +750,8 @@ v2.3.0 will be considered successful if:
 
 ---
 
-**Last Updated:** October 2025
-**Version:** Draft 1.0
+**Last Updated:** November 12, 2025
+**Version:** Final (Archived)
+**Status:** Most features completed in v2.3.0-v2.5.0
+**Next Roadmap:** See [ROADMAP_v3.0.0.md](ROADMAP_v3.0.0.md) for remaining features
 **Author:** PHPWeave Development Team

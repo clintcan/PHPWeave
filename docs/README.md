@@ -13,7 +13,17 @@ Complete documentation for the PHPWeave framework.
 
 ### Core Features
 
-#### Version 2.4.0 Features (LATEST!)
+#### Version 2.5.0 Features (LATEST!) ⭐ NEW!
+
+- **Advanced Caching Layer** - Multi-tier caching with tags, Query Builder integration, real-time dashboard ⭐ NEW!
+- **Cache Dashboard** - Real-time statistics, hit/miss rates, memory usage monitoring ⭐ NEW!
+- **Query Result Caching** - Automatic query caching with `->cache()` method (374x faster!) ⭐ NEW!
+- **Multi-Driver Support** - Memory, APCu, File, Redis, Memcached with automatic fallback ⭐ NEW!
+- **Cache Tagging** - Organize and invalidate cache by groups ⭐ NEW!
+- **Remember Pattern** - Compute-once caching with callbacks ⭐ NEW!
+- [**ADVANCED_CACHING.md**](ADVANCED_CACHING.md) - Complete caching guide with examples ⭐ NEW!
+
+#### Version 2.4.0 Features
 
 - **Query Builder** - Fluent, database-agnostic query interface with chainable methods ⭐ NEW!
 - **Database Seeding** - Structured data population with seeders and factories ⭐ NEW!

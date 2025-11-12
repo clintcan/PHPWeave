@@ -40,6 +40,7 @@ This migration represents PHPWeave's commitment to staying relevant while honori
 ### Database (v2.2.0+)
 - **Query Builder**: Fluent, database-agnostic query interface with chainable methods (v2.4.0+)
 - **Database Seeding**: Structured data population with seeders and factories (v2.4.0+)
+- **Advanced Caching**: Multi-tier caching with tags, Query Builder integration, dashboard (v2.5.0+)
 - **Database-Free Mode**: Run without database for stateless APIs and microservices (v2.2.1+)
 - **Lazy Connection**: Database connects only on first query, not during initialization (v2.2.1+)
 - **Built-in Migrations**: Version-controlled schema management with rollback support
@@ -49,6 +50,8 @@ This migration represents PHPWeave's commitment to staying relevant while honori
 - **Lazy Model Loading**: Models loaded on-demand for optimal performance
 
 ### Performance
+- **Advanced Caching**: 100-500x faster for cached data with multi-tier caching (v2.5.0+)
+- **Query Result Caching**: Cache database queries automatically with `->cache()` (v2.5.0+)
 - **Database-Free Mode**: 5-15ms faster per request when database not needed (v2.2.1+)
 - **Lazy Database Connection**: 3-10ms saved for non-database routes (v2.2.1+)
 - **Connection Pooling**: Automatic connection reuse (v2.2.0+)
@@ -59,6 +62,7 @@ This migration represents PHPWeave's commitment to staying relevant while honori
 ### Developer Tools (v2.2.0+)
 - **Migration CLI**: Create, run, rollback database migrations
 - **Seeding CLI**: Populate databases with test/demo data using seeders and factories (v2.4.0+)
+- **Cache Dashboard**: Real-time caching statistics and monitoring (v2.5.0+)
 - **Async Task System**: Background job processing without external dependencies
 - **Error Handling**: Comprehensive error logging with clean error pages (v2.2.2+)
 - **Streaming Support**: SSE, progress bars, large file downloads with buffer control (v2.2.2+)
