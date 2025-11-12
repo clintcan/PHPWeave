@@ -18,7 +18,7 @@ parameters:
       count: 1
     # Factory::new() uses new static() intentionally (abstract factory pattern)
     -
-      message: '#Instantiated class Factory is abstract#'
+      message: '#Unsafe usage of new static\(\)#'
       path: coreapp/factory.php
       count: 1
   treatPhpDocTypesAsCertain: false
