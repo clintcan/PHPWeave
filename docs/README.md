@@ -13,13 +13,34 @@ Complete documentation for the PHPWeave framework.
 
 ### Core Features
 
-#### Version 2.4.0 Features (LATEST!)
+#### Version 2.6.0 Features (LATEST!) ⚡ NEW!
+
+- **⚡ Core Performance Optimizations** - 7-14ms faster per request with APCu caching ⚡ NEW!
+- **.env File Caching** - 95-98% faster parsing with auto-invalidation ⚡ NEW!
+- **File Discovery Caching** - 90-98% faster hooks/models/libraries discovery ⚡ NEW!
+- **Environment Detection** - 1,354x faster (99.9% improvement!) ⚡ NEW!
+- **Hybrid Tag Lookup** - 53-99% faster cache tag operations ⚡ NEW!
+- [**OPTIMIZATION_v2.6.0.md**](OPTIMIZATION_v2.6.0.md) - Complete optimization guide with benchmarks ⚡ NEW!
+
+#### Version 2.5.0 Features
+
+- **Advanced Caching Layer** - Multi-tier caching with tags, Query Builder integration, real-time dashboard ⭐ NEW!
+- **Cache Dashboard** - Real-time statistics, hit/miss rates, memory usage monitoring ⭐ NEW!
+- **Query Result Caching** - Automatic query caching with `->cache()` method (374x faster!) ⭐ NEW!
+- **Multi-Driver Support** - Memory, APCu, File, Redis, Memcached with automatic fallback ⭐ NEW!
+- **Cache Tagging** - Organize and invalidate cache by groups ⭐ NEW!
+- **Remember Pattern** - Compute-once caching with callbacks ⭐ NEW!
+- [**ADVANCED_CACHING.md**](ADVANCED_CACHING.md) - Complete caching guide with examples ⭐ NEW!
+
+#### Version 2.4.0 Features
 
 - **Query Builder** - Fluent, database-agnostic query interface with chainable methods ⭐ NEW!
+- **Database Seeding** - Structured data population with seeders and factories ⭐ NEW!
 - **Automatic Parameter Binding** - SQL injection protection with prepared statements
 - **Transaction Support** - Database transactions with commit/rollback
 - [**QUERY_BUILDER.md**](QUERY_BUILDER.md) - Complete Query Builder guide with 30+ examples ⭐ NEW!
 - [**QUERY_BUILDER_IMPLEMENTATION.md**](QUERY_BUILDER_IMPLEMENTATION.md) - Implementation summary and technical details ⭐ NEW!
+- [**SEEDING.md**](SEEDING.md) - Database seeding guide with seeders and factories ⭐ NEW!
 
 #### Version 2.2.2-1 Features
 

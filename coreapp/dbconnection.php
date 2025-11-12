@@ -198,7 +198,7 @@ class DBConnection
 	 * @return void
 	 * @throws Exception If connection fails
 	 */
-	private function connect()
+	protected function connect()
 	{
 		if ($this->connected) {
 			return; // Already connected
@@ -232,6 +232,19 @@ class DBConnection
 				die("A database error occurred. Please contact the administrator.");
 			}
 		}
+	}
+
+	/**
+	 * Ensure database connection is established
+	 *
+	 * Public method to explicitly ensure connection before operations.
+	 * Used by child classes that need direct PDO access (e.g., transactions).
+	 *
+	 * @return void
+	 */
+	public function ensureConnection()
+	{
+		$this->connect();
 	}
 
 	/**

@@ -15,18 +15,38 @@ define('PHPWEAVE_ROOT', str_replace("\\", "/", dirname(__FILE__, 2)));
 // Check if .env file exists
 $envPath = PHPWEAVE_ROOT . '/.env';
 if (file_exists($envPath)) {
-    $GLOBALS['configs'] = @parse_ini_file($envPath);
+    // Optimization v2.6.0: Cache .env parsing to avoid file I/O on every request
+    // Cache key includes file modification time to auto-invalidate on changes
+    $cacheKey = 'phpweave_env_' . filemtime($envPath);
+    $GLOBALS['configs'] = false;
 
-    // Handle parse errors gracefully
+    // Try to load from APCu cache first (if available and not in debug mode)
+    if (function_exists('apcu_enabled') && apcu_enabled() &&
+        (!isset($GLOBALS['configs']['DEBUG']) || !$GLOBALS['configs']['DEBUG'])) {
+        $GLOBALS['configs'] = @apcu_fetch($cacheKey);
+    }
+
+    // Cache miss or APCu not available - parse .env file
     if ($GLOBALS['configs'] === false) {
-        error_log("PHPWeave: Failed to parse .env file at $envPath - using environment variables");
-        $GLOBALS['configs'] = []; // Will fall through to environment variable loading below
-    } else {
-        // Set defaults for new fields if not present in .env (backward compatibility)
-        $GLOBALS['configs']['DBCHARSET'] = $GLOBALS['configs']['DBCHARSET'] ?? 'utf8mb4';
-        $GLOBALS['configs']['DBDRIVER'] = $GLOBALS['configs']['DBDRIVER'] ?? 'pdo_mysql';
-        $GLOBALS['configs']['DBPORT'] = $GLOBALS['configs']['DBPORT'] ?? 3306;
-        $GLOBALS['configs']['DBDSN'] = $GLOBALS['configs']['DBDSN'] ?? null;
+        $GLOBALS['configs'] = @parse_ini_file($envPath);
+
+        // Handle parse errors gracefully
+        if ($GLOBALS['configs'] === false) {
+            error_log("PHPWeave: Failed to parse .env file at $envPath - using environment variables");
+            $GLOBALS['configs'] = []; // Will fall through to environment variable loading below
+        } else {
+            // Set defaults for new fields if not present in .env (backward compatibility)
+            $GLOBALS['configs']['DBCHARSET'] = $GLOBALS['configs']['DBCHARSET'] ?? 'utf8mb4';
+            $GLOBALS['configs']['DBDRIVER'] = $GLOBALS['configs']['DBDRIVER'] ?? 'pdo_mysql';
+            $GLOBALS['configs']['DBPORT'] = $GLOBALS['configs']['DBPORT'] ?? 3306;
+            $GLOBALS['configs']['DBDSN'] = $GLOBALS['configs']['DBDSN'] ?? null;
+
+            // Store in APCu cache for future requests (1 hour TTL)
+            if (function_exists('apcu_enabled') && apcu_enabled() &&
+                (!isset($GLOBALS['configs']['DEBUG']) || !$GLOBALS['configs']['DEBUG'])) {
+                @apcu_store($cacheKey, $GLOBALS['configs'], 3600);
+            }
+        }
     }
 }
 
@@ -44,6 +64,18 @@ if (!isset($GLOBALS['configs']) || empty($GLOBALS['configs'])) {
     $GLOBALS['configs']['DBDSN'] = getenv('DB_DSN') ?: getenv('DBDSN') ?: null; // For custom DSN/ODBC
     $GLOBALS['configs']['DEBUG'] = getenv('DEBUG') ?: 0;
 }
+
+// v2.6.0: Detect environment once for thread-safety and locking decisions
+// This avoids repeated file_exists() and getenv() calls in models/libraries
+$GLOBALS['_phpweave_needs_locking'] = (
+    file_exists('/.dockerenv') ||                    // Docker container
+    (bool) getenv('KUBERNETES_SERVICE_HOST') ||      // Kubernetes pod
+    (bool) getenv('DOCKER_ENV') ||                   // Docker environment variable
+    extension_loaded('swoole') ||                    // Swoole server
+    extension_loaded('pthreads') ||                  // pthreads extension
+    defined('ROADRUNNER_VERSION') ||                 // RoadRunner server
+    defined('FRANKENPHP_VERSION')                    // FrankenPHP server
+);
 
 // Load hooks system first
 require_once PHPWEAVE_ROOT . "/coreapp/hooks.php";

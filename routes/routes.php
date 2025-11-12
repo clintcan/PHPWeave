@@ -32,6 +32,13 @@ Route::get('/blog/:id:', 'Blog@showPost');
 Route::post('/blog', 'Blog@store');
 Route::get('/blog/slugify/:text:', 'Blog@slugify');
 
+// Cache Dashboard routes (v2.5.0+)
+Route::get('/cache/dashboard', 'CacheDashboard@index');
+Route::get('/cache/stats', 'CacheDashboard@stats');
+Route::post('/cache/reset', 'CacheDashboard@reset');
+Route::post('/cache/flush', 'CacheDashboard@flush');
+Route::get('/cache/driver', 'CacheDashboard@driver');
+
 // Example: User routes (uncomment when User controller exists)
 // Route::get('/user/:id:', 'User@show');
 // Route::post('/user', 'User@create');

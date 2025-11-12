@@ -17,7 +17,8 @@
         "vimeo/psalm": "^6.0"
     },
     "suggest": {
-        "opis/closure": "Required for Async::run() with closures (background task serialization)"
+        "opis/closure": "Required for Async::run() with closures (background task serialization)",
+        "fakerphp/faker": "Generate realistic fake data for database seeding (optional, built-in faker available)"
     },
     "autoload": {
         "classmap": [
