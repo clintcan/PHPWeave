@@ -34,13 +34,46 @@
  */
 
 // Discover all model files but don't instantiate yet
-$files = glob("../models/*.php");
+// v2.6.0: Cache file list in APCu to avoid repeated glob() calls
 $GLOBALS['_model_files'] = [];
+$modelsDir = "../models";
+$files = false;
 
-foreach ($files as $file) {
-    require_once $file;
-    $modelName = basename($file, ".php");
-    $GLOBALS['_model_files'][$modelName] = $modelName;
+// Try to load from cache (if APCu available and not in debug mode)
+if (function_exists('apcu_enabled') && apcu_enabled() &&
+    (!isset($GLOBALS['configs']['DEBUG']) || !$GLOBALS['configs']['DEBUG'])) {
+    $cacheKey = 'phpweave_model_files_' . (is_dir($modelsDir) ? filemtime($modelsDir) : 0);
+    $cachedData = @apcu_fetch($cacheKey);
+
+    if ($cachedData !== false && is_array($cachedData)) {
+        $files = $cachedData['files'];
+        $GLOBALS['_model_files'] = $cachedData['model_names'];
+    }
+}
+
+// Cache miss or APCu not available - scan directory
+if ($files === false) {
+    $files = glob($modelsDir . "/*.php");
+
+    foreach ($files as $file) {
+        require_once $file;
+        $modelName = basename($file, ".php");
+        $GLOBALS['_model_files'][$modelName] = $modelName;
+    }
+
+    // Store in cache for future requests
+    if (function_exists('apcu_enabled') && apcu_enabled() &&
+        (!isset($GLOBALS['configs']['DEBUG']) || !$GLOBALS['configs']['DEBUG'])) {
+        @apcu_store($cacheKey, [
+            'files' => $files,
+            'model_names' => $GLOBALS['_model_files']
+        ], 3600);
+    }
+} else {
+    // Load files from cache (still need to require_once them)
+    foreach ($files as $file) {
+        require_once $file;
+    }
 }
 
 /**
@@ -66,18 +99,10 @@ function model($modelName) {
         return $instances[$modelName];
     }
 
-    // Detect environment and locking requirements once
+    // v2.6.0: Use pre-detected environment from index.php (optimization)
     if ($needsLocking === null) {
-        $needsLocking = (
-            file_exists('/.dockerenv') ||                    // Docker container
-            (bool) getenv('KUBERNETES_SERVICE_HOST') ||      // Kubernetes pod
-            (bool) getenv('DOCKER_ENV') ||                   // Docker environment variable
-            extension_loaded('swoole') ||                    // Swoole server
-            extension_loaded('pthreads') ||                  // pthreads extension
-            defined('ROADRUNNER_VERSION') ||                 // RoadRunner server
-            defined('FRANKENPHP_VERSION')                    // FrankenPHP server
-        );
-        
+        $needsLocking = $GLOBALS['_phpweave_needs_locking'] ?? false;
+
         if ($needsLocking && $lockFile === null) {
             $lockFile = sys_get_temp_dir() . '/phpweave_models.lock';
         }

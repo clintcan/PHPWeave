@@ -548,12 +548,30 @@ class Hook
             return;
         }
 
-        $files = glob($hooksDir . '/*.php');
+        // v2.6.0: Try to load hook file list from cache
+        $files = false;
+        $cacheKey = 'phpweave_hook_files_' . filemtime($hooksDir);
 
-        if ($files === false) {
-            return;
+        // Use APCu cache if available and not in debug mode
+        if (function_exists('apcu_enabled') && apcu_enabled() && !self::isDebugEnabled()) {
+            $files = @apcu_fetch($cacheKey);
         }
 
+        // Cache miss or APCu not available - scan directory
+        if ($files === false) {
+            $files = glob($hooksDir . '/*.php');
+
+            if ($files === false) {
+                return;
+            }
+
+            // Store in cache for future requests
+            if (function_exists('apcu_enabled') && apcu_enabled() && !self::isDebugEnabled()) {
+                @apcu_store($cacheKey, $files, 3600);
+            }
+        }
+
+        // Load hook files
         foreach ($files as $file) {
             try {
                 require_once $file;

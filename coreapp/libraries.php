@@ -34,13 +34,46 @@
  */
 
 // Discover all library files but don't instantiate yet
-$files = glob("../libraries/*.php");
+// v2.6.0: Cache file list in APCu to avoid repeated glob() calls
 $GLOBALS['_library_files'] = [];
+$librariesDir = "../libraries";
+$files = false;
 
-foreach ($files as $file) {
-    require_once $file;
-    $libraryName = basename($file, ".php");
-    $GLOBALS['_library_files'][$libraryName] = $libraryName;
+// Try to load from cache (if APCu available and not in debug mode)
+if (function_exists('apcu_enabled') && apcu_enabled() &&
+    (!isset($GLOBALS['configs']['DEBUG']) || !$GLOBALS['configs']['DEBUG'])) {
+    $cacheKey = 'phpweave_library_files_' . (is_dir($librariesDir) ? filemtime($librariesDir) : 0);
+    $cachedData = @apcu_fetch($cacheKey);
+
+    if ($cachedData !== false && is_array($cachedData)) {
+        $files = $cachedData['files'];
+        $GLOBALS['_library_files'] = $cachedData['library_names'];
+    }
+}
+
+// Cache miss or APCu not available - scan directory
+if ($files === false) {
+    $files = glob($librariesDir . "/*.php");
+
+    foreach ($files as $file) {
+        require_once $file;
+        $libraryName = basename($file, ".php");
+        $GLOBALS['_library_files'][$libraryName] = $libraryName;
+    }
+
+    // Store in cache for future requests
+    if (function_exists('apcu_enabled') && apcu_enabled() &&
+        (!isset($GLOBALS['configs']['DEBUG']) || !$GLOBALS['configs']['DEBUG'])) {
+        @apcu_store($cacheKey, [
+            'files' => $files,
+            'library_names' => $GLOBALS['_library_files']
+        ], 3600);
+    }
+} else {
+    // Load files from cache (still need to require_once them)
+    foreach ($files as $file) {
+        require_once $file;
+    }
 }
 
 /**
@@ -66,18 +99,10 @@ function library($libraryName) {
         return $instances[$libraryName];
     }
 
-    // Detect environment and locking requirements once
+    // v2.6.0: Use pre-detected environment from index.php (optimization)
     if ($needsLocking === null) {
-        $needsLocking = (
-            file_exists('/.dockerenv') ||                    // Docker container
-            (bool) getenv('KUBERNETES_SERVICE_HOST') ||      // Kubernetes pod
-            (bool) getenv('DOCKER_ENV') ||                   // Docker environment variable
-            extension_loaded('swoole') ||                    // Swoole server
-            extension_loaded('pthreads') ||                  // pthreads extension
-            defined('ROADRUNNER_VERSION') ||                 // RoadRunner server
-            defined('FRANKENPHP_VERSION')                    // FrankenPHP server
-        );
-        
+        $needsLocking = $GLOBALS['_phpweave_needs_locking'] ?? false;
+
         if ($needsLocking && $lockFile === null) {
             $lockFile = sys_get_temp_dir() . '/phpweave_libraries.lock';
         }
