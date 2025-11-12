@@ -232,8 +232,7 @@ class APCuCacheDriver implements CacheDriver
             return false;
         }
 
-        $result = @apcu_inc($key, $value);
-        return $result === false ? false : $result;
+        return @apcu_inc($key, $value);
     }
 
     /**
@@ -245,8 +244,7 @@ class APCuCacheDriver implements CacheDriver
             return false;
         }
 
-        $result = @apcu_dec($key, $value);
-        return $result === false ? false : $result;
+        return @apcu_dec($key, $value);
     }
 
     /**

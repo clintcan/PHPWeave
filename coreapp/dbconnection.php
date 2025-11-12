@@ -235,6 +235,19 @@ class DBConnection
 	}
 
 	/**
+	 * Ensure database connection is established
+	 *
+	 * Public method to explicitly ensure connection before operations.
+	 * Used by child classes that need direct PDO access (e.g., transactions).
+	 *
+	 * @return void
+	 */
+	public function ensureConnection()
+	{
+		$this->connect();
+	}
+
+	/**
 	 * Execute a prepared SQL statement
 	 *
 	 * Prepares and executes an SQL statement with optional parameter binding.

@@ -16,4 +16,9 @@ parameters:
       message: '#If condition is always false#'
       path: coreapp/hooks.php
       count: 1
+    # Factory::new() uses new static() intentionally (abstract factory pattern)
+    -
+      message: '#Instantiated class Factory is abstract#'
+      path: coreapp/factory.php
+      count: 1
   treatPhpDocTypesAsCertain: false

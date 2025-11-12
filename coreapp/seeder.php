@@ -314,7 +314,7 @@ class Seeder
      */
     protected function beginTransaction()
     {
-        $this->db->connect();
+        $this->db->ensureConnection();
         $this->db->pdo->beginTransaction();
     }
 

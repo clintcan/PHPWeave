@@ -398,11 +398,11 @@ abstract class Factory
     /**
      * Create a new factory instance
      *
-     * @return self
+     * @return static
      */
     public static function new()
     {
-        return new self();
+        return new static();
     }
 
     /**
