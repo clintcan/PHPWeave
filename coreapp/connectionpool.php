@@ -149,6 +149,11 @@ class ConnectionPool
 	 */
 	public static function releaseConnection($conn, $poolKey = null)
 	{
+		// Validate connection is not null
+		if ($conn === null) {
+			return false;
+		}
+
 		// If no pool key provided, use hash map for O(1) lookup (performance optimization)
 		if ($poolKey === null) {
 			$connId = spl_object_id($conn);
@@ -303,6 +308,11 @@ class ConnectionPool
 	 */
 	private static function removeConnection($poolKey, $conn)
 	{
+		// Validate connection is not null
+		if ($conn === null) {
+			return;
+		}
+
 		if (isset(self::$pools[$poolKey])) {
 			// Remove from connections array
 			$index = array_search($conn, self::$pools[$poolKey]['connections'], true);

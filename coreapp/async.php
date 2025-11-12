@@ -356,10 +356,25 @@ unlink(__FILE__);
         $phpBinary = PHP_BINARY; // This gives the full path to the current PHP executable
 
         if (stripos(PHP_OS, 'WIN') === 0) {
-            // Windows
-            $handle = popen('start /B ' . escapeshellarg($phpBinary) . ' ' . escapeshellarg($command), 'r');
-            if ($handle !== false) {
-                pclose($handle);
+            // Windows - use proper quoting and detach from console
+            $cmd = sprintf(
+                'start "" /B "%s" "%s" >nul 2>&1',
+                $phpBinary,
+                $command
+            );
+            // Use proc_open for better process control
+            $descriptorspec = [
+                0 => ['pipe', 'r'],  // stdin
+                1 => ['pipe', 'w'],  // stdout
+                2 => ['pipe', 'w'],  // stderr
+            ];
+            $process = proc_open($cmd, $descriptorspec, $pipes, null, null, ['bypass_shell' => false]);
+            if (is_resource($process)) {
+                // Close pipes and free the resource
+                fclose($pipes[0]);
+                fclose($pipes[1]);
+                fclose($pipes[2]);
+                proc_close($process);
             }
         } else {
             // Unix/Linux/Mac

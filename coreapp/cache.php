@@ -341,27 +341,27 @@ class Cache
     {
         foreach ($tags as $tag) {
             $tagKey = self::$prefix . 'tag:' . $tag;
-            $keys = self::getDriver()->get($tagKey) ?? [];
+            $items = self::getDriver()->get($tagKey) ?? [];
+
+            // Store both key and its tags for proper reconstruction during flush
+            $item = ['key' => $key, 'tags' => $tags];
 
             // v2.6.0: Optimized lookup - use array_flip for large arrays (O(1) vs O(n))
             // Benchmark shows cached flip is 53-99% faster for arrays with >10 keys
-            $count = count($keys);
-            if ($count === 0) {
-                $keys[] = $key;
-                self::getDriver()->put($tagKey, $keys, 0);
-            } elseif ($count > 50) {
-                // For larger arrays, array_flip + isset is much faster
-                $keysFlipped = array_flip($keys);
-                if (!isset($keysFlipped[$key])) {
-                    $keys[] = $key;
-                    self::getDriver()->put($tagKey, $keys, 0);
+            $count = count($items);
+            $keyExists = false;
+
+            // Check if key already exists (avoid duplicates)
+            foreach ($items as $existing) {
+                if ($existing['key'] === $key) {
+                    $keyExists = true;
+                    break;
                 }
-            } else {
-                // For small arrays, in_array is still competitive
-                if (!in_array($key, $keys)) {
-                    $keys[] = $key;
-                    self::getDriver()->put($tagKey, $keys, 0); // No expiration for tag mappings
-                }
+            }
+
+            if (!$keyExists) {
+                $items[] = $item;
+                self::getDriver()->put($tagKey, $items, 0); // No expiration for tag mappings
             }
         }
     }
@@ -376,10 +376,15 @@ class Cache
     {
         foreach ($tags as $tag) {
             $tagKey = self::$prefix . 'tag:' . $tag;
-            $keys = self::getDriver()->get($tagKey) ?? [];
+            $items = self::getDriver()->get($tagKey) ?? [];
 
-            foreach ($keys as $key) {
-                self::getDriver()->forget(self::key($key));
+            foreach ($items as $item) {
+                // Reconstruct the full key using the stored tags
+                $key = $item['key'];
+                $itemTags = $item['tags'];
+                $tagPrefix = implode(':', $itemTags) . ':';
+                $fullKey = self::$prefix . $tagPrefix . $key;
+                self::getDriver()->forget($fullKey);
             }
 
             // Remove tag mapping
