@@ -4,6 +4,7 @@
 # Simplifies Docker Compose operations for BunkerWeb WAF setup
 #
 # Usage: ./bunkerweb.sh [command]
+#        ./bunkerweb.sh --local [command]  # Use local setup (no SSL/domain)
 #
 # IMPORTANT: Make executable with: chmod +x bunkerweb.sh
 
@@ -16,8 +17,23 @@ MAGENTA='\033[0;35m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# Docker Compose file
-COMPOSE_FILE="docker-compose.bunkerweb.yml"
+# Check for --local flag
+USE_LOCAL=false
+if [ "$1" = "--local" ] || [ "$1" = "-l" ]; then
+    USE_LOCAL=true
+    shift  # Remove --local from arguments
+fi
+
+# Docker Compose file (production or local)
+if [ "$USE_LOCAL" = true ]; then
+    COMPOSE_FILE="docker-compose.bunkerweb-local.yml"
+    ENV_SAMPLE=".env.bunkerweb-local.sample"
+    SETUP_TYPE="Local/Internal (No SSL/Domain)"
+else
+    COMPOSE_FILE="docker-compose.bunkerweb.yml"
+    ENV_SAMPLE=".env.bunkerweb.sample"
+    SETUP_TYPE="Production (SSL/Domain)"
+fi
 
 # Check if Docker Compose file exists
 check_compose_file() {
@@ -44,12 +60,26 @@ print_header() {
     echo -e "${CYAN}║   PHPWeave v2.6.0                          ║${NC}"
     echo -e "${CYAN}╚════════════════════════════════════════════╝${NC}"
     echo ""
+    if [ "$USE_LOCAL" = true ]; then
+        echo -e "${MAGENTA}Mode: Local/Internal (No SSL/Domain)${NC}"
+        echo -e "${YELLOW}File: $COMPOSE_FILE${NC}"
+    else
+        echo -e "${MAGENTA}Mode: Production (SSL/Domain)${NC}"
+        echo -e "${YELLOW}File: $COMPOSE_FILE${NC}"
+    fi
+    echo ""
 }
 
 # Show menu
 show_menu() {
     echo -e "${BLUE}Available Commands:${NC}"
     echo ""
+    if [ "$USE_LOCAL" = false ]; then
+        echo -e "  ${GREEN}Setup Mode:${NC}"
+        echo "    --local       - Switch to local mode (no SSL/domain)"
+        echo "    Example: ./bunkerweb.sh --local start"
+        echo ""
+    fi
     echo -e "  ${GREEN}Setup & Deployment:${NC}"
     echo "    setup         - Initial setup (copy .env, pull images)"
     echo "    start         - Start all services"
@@ -98,9 +128,9 @@ cmd_setup() {
     echo -e "${YELLOW}Running initial setup...${NC}"
     echo ""
 
-    # Check if .env.bunkerweb.sample exists
-    if [ ! -f ".env.bunkerweb.sample" ]; then
-        echo -e "${RED}Error: .env.bunkerweb.sample not found!${NC}"
+    # Check if env sample exists
+    if [ ! -f "$ENV_SAMPLE" ]; then
+        echo -e "${RED}Error: $ENV_SAMPLE not found!${NC}"
         echo "Please make sure you are in the PHPWeave root directory."
         exit 1
     fi
@@ -109,15 +139,15 @@ cmd_setup() {
     if [ -f ".env" ]; then
         echo -e "${GREEN}.env file already exists.${NC}"
         echo ""
-        read -p "Do you want to replace it with BunkerWeb config? (y/N): " overwrite
+        read -p "Do you want to replace it with $SETUP_TYPE config? (y/N): " overwrite
         if [ "$overwrite" != "y" ] && [ "$overwrite" != "Y" ]; then
             echo "Keeping existing .env file."
-            echo -e "${YELLOW}Make sure it has BunkerWeb configuration (DOMAIN, BW_ADMIN_PASSWORD, etc.)${NC}"
+            echo -e "${YELLOW}Make sure it has BunkerWeb configuration${NC}"
         else
             echo "Backing up existing .env to .env.backup..."
             cp .env .env.backup
-            cp .env.bunkerweb.sample .env
-            echo -e "${GREEN}Copied .env.bunkerweb.sample to .env${NC}"
+            cp "$ENV_SAMPLE" .env
+            echo -e "${GREEN}Copied $ENV_SAMPLE to .env${NC}"
             echo ""
             echo -e "${YELLOW}⚠ IMPORTANT: Edit .env and configure:${NC}"
             echo "  - DOMAIN (your actual domain)"
@@ -128,11 +158,13 @@ cmd_setup() {
             ${EDITOR:-nano} .env
         fi
     else
-        echo -e "${GREEN}Copying .env.bunkerweb.sample to .env...${NC}"
-        cp .env.bunkerweb.sample .env
+        echo -e "${GREEN}Copying $ENV_SAMPLE to .env...${NC}"
+        cp "$ENV_SAMPLE" .env
         echo -e "${YELLOW}⚠ IMPORTANT: Edit .env and configure:${NC}"
-        echo "  - DOMAIN (your actual domain)"
-        echo "  - EMAIL (for Let's Encrypt)"
+        if [ "$USE_LOCAL" = false ]; then
+            echo "  - DOMAIN (your actual domain)"
+            echo "  - EMAIL (for Let's Encrypt)"
+        fi
         echo "  - All passwords (BW_ADMIN_PASSWORD, MYSQL_ROOT_PASSWORD, DB_PASSWORD)"
         echo ""
         read -p "Press Enter to edit .env now, or Ctrl+C to skip..."
@@ -525,7 +557,7 @@ cmd_errors() {
 
 # Show info
 cmd_info() {
-    echo -e "${BLUE}Service Information:${NC}"
+    echo -e "${BLUE}Service Information (${SETUP_TYPE}):${NC}"
     echo ""
 
     if [ -f ".env" ]; then
@@ -537,10 +569,15 @@ cmd_info() {
         fi
 
         echo -e "${GREEN}Access URLs:${NC}"
-        if [ "$DOMAIN" != "www.example.com" ] && [ ! -z "$DOMAIN" ]; then
-            echo "  PHPWeave (via WAF): https://$DOMAIN"
+        if [ "$USE_LOCAL" = true ]; then
+            echo "  PHPWeave (via WAF): http://localhost"
+            echo "  From LAN:           http://YOUR_IP (e.g., http://192.168.1.100)"
         else
-            echo "  PHPWeave (via WAF): http://localhost (configure DOMAIN in .env)"
+            if [ "$DOMAIN" != "www.example.com" ] && [ ! -z "$DOMAIN" ]; then
+                echo "  PHPWeave (via WAF): https://$DOMAIN"
+            else
+                echo "  PHPWeave (via WAF): http://localhost (configure DOMAIN in .env)"
+            fi
         fi
         echo "  Admin UI:           http://localhost:7000"
         echo "  phpMyAdmin:         http://localhost:8081"
@@ -553,10 +590,17 @@ cmd_info() {
     fi
 
     echo -e "${GREEN}Management Commands:${NC}"
-    echo "  View logs:    ./bunkerweb.sh logs"
-    echo "  Check status: ./bunkerweb.sh status"
-    echo "  Run tests:    ./bunkerweb.sh test"
-    echo "  Get help:     ./bunkerweb.sh help"
+    if [ "$USE_LOCAL" = true ]; then
+        echo "  View logs:    ./bunkerweb.sh --local logs"
+        echo "  Check status: ./bunkerweb.sh --local status"
+        echo "  Run tests:    ./bunkerweb.sh --local test"
+        echo "  Get help:     ./bunkerweb.sh --local help"
+    else
+        echo "  View logs:    ./bunkerweb.sh logs"
+        echo "  Check status: ./bunkerweb.sh status"
+        echo "  Run tests:    ./bunkerweb.sh test"
+        echo "  Get help:     ./bunkerweb.sh help"
+    fi
     echo ""
 }
 

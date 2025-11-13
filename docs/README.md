@@ -162,7 +162,8 @@ Complete documentation for the PHPWeave framework.
 ### BunkerWeb WAF (Enterprise Security) ⭐ NEW!
 
 - [**BUNKERWEB_WAF_GUIDE.md**](BUNKERWEB_WAF_GUIDE.md) - Complete WAF deployment guide (1,000+ lines) ⭐ NEW!
-- [**BUNKERWEB_SETUP.md**](BUNKERWEB_SETUP.md) - Quick setup guide (5 minutes) ⭐ NEW!
+- [**BUNKERWEB_SETUP.md**](BUNKERWEB_SETUP.md) - Production setup with SSL/domain (5 minutes) ⭐ NEW!
+- [**BUNKERWEB_LOCAL_SETUP.md**](BUNKERWEB_LOCAL_SETUP.md) - Local/internal setup (no SSL/domain) ⭐ NEW!
 - [**BUNKERWEB_SCRIPTS_README.md**](BUNKERWEB_SCRIPTS_README.md) - Management scripts documentation ⭐ NEW!
 
 ### Docker Features
@@ -201,7 +202,8 @@ Complete documentation for the PHPWeave framework.
 | Use output buffering        | [OUTPUT_BUFFERING.md](OUTPUT_BUFFERING.md)                 |
 | Deploy to Docker            | [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md)               |
 | Harden Docker security      | [DOCKER_SECURITY.md](DOCKER_SECURITY.md)                   |
-| Deploy with WAF protection  | [BUNKERWEB_SETUP.md](BUNKERWEB_SETUP.md) ⭐ NEW!          |
+| Deploy WAF (production)     | [BUNKERWEB_SETUP.md](BUNKERWEB_SETUP.md) ⭐ NEW!          |
+| Deploy WAF (local/dev)      | [BUNKERWEB_LOCAL_SETUP.md](BUNKERWEB_LOCAL_SETUP.md) ⭐ NEW! |
 | Manage WAF with scripts     | [BUNKERWEB_SCRIPTS_README.md](BUNKERWEB_SCRIPTS_README.md) ⭐ NEW! |
 | Run on different OS         | [ENVIRONMENT_COMPATIBILITY.md](ENVIRONMENT_COMPATIBILITY.md) ⭐ NEW! |
 | Optimize performance        | [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md)       |

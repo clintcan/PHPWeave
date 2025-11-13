@@ -6,13 +6,12 @@ Convenient management scripts for running PHPWeave with BunkerWeb WAF.
 
 ## 📦 Available Scripts
 
-Three versions of the same functionality for different platforms:
+Two versions of the same functionality for different platforms:
 
 1. **`bunkerweb.sh`** - Linux/macOS (Bash)
 2. **`bunkerweb.bat`** - Windows (Batch)
-3. **`bunkerweb.ps1`** - Windows (PowerShell)
 
-All scripts provide the same commands and functionality.
+Both scripts provide the same commands and functionality.
 
 ---
 
@@ -34,7 +33,7 @@ chmod +x bunkerweb.sh
 ./bunkerweb.sh
 ```
 
-### Windows (Batch)
+### Windows
 
 ```cmd
 # Run setup
@@ -45,23 +44,6 @@ bunkerweb.bat start
 
 # View menu
 bunkerweb.bat
-```
-
-### Windows (PowerShell)
-
-```powershell
-# If execution policy prevents running:
-PowerShell -ExecutionPolicy Bypass -File .\bunkerweb.ps1 setup
-
-# Or allow script execution:
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-
-# Then run normally:
-.\bunkerweb.ps1 setup
-.\bunkerweb.ps1 start
-
-# View menu
-.\bunkerweb.ps1
 ```
 
 ---
@@ -140,11 +122,8 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 # Linux/macOS
 ./bunkerweb.sh setup
 
-# Windows Batch
+# Windows
 bunkerweb.bat setup
-
-# Windows PowerShell
-.\bunkerweb.ps1 setup
 ```
 
 **What it does:**
@@ -167,8 +146,6 @@ bunkerweb.bat setup
 
 # Windows
 bunkerweb.bat start
-# or
-.\bunkerweb.ps1 start
 ```
 
 **What it does:**
@@ -425,12 +402,6 @@ nano .env
 - CMD.exe compatible
 - Uses findstr for filtering
 
-**Windows PowerShell (bunkerweb.ps1):**
-- PowerShell 5.1+ compatible
-- Colored output with Write-Host
-- Advanced error handling
-- Native Invoke-WebRequest for testing
-
 ---
 
 ## ⚙️ Configuration
@@ -464,14 +435,6 @@ Then use:
 bw start
 bw status
 bw logs
-```
-
-### Create Alias (Windows PowerShell)
-
-Add to PowerShell profile:
-
-```powershell
-Set-Alias -Name bw -Value "D:\Projects\PHPWeave\bunkerweb.ps1"
 ```
 
 ---

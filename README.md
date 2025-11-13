@@ -1372,6 +1372,10 @@ Customize error pages by modifying `coreapp/router.php`:
 - **docs/DOCKER_CACHING_GUIDE.md** - Caching strategies for Docker (APCu vs file)
 - **docs/DOCKER_CACHING_APPLIED.md** - Docker caching implementation summary
 - **docs/KUBERNETES_DEPLOYMENT.md** - Kubernetes deployment with auto-scaling
+- **docs/BUNKERWEB_WAF_GUIDE.md** - Complete BunkerWeb WAF deployment guide (1,000+ lines)
+- **docs/BUNKERWEB_SETUP.md** - Quick BunkerWeb setup for production (5 minutes)
+- **docs/BUNKERWEB_LOCAL_SETUP.md** - BunkerWeb setup for local/internal environments
+- **docs/BUNKERWEB_SCRIPTS_README.md** - Management scripts documentation
 
 ### Testing
 - **tests/README.md** - Testing guide

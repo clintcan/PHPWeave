@@ -3,10 +3,31 @@ REM BunkerWeb Management Script for PHPWeave (Windows)
 REM Simplifies Docker Compose operations for BunkerWeb WAF setup
 REM
 REM Usage: bunkerweb.bat [command]
+REM        bunkerweb.bat --local [command]  (Use local setup, no SSL/domain)
 
 setlocal enabledelayedexpansion
 
-set COMPOSE_FILE=docker-compose.bunkerweb.yml
+REM Check for --local flag
+set USE_LOCAL=false
+set FIRST_ARG=%1
+if /i "%1"=="--local" (
+    set USE_LOCAL=true
+    shift
+) else if /i "%1"=="-l" (
+    set USE_LOCAL=true
+    shift
+)
+
+REM Set compose file based on mode
+if "%USE_LOCAL%"=="true" (
+    set COMPOSE_FILE=docker-compose.bunkerweb-local.yml
+    set ENV_SAMPLE=.env.bunkerweb-local.sample
+    set SETUP_TYPE=Local/Internal ^(No SSL/Domain^)
+) else (
+    set COMPOSE_FILE=docker-compose.bunkerweb.yml
+    set ENV_SAMPLE=.env.bunkerweb.sample
+    set SETUP_TYPE=Production ^(SSL/Domain^)
+)
 
 REM Check if Docker Compose file exists
 if not exist "%COMPOSE_FILE%" (
@@ -24,6 +45,7 @@ if errorlevel 1 (
 )
 
 REM If no command, show menu
+if "%FIRST_ARG%"=="" goto :show_menu
 if "%1"=="" goto :show_menu
 
 REM Process command
@@ -67,6 +89,13 @@ echo   BunkerWeb WAF Management Script
 echo   PHPWeave v2.6.0
 echo ============================================
 echo.
+echo Mode: %SETUP_TYPE%
+echo File: %COMPOSE_FILE%
+echo.
+if "%USE_LOCAL%"=="false" (
+    echo To use local mode: bunkerweb.bat --local [command]
+    echo.
+)
 echo Available Commands:
 echo.
 echo   Setup ^& Deployment:
@@ -113,12 +142,12 @@ echo.
 exit /b 0
 
 :cmd_setup
-echo Running initial setup...
+echo Running initial setup (%SETUP_TYPE%)...
 echo.
 
-REM Check if .env.bunkerweb.sample exists
-if not exist ".env.bunkerweb.sample" (
-    echo Error: .env.bunkerweb.sample not found!
+REM Check if env sample exists
+if not exist "%ENV_SAMPLE%" (
+    echo Error: %ENV_SAMPLE% not found!
     echo Please make sure you are in the PHPWeave root directory.
     exit /b 1
 )
@@ -127,22 +156,24 @@ REM Check if .env exists
 if exist ".env" (
     echo .env file already exists.
     echo.
-    set /p overwrite="Do you want to replace it with BunkerWeb config? (y/N): "
+    set /p overwrite="Do you want to replace it with %SETUP_TYPE% config? (y/N): "
     if /i not "!overwrite!"=="y" (
         echo Keeping existing .env file.
-        echo Make sure it has BunkerWeb configuration (DOMAIN, BW_ADMIN_PASSWORD, etc.)
+        echo Make sure it has BunkerWeb configuration
         goto :setup_pull_images
     )
     echo Backing up existing .env to .env.backup...
     copy .env .env.backup >nul
 )
 
-echo Copying .env.bunkerweb.sample to .env...
-copy .env.bunkerweb.sample .env >nul
+echo Copying %ENV_SAMPLE% to .env...
+copy "%ENV_SAMPLE%" .env >nul
 echo.
 echo WARNING: Edit .env and configure:
-echo   - DOMAIN (your actual domain)
-echo   - EMAIL (for Let's Encrypt)
+if "%USE_LOCAL%"=="false" (
+    echo   - DOMAIN (your actual domain)
+    echo   - EMAIL (for Let's Encrypt)
+)
 echo   - All passwords (BW_ADMIN_PASSWORD, MYSQL_ROOT_PASSWORD, DB_PASSWORD)
 echo.
 echo Opening .env in Notepad...

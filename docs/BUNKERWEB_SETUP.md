@@ -2,6 +2,8 @@
 
 Quick setup guide for deploying PHPWeave with BunkerWeb WAF protection.
 
+> **Note:** This guide is for **production deployments with a domain and SSL certificate**. For local/internal setups without SSL, see [BUNKERWEB_LOCAL_SETUP.md](BUNKERWEB_LOCAL_SETUP.md).
+
 ---
 
 ## 🛡️ What is BunkerWeb?
@@ -386,9 +388,19 @@ docker logs phpweave-bw-ui
 
 For complete documentation, configuration options, and advanced topics:
 
-**See:** `docs/BUNKERWEB_WAF_GUIDE.md`
+**Production Setup (with domain/SSL):**
+- This guide: `docs/BUNKERWEB_SETUP.md`
 
-**Includes:**
+**Local/Internal Setup (no domain/SSL):**
+- Local guide: `docs/BUNKERWEB_LOCAL_SETUP.md`
+
+**Complete Reference:**
+- Full guide: `docs/BUNKERWEB_WAF_GUIDE.md`
+
+**Management Scripts:**
+- Scripts guide: `docs/BUNKERWEB_SCRIPTS_README.md`
+
+**Full WAF Guide includes:**
 - Detailed configuration reference (30+ options)
 - Multi-site setup
 - Geo-blocking
