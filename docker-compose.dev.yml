@@ -77,8 +77,9 @@ services:
     environment:
       PMA_HOST: db
       PMA_PORT: 3306
-      PMA_USER: dev
-      PMA_PASSWORD: dev
+      # Don't set PMA_USER/PMA_PASSWORD - let users login manually
+      # Login with: dev / dev
+      PMA_ARBITRARY: 1
     ports:
       - "8081:80"
     depends_on:

@@ -112,7 +112,10 @@ Complete documentation for the PHPWeave framework.
 - **Security Rating: A (Excellent)**
 - **OWASP Top 10 (2021) Compliant**
 - **Automated Security Analysis: PHPStan + Psalm**
+- **Web Application Firewall: ModSecurity + OWASP CRS** ⭐ NEW!
 
+- [**MODSECURITY_GUIDE.md**](MODSECURITY_GUIDE.md) - Complete ModSecurity WAF integration guide ⭐ NEW!
+- [**MODSECURITY_QUICK_REFERENCE.md**](MODSECURITY_QUICK_REFERENCE.md) - Quick commands and configuration reference ⭐ NEW!
 - [**PSALM_CONFIGURATION_SUMMARY.md**](PSALM_CONFIGURATION_SUMMARY.md) - Complete Psalm security configuration and current status ⭐ LATEST!
 - [**SECURITY_ANALYSIS.md**](SECURITY_ANALYSIS.md) - Psalm security analysis guide (SQL injection, XSS, path traversal detection)
 - [**PSALM_SETUP_COMPLETE.md**](PSALM_SETUP_COMPLETE.md) - Psalm setup summary and quick reference
