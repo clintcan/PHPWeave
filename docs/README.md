@@ -112,7 +112,10 @@ Complete documentation for the PHPWeave framework.
 - **Security Rating: A (Excellent)**
 - **OWASP Top 10 (2021) Compliant**
 - **Automated Security Analysis: PHPStan + Psalm**
+- **Web Application Firewall: ModSecurity + OWASP CRS** ⭐ NEW!
 
+- [**MODSECURITY_GUIDE.md**](MODSECURITY_GUIDE.md) - Complete ModSecurity WAF integration guide ⭐ NEW!
+- [**MODSECURITY_QUICK_REFERENCE.md**](MODSECURITY_QUICK_REFERENCE.md) - Quick commands and configuration reference ⭐ NEW!
 - [**PSALM_CONFIGURATION_SUMMARY.md**](PSALM_CONFIGURATION_SUMMARY.md) - Complete Psalm security configuration and current status ⭐ LATEST!
 - [**SECURITY_ANALYSIS.md**](SECURITY_ANALYSIS.md) - Psalm security analysis guide (SQL injection, XSS, path traversal detection)
 - [**PSALM_SETUP_COMPLETE.md**](PSALM_SETUP_COMPLETE.md) - Psalm setup summary and quick reference
@@ -159,6 +162,13 @@ Complete documentation for the PHPWeave framework.
 - [**DOCKER_CACHING_APPLIED.md**](DOCKER_CACHING_APPLIED.md) - Docker caching implementation summary
 - [**ENVIRONMENT_COMPATIBILITY.md**](ENVIRONMENT_COMPATIBILITY.md) - Cross-platform guide (Linux/Windows/macOS/Docker) ⭐ NEW!
 
+### BunkerWeb WAF (Enterprise Security) ⭐ NEW!
+
+- [**BUNKERWEB_WAF_GUIDE.md**](BUNKERWEB_WAF_GUIDE.md) - Complete WAF deployment guide (1,000+ lines) ⭐ NEW!
+- [**BUNKERWEB_SETUP.md**](BUNKERWEB_SETUP.md) - Production setup with SSL/domain (5 minutes) ⭐ NEW!
+- [**BUNKERWEB_LOCAL_SETUP.md**](BUNKERWEB_LOCAL_SETUP.md) - Local/internal setup (no SSL/domain) ⭐ NEW!
+- [**BUNKERWEB_SCRIPTS_README.md**](BUNKERWEB_SCRIPTS_README.md) - Management scripts documentation ⭐ NEW!
+
 ### Docker Features
 
 - ✅ APCu in-memory caching (optimal for containers)
@@ -195,6 +205,9 @@ Complete documentation for the PHPWeave framework.
 | Use output buffering        | [OUTPUT_BUFFERING.md](OUTPUT_BUFFERING.md)                 |
 | Deploy to Docker            | [DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md)               |
 | Harden Docker security      | [DOCKER_SECURITY.md](DOCKER_SECURITY.md)                   |
+| Deploy WAF (production)     | [BUNKERWEB_SETUP.md](BUNKERWEB_SETUP.md) ⭐ NEW!          |
+| Deploy WAF (local/dev)      | [BUNKERWEB_LOCAL_SETUP.md](BUNKERWEB_LOCAL_SETUP.md) ⭐ NEW! |
+| Manage WAF with scripts     | [BUNKERWEB_SCRIPTS_README.md](BUNKERWEB_SCRIPTS_README.md) ⭐ NEW! |
 | Run on different OS         | [ENVIRONMENT_COMPATIBILITY.md](ENVIRONMENT_COMPATIBILITY.md) ⭐ NEW! |
 | Optimize performance        | [OPTIMIZATIONS_APPLIED.md](OPTIMIZATIONS_APPLIED.md)       |
 | Migrate from legacy routing | [MIGRATION_TO_NEW_ROUTING.md](MIGRATION_TO_NEW_ROUTING.md) |

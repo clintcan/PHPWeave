@@ -1,0 +1,105 @@
+# Docker Compose for PHPWeave with ModSecurity WAF
+# Production-ready setup with APCu caching and ModSecurity protection
+#
+# This configuration uses Dockerfile.modsecurity which includes:
+# - ModSecurity v2.9.x
+# - OWASP Core Rule Set v4.7.0
+# - Enhanced security protection against OWASP Top 10
+#
+# USAGE:
+# 1. Create .env file from sample:
+#    cp .env.sample .env
+#    nano .env  # Edit with your values
+#
+# 2. (Optional) Customize ModSecurity rules:
+#    nano docker/modsecurity-custom.conf
+#
+# 3. Build and start services:
+#    docker compose -f docker-compose.modsecurity.yml up -d --build
+#
+# 4. Test protection:
+#    php tests/test_modsecurity.php http://localhost:8080
+#
+# 5. View ModSecurity logs:
+#    docker exec phpweave-modsec tail -f /var/log/apache2/modsec_audit.log
+#
+# See docs/MODSECURITY_GUIDE.md for complete documentation
+
+services:
+  # PHP Application with Apache + ModSecurity WAF
+  phpweave:
+    build:
+      context: .
+      dockerfile: Dockerfile.modsecurity
+    container_name: phpweave-modsec
+    ports:
+      - "${APP_PORT:-8080}:80"
+    volumes:
+      # Mount .env file (create from .env.sample)
+      - ./.env:/var/www/html/.env:ro
+      # Optional: Mount ModSecurity logs for persistence
+      - modsec-logs:/var/log/apache2
+      # Optional: Mount cache directory for persistence (not needed with APCu)
+      # - cache-data:/var/www/html/cache
+    environment:
+      - DOCKER_ENV=${DOCKER_ENV:-production}
+      - PHPWEAVE_ENV=${PHPWEAVE_ENV:-production}
+      # ModSecurity configuration (optional - can be set in modsecurity-custom.conf)
+      - MODSEC_RULE_ENGINE=${MODSEC_RULE_ENGINE:-On}
+    restart: unless-stopped
+    networks:
+      - phpweave-network
+    depends_on:
+      - db
+
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: phpweave-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-phpweave}
+      MYSQL_USER: ${DB_USER:-phpweave_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-phpweave_pass}
+    volumes:
+      - db-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    networks:
+      - phpweave-network
+
+  # Optional: phpMyAdmin for database management
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpweave-phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      # Don't set PMA_USER/PMA_PASSWORD - let users login manually
+      # Use these credentials to login:
+      # Username: phpweave_user (or root)
+      # Password: phpweave_pass (or rootpassword for root)
+      PMA_ARBITRARY: 1
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - phpweave-network
+
+volumes:
+  db-data:
+    driver: local
+  modsec-logs:
+    driver: local
+    # ModSecurity audit logs will be persisted here
+    # Access with: docker run --rm -v phpweave_modsec-logs:/logs alpine cat /logs/modsec_audit.log
+  # Optional: Uncomment if using file cache instead of APCu
+  # cache-data:
+  #   driver: local
+
+networks:
+  phpweave-network:
+    driver: bridge

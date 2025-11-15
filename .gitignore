@@ -1,4 +1,6 @@
 .env
+.*-old
+*-old.php
 vendor/
 *.log
 composer.lock
