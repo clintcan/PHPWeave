@@ -1,0 +1,266 @@
+# Docker Compose for PHPWeave with BunkerWeb WAF
+# Enterprise-grade security with Web Application Firewall protection
+#
+# BunkerWeb provides:
+# - Web Application Firewall (ModSecurity + OWASP Core Rule Set)
+# - DDoS protection and rate limiting
+# - Automatic SSL/TLS with Let's Encrypt
+# - Bot detection and blocking
+# - Advanced security headers
+# - Reverse proxy with caching
+#
+# USAGE:
+# 1. Configure your domain in .env file:
+#    DOMAIN=www.example.com
+#    EMAIL=admin@example.com
+#
+# 2. Start services:
+#    docker compose -f docker-compose.bunkerweb.yml up -d
+#
+# 3. Access admin UI: http://your-server:7000 (credentials below)
+#
+# IMPORTANT: Replace www.example.com with your actual domain!
+
+services:
+  # BunkerWeb WAF - Main reverse proxy with security features
+  bunkerweb:
+    image: bunkerity/bunkerweb:1.6.5
+    container_name: phpweave-bunkerweb
+    ports:
+      - "80:8080"      # HTTP
+      - "443:8443"     # HTTPS
+      - "443:8443/udp" # QUIC/HTTP3
+    environment:
+      # Server configuration
+      - SERVER_NAME=${DOMAIN:-www.example.com}
+      - MULTISITE=no
+      - LOG_LEVEL=info
+
+      # Let's Encrypt SSL (automatic HTTPS)
+      - AUTO_LETS_ENCRYPT=yes
+      - LETS_ENCRYPT_EMAIL=${EMAIL:-admin@example.com}
+
+      # Reverse proxy to PHPWeave
+      - USE_REVERSE_PROXY=yes
+      - REVERSE_PROXY_URL=/
+      - REVERSE_PROXY_HOST=http://phpweave:80
+      - REVERSE_PROXY_HEADERS=X-Forwarded-For $$remote_addr;X-Forwarded-Proto $$scheme;X-Forwarded-Host $$host;X-Real-IP $$remote_addr
+
+      # ModSecurity WAF configuration
+      - USE_MODSECURITY=yes
+      - USE_MODSECURITY_CRS=yes
+      - MODSECURITY_CRS_VERSION=4
+
+      # Rate limiting (protection against DDoS)
+      - USE_LIMIT_REQ=yes
+      - LIMIT_REQ_URL=/
+      - LIMIT_REQ_RATE=30r/s     # 30 requests per second
+      - USE_LIMIT_CONN=yes
+      - LIMIT_CONN_MAX_HTTP1=10  # Max 10 HTTP/1 connections per IP
+      - LIMIT_CONN_MAX_HTTP2=100 # Max 100 HTTP/2 streams per IP
+
+      # Bot protection
+      - USE_BAD_BEHAVIOR=yes
+      - USE_DNSBL=yes
+      - USE_WHITELIST=yes
+      - USE_GREYLIST=yes
+      - USE_BLACKLIST=yes
+
+      # Security headers
+      - COOKIE_FLAGS=* HttpOnly SameStrict Secure
+      - COOKIE_AUTO_SECURE_FLAG=yes
+      - IFRAME_PROTECTION=same-origin
+      - CONTENT_TYPE_NOSNIFF=yes
+      - X_CONTENT_TYPE_OPTIONS=nosniff
+      - REFERRER_POLICY=strict-origin-when-cross-origin
+      - PERMISSIONS_POLICY=accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), display-capture=(), document-domain=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=()
+
+      # Caching (improves performance)
+      - USE_CLIENT_CACHE=yes
+      - CLIENT_CACHE_EXTENSIONS=jpg|jpeg|png|gif|ico|svg|css|js|woff|woff2|ttf|eot|webp
+      - CLIENT_CACHE_CONTROL=public, max-age=2592000
+
+      # Compression
+      - USE_GZIP=yes
+      - GZIP_TYPES=text/html text/css text/plain text/xml text/javascript application/javascript application/json application/xml+rss
+
+      # API access (for scheduler and UI)
+      - API_WHITELIST_IP=127.0.0.0/8 10.20.30.0/24
+
+      # Database connection (for settings persistence)
+      - DATABASE_URI=mariadb+pymysql://bunkerweb:changeme@bw-db:3306/db
+
+      # Redis for session/cache
+      - USE_REDIS=yes
+      - REDIS_HOST=redis
+    labels:
+      # BunkerWeb autoconf labels (alternative configuration method)
+      - "bunkerweb.INSTANCE=yes"
+    volumes:
+      - bw-data:/data
+      - bw-cache:/var/cache/bunkerweb
+      - bw-logs:/var/log/bunkerweb
+    networks:
+      - bw-universe
+      - bw-services
+    restart: unless-stopped
+    depends_on:
+      - bw-scheduler
+      - phpweave
+
+  # BunkerWeb Scheduler - Manages configuration and tasks
+  bw-scheduler:
+    image: bunkerity/bunkerweb-scheduler:1.6.5
+    container_name: phpweave-bw-scheduler
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - DATABASE_URI=mariadb+pymysql://bunkerweb:changeme@bw-db:3306/db
+      - AUTOCONF_MODE=yes
+      - API_WHITELIST_IP=127.0.0.0/8 10.20.30.0/24
+      - LOG_LEVEL=info
+    volumes:
+      - bw-data:/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - bw-universe
+      - bw-docker
+    restart: unless-stopped
+    depends_on:
+      - bw-db
+      - redis
+
+  # BunkerWeb UI - Web-based administration interface
+  bw-ui:
+    image: bunkerity/bunkerweb-ui:1.6.5
+    container_name: phpweave-bw-ui
+    ports:
+      - "7000:7000"  # Admin UI port
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - DATABASE_URI=mariadb+pymysql://bunkerweb:changeme@bw-db:3306/db
+      - ABSOLUTE_URI=${BW_UI_URL:-http://localhost:7000}
+      - ADMIN_USERNAME=${BW_ADMIN_USER:-admin}
+      - ADMIN_PASSWORD=${BW_ADMIN_PASSWORD:-changeme}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - bw-universe
+      - bw-docker
+    restart: unless-stopped
+    depends_on:
+      - bw-db
+
+  # MariaDB - Database for BunkerWeb settings
+  bw-db:
+    image: mariadb:11
+    container_name: phpweave-bw-db
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+      - MYSQL_DATABASE=db
+      - MYSQL_USER=bunkerweb
+      - MYSQL_PASSWORD=changeme
+    volumes:
+      - bw-db-data:/var/lib/mysql
+    networks:
+      - bw-universe
+    restart: unless-stopped
+
+  # Redis - Caching and session storage for BunkerWeb
+  redis:
+    image: redis:7-alpine
+    container_name: phpweave-redis
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    networks:
+      - bw-universe
+    restart: unless-stopped
+
+  # PHPWeave Application (protected by BunkerWeb)
+  phpweave:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: phpweave-app
+    expose:
+      - "80"  # Internal only - not exposed to host (proxied through BunkerWeb)
+    volumes:
+      # Mount .env file
+      - ./.env:/var/www/html/.env:ro
+    environment:
+      - DOCKER_ENV=${DOCKER_ENV:-production}
+      - PHPWEAVE_ENV=${PHPWEAVE_ENV:-production}
+      # Behind reverse proxy
+      - BEHIND_PROXY=1
+    restart: unless-stopped
+    networks:
+      - bw-services
+      - phpweave-network
+    depends_on:
+      - db
+
+  # MySQL Database for PHPWeave
+  db:
+    image: mysql:8.0
+    container_name: phpweave-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-phpweave}
+      MYSQL_USER: ${DB_USER:-phpweave_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-phpweave_pass}
+    volumes:
+      - db-data:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - phpweave-network
+
+  # Optional: phpMyAdmin for database management
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpweave-phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      # Don't set PMA_USER/PMA_PASSWORD - let users login manually
+      # Login with credentials from .env: DB_USER / DB_PASSWORD (or root)
+      PMA_ARBITRARY: 1
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - phpweave-network
+
+volumes:
+  # BunkerWeb volumes
+  bw-data:
+    driver: local
+  bw-cache:
+    driver: local
+  bw-logs:
+    driver: local
+  bw-db-data:
+    driver: local
+  redis-data:
+    driver: local
+
+  # PHPWeave volumes
+  db-data:
+    driver: local
+
+networks:
+  # BunkerWeb networks
+  bw-universe:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.20.30.0/24
+  bw-services:
+    driver: bridge
+  bw-docker:
+    driver: bridge
+
+  # PHPWeave network
+  phpweave-network:
+    driver: bridge
