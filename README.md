@@ -8,6 +8,8 @@
 
 A lightweight, homegrown PHP MVC framework born from simplicity and evolved with modern routing.
 
+See our YouTube page! See the playlist by clicking on the image below:
+
 [![PHPWeave Introduction](https://img.youtube.com/vi/I1MrryMDNy4/0.jpg)](https://www.youtube.com/playlist?list=PL_j-bWAoH4iMVCQNEntNfHJVwDmWtsTUu)
 
 ## History
