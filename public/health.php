@@ -1,6 +1,29 @@
 <?php
 header('Content-Type: application/json');
 
+// Load .env file if it exists (simple parser that ignores comments)
+$envFile = __DIR__ . '/../.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        // Skip comments and empty lines
+        if (strpos(trim($line), '#') === 0 || empty(trim($line))) {
+            continue;
+        }
+        // Parse KEY=VALUE
+        if (strpos($line, '=') !== false) {
+            list($key, $value) = explode('=', $line, 2);
+            $key = trim($key);
+            $value = trim($value);
+            // Remove quotes if present
+            $value = trim($value, '"\'');
+            if (!getenv($key)) {
+                putenv("$key=$value");
+            }
+        }
+    }
+}
+
 $health = [
     'status' => 'healthy',
     'timestamp' => date('c'),
@@ -24,10 +47,11 @@ if (extension_loaded('apcu') && ini_get('apc.enabled')) {
 
 // Check database connection
 try {
-    $dbhost = getenv('DBHOST') ?: 'localhost';
-    $dbname = getenv('DBNAME') ?: 'phpweave';
-    $dbuser = getenv('DBUSER') ?: 'root';
-    $dbpass = getenv('DBPASSWORD') ?: '';
+    // Support both old (DBHOST) and new (DB_HOST) naming conventions
+    $dbhost = getenv('DB_HOST') ?: getenv('DBHOST') ?: 'localhost';
+    $dbname = getenv('DB_NAME') ?: getenv('DBNAME') ?: 'phpweave';
+    $dbuser = getenv('DB_USER') ?: getenv('DBUSER') ?: 'root';
+    $dbpass = getenv('DB_PASSWORD') ?: getenv('DBPASSWORD') ?: '';
     
     $pdo = new PDO("mysql:host=$dbhost;dbname=$dbname", $dbuser, $dbpass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

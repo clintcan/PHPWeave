@@ -154,7 +154,8 @@ Enterprise-grade WAF platform with web UI, automatic SSL, DDoS protection, and a
 
 ### Files
 - **Docker Compose**: `docker-compose.bunkerweb.yml`
-- **Local/Internal**: `docker-compose.bunkerweb-local.yml`
+
+**Note**: For local/development use, **use ModSecurity instead** (`docker-compose.modsecurity.yml`). BunkerWeb requires full orchestration (Docker Swarm/Kubernetes) or production domain/SSL setup to function properly.
 
 ### Quick Start
 ```bash
@@ -223,9 +224,12 @@ Internet → BunkerWeb (80/443) → Scheduler → PHPWeave
 
 ### Documentation
 - **Production Setup**: `docs/BUNKERWEB_SETUP.md`
-- **Local/Internal Setup**: `docs/BUNKERWEB_LOCAL_SETUP.md`
 - **Management Scripts**: `docs/BUNKERWEB_SCRIPTS_README.md`
 - **Complete Guide**: `docs/BUNKERWEB_WAF_GUIDE.md`
+
+**For local/development WAF protection**, see ModSecurity documentation:
+- **ModSecurity Guide**: `docs/MODSECURITY_GUIDE.md`
+- **Quick Reference**: `docs/MODSECURITY_QUICK_REFERENCE.md`
 
 ---
 
