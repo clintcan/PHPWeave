@@ -23,17 +23,33 @@ echo "╚═══════════════════════�
 /**
  * Test helper function
  */
-function testAttack($name, $url, $expectBlocked = true) {
+function testAttack($name, $url, $expectBlocked = true, $customHeaders = []) {
     global $testResults, $passed, $failed;
 
-    $ch = curl_init($url);
+    $ch = curl_init();
+    if ($ch === false) {
+        die("Failed to initialize cURL\n");
+    }
+
+    curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
+    // Add custom headers if provided
+    if (!empty($customHeaders)) {
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $customHeaders);
+    }
+
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+    // Check for curl errors
+    if ($httpCode === 0 || $response === false) {
+        $httpCode = 'ERROR: ' . curl_error($ch);
+    }
+
     curl_close($ch);
 
     $isBlocked = ($httpCode == 403);
@@ -52,7 +68,7 @@ function testAttack($name, $url, $expectBlocked = true) {
     $testResults[] = [
         'name' => $name,
         'expected' => $expectBlocked ? 'Blocked (403)' : 'Allowed (200)',
-        'actual' => "HTTP $httpCode",
+        'actual' => is_numeric($httpCode) ? "HTTP $httpCode" : (string)$httpCode,
         'passed' => $testPassed
     ];
 
@@ -68,17 +84,17 @@ echo "────────────────────────�
 // 1. SQL Injection
 testAttack(
     "SQL Injection (UNION)",
-    "$baseUrl/?id=1' UNION SELECT NULL--"
+    "$baseUrl/?id=" . rawurlencode("1' UNION SELECT NULL--")
 );
 
 testAttack(
     "SQL Injection (Boolean)",
-    "$baseUrl/?id=1' OR '1'='1"
+    "$baseUrl/?id=" . rawurlencode("1' OR '1'='1")
 );
 
 testAttack(
     "SQL Injection (Time-based)",
-    "$baseUrl/?id=1'; WAITFOR DELAY '00:00:05'--"
+    "$baseUrl/?id=" . rawurlencode("1'; WAITFOR DELAY '00:00:05'--")
 );
 
 // 2. Cross-Site Scripting (XSS)
@@ -130,9 +146,10 @@ testAttack(
 );
 
 // 5. File Upload Attacks
+// Test using PHP code in GET parameter (simpler attack pattern)
 testAttack(
-    "File Upload (PHP shell)",
-    "$baseUrl/?file=" . urlencode("shell.php.jpg")
+    "File Upload (PHP backdoor)",
+    "$baseUrl/?upload=" . rawurlencode("<?php eval(\$_POST[1]);?>")
 );
 
 // 6. XML External Entity (XXE)
@@ -155,7 +172,9 @@ testAttack(
 // 8. Security Bypass Attempts
 testAttack(
     "User-Agent Scanner Detection",
-    "$baseUrl/"
+    "$baseUrl/",
+    true,
+    ['User-Agent: Nikto/2.1.5']
 );
 
 echo "\nTesting PHPWeave-Specific Protection:\n";
