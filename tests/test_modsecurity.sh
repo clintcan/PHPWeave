@@ -21,6 +21,24 @@ GREEN='\033[32m'
 YELLOW='\033[33m'
 RESET='\033[0m'
 
+# URL encoding function (replaces Python dependency)
+urlencode() {
+    local string="${1}"
+    local strlen=${#string}
+    local encoded=""
+    local pos c o
+
+    for (( pos=0 ; pos<strlen ; pos++ )); do
+        c=${string:$pos:1}
+        case "$c" in
+            [-_.~a-zA-Z0-9] ) o="${c}" ;;
+            * ) printf -v o '%%%02x' "'$c"
+        esac
+        encoded+="${o}"
+    done
+    echo "${encoded}"
+}
+
 # Arrays to store test results
 declare -a TEST_NAMES
 declare -a TEST_EXPECTED
@@ -105,28 +123,28 @@ echo "────────────────────────�
 # 1. SQL Injection
 test_attack \
     "SQL Injection (UNION)" \
-    "$BASE_URL/?id=$(python3 -c 'import urllib.parse; print(urllib.parse.quote("1'\'' UNION SELECT NULL--"))')"
+    "$BASE_URL/?id=$(urlencode "1' UNION SELECT NULL--")"
 
 test_attack \
     "SQL Injection (Boolean)" \
-    "$BASE_URL/?id=$(python3 -c 'import urllib.parse; print(urllib.parse.quote("1'\'' OR '\''1'\''='\''1"))')"
+    "$BASE_URL/?id=$(urlencode "1' OR '1'='1")"
 
 test_attack \
     "SQL Injection (Time-based)" \
-    "$BASE_URL/?id=$(python3 -c 'import urllib.parse; print(urllib.parse.quote("1'\''; WAITFOR DELAY '\''00:00:05'\''--"))')"
+    "$BASE_URL/?id=$(urlencode "1'; WAITFOR DELAY '00:00:05'--")"
 
 # 2. Cross-Site Scripting (XSS)
 test_attack \
     "XSS (Script tag)" \
-    "$BASE_URL/?q=$(python3 -c 'import urllib.parse; print(urllib.parse.quote("<script>alert('\''XSS'\'')</script>"))')"
+    "$BASE_URL/?q=$(urlencode "<script>alert('XSS')</script>")"
 
 test_attack \
     "XSS (Event handler)" \
-    "$BASE_URL/?q=$(python3 -c 'import urllib.parse; print(urllib.parse.quote("<img src=x onerror=alert(1)>"))')"
+    "$BASE_URL/?q=$(urlencode "<img src=x onerror=alert(1)>")"
 
 test_attack \
     "XSS (JavaScript protocol)" \
-    "$BASE_URL/?url=$(python3 -c 'import urllib.parse; print(urllib.parse.quote("javascript:alert(1)"))')"
+    "$BASE_URL/?url=$(urlencode "javascript:alert(1)")"
 
 # 3. Path Traversal / Local File Inclusion
 test_attack \
@@ -144,34 +162,34 @@ test_attack \
 # 4. Remote Code Execution
 test_attack \
     "RCE (PHP eval)" \
-    "$BASE_URL/?cmd=$(python3 -c 'import urllib.parse; print(urllib.parse.quote("<?php system('\''ls'\''); ?>"))')"
+    "$BASE_URL/?cmd=$(urlencode "<?php system('ls'); ?>")"
 
 test_attack \
     "RCE (Command injection)" \
-    "$BASE_URL/?cmd=$(python3 -c 'import urllib.parse; print(urllib.parse.quote("ls; cat /etc/passwd"))')"
+    "$BASE_URL/?cmd=$(urlencode "ls; cat /etc/passwd")"
 
 test_attack \
     "RCE (Shell command)" \
-    "$BASE_URL/?cmd=$(python3 -c 'import urllib.parse; print(urllib.parse.quote("| whoami"))')"
+    "$BASE_URL/?cmd=$(urlencode "| whoami")"
 
 # 5. File Upload Attacks
 test_attack \
     "File Upload (PHP backdoor)" \
-    "$BASE_URL/?upload=$(python3 -c 'import urllib.parse; print(urllib.parse.quote("<?php eval(\$_POST[1]);?>"))')"
+    "$BASE_URL/?upload=$(urlencode "<?php eval(\$_POST[1]);?>")"
 
 # 6. XML External Entity (XXE)
 test_attack \
     "XXE Attack" \
-    "$BASE_URL/?xml=$(python3 -c 'import urllib.parse; print(urllib.parse.quote("<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><foo>&xxe;</foo>"))')"
+    "$BASE_URL/?xml=$(urlencode '<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>')"
 
 # 7. Server-Side Request Forgery (SSRF)
 test_attack \
     "SSRF (Internal IP)" \
-    "$BASE_URL/?url=$(python3 -c 'import urllib.parse; print(urllib.parse.quote("http://127.0.0.1/admin"))')"
+    "$BASE_URL/?url=$(urlencode "http://127.0.0.1/admin")"
 
 test_attack \
     "SSRF (Metadata service)" \
-    "$BASE_URL/?url=$(python3 -c 'import urllib.parse; print(urllib.parse.quote("http://169.254.169.254/latest/meta-data/"))')"
+    "$BASE_URL/?url=$(urlencode "http://169.254.169.254/latest/meta-data/")"
 
 # 8. Security Bypass Attempts
 test_attack \
